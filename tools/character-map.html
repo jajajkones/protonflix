@@ -31,12 +31,14 @@ header a:hover{color:var(--text)}
 .selected .close{background:none;color:var(--muted);border:none;font-size:20px;cursor:pointer}
 .copied-toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#22c55e;color:#000;padding:10px 20px;border-radius:var(--radius);font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:101}
 .copied-toast.show{opacity:1}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+@media(max-width:768px){header{padding:20px}.content{padding:20px}.char{width:40px;height:40px;font-size:16px}.grid{grid-template-columns:repeat(auto-fill,minmax(40px,1fr))}.selected{left:10px;right:10px;transform:none;width:auto}}
 </style>
 </head>
 <body>
 <header><h1>Character Map</h1><a href="index.html">← Back to Tools</a></header>
 <div class="content">
-<input class="search" id="search" placeholder="Search characters..." oninput="filterChars()">
+<label class="sr-only" for="search">Search characters</label><input class="search" id="search" placeholder="Search characters..." oninput="filterChars()">
 <div class="tabs" id="tabs"></div>
 <div class="grid" id="grid"></div>
 </div>

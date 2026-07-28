@@ -66,9 +66,10 @@ a{color:#fff;text-decoration:none}
 <script>
 function fromC(val,src){
 let c;
-if(src==='c')c=parseFloat(val)||0;
+if(src==='c')c=parseFloat(val);
 else if(src==='f')c=(parseFloat(val)-32)*5/9;
 else c=parseFloat(val)-273.15;
+if(isNaN(c)){document.getElementById('formula').innerHTML='<strong style="color:#ef4444">Please enter a valid number</strong>';return;}
 if(src!=='c')document.getElementById('celsius').value=c.toFixed(2);
 if(src!=='f')document.getElementById('fahrenheit').value=(c*9/5+32).toFixed(2);
 if(src!=='k')document.getElementById('kelvin').value=(c+273.15).toFixed(2);

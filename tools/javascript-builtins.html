@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaScript Built-in Objects Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#fff;font-family:'Outfit',sans-serif;min-height:100vh;padding:20px}
+.header{display:flex;align-items:center;gap:20px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #222}
+.header h1{font-size:1.8rem;font-weight:600}
+.header a{color:#737373;text-decoration:none;font-size:0.9rem;transition:color .2s}
+.header a:hover{color:#fff}
+.search{width:100%;padding:12px 16px;background:#111;border:1px solid #222;border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:1rem;outline:none;transition:border-color .2s;margin-bottom:20px}
+.search:focus{border-color:#555}
+.search::placeholder{color:#737373}
+.stats{color:#737373;font-size:0.85rem;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.card{background:#111;border:1px solid #222;border-radius:10px;padding:20px;transition:all .2s;cursor:pointer}
+.card:hover{border-color:#555;background:#151515}
+.card.copied{border-color:#4ade80;box-shadow:0 0 16px rgba(74,222,128,0.12)}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.card-name{font-weight:700;font-size:1.15rem;color:#e5e5e5}
+.card-badge{font-size:0.7rem;padding:3px 8px;border-radius:4px;background:#1e3a5f;color:#60a5fa;font-weight:500}
+.card-badge.constructor{background:#3b1f4e;color:#c084fc}
+.card-badge.global{background:#1f3b2a;color:#4ade80}
+.methods-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.method-tag{font-family:'Courier New',monospace;font-size:0.75rem;background:#0a0a0a;border:1px solid #222;padding:3px 8px;border-radius:4px;color:#a5a5a5;cursor:pointer;transition:all .2s}
+.method-tag:hover{border-color:#4ade80;color:#4ade80;background:#0f1f15}
+.method-tag.copied{border-color:#4ade80;color:#4ade80}
+.copied-toast{position:fixed;bottom:24px;right:24px;background:#222;color:#4ade80;padding:10px 18px;border-radius:8px;font-size:0.85rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.copied-toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html">← Back</a>
+<h1>JavaScript Built-in Objects Reference</h1>
+</div>
+<input type="text" class="search" placeholder="Search objects or methods..." id="searchInput" aria-label="Search JavaScript built-in objects">
+<div class="stats" id="stats"></div>
+<div class="grid" id="grid"></div>
+<div class="copied-toast" id="toast">Copied!</div>
+<script>
+const builtins=[
+{name:"Array",badge:"constructor",methods:["isArray()","from()","of()","prototype.concat()","prototype.copyWithin()","prototype.entries()","prototype.fill()","prototype.filter()","prototype.find()","prototype.findIndex()","prototype.flat()","prototype.flatMap()","prototype.forEach()","prototype.includes()","prototype.indexOf()","prototype.join()","prototype.keys()","prototype.lastIndexOf()","prototype.map()","prototype.pop()","prototype.push()","prototype.reduce()","prototype.reduceRight()","prototype.reverse()","prototype.shift()","prototype.slice()","prototype.some()","prototype.sort()","prototype.splice()","prototype.toLocaleString()","prototype.toString()","prototype.unshift()","prototype.values()"]},
+{name:"Boolean",badge:"constructor",methods:["prototype.toString()","prototype.valueOf()"]},
+{name:"Date",badge:"constructor",methods:["now()","parse()","UTC()","prototype.getDate()","prototype.getDay()","prototype.getFullYear()","prototype.getHours()","prototype.getMilliseconds()","prototype.getMinutes()","prototype.getMonth()","prototype.getSeconds()","prototype.getTime()","prototype.getTimezoneOffset()","prototype.getUTCDate()","prototype.getUTCDay()","prototype.getUTCFullYear()","prototype.getUTCHours()","prototype.getUTCMilliseconds()","prototype.getUTCMinutes()","prototype.getUTCMonth()","prototype.getUTCSeconds()","prototype.setDate()","prototype.setFullYear()","prototype.setHours()","prototype.setMilliseconds()","prototype.setMinutes()","prototype.setMonth()","prototype.setSeconds()","prototype.setTime()","prototype.setUTCDate()","prototype.setUTCFullYear()","prototype.setUTCHours()","prototype.setUTCMilliseconds()","prototype.setUTCMinutes()","prototype.setUTCMonth()","prototype.setUTCSeconds()","prototype.toDateString()","prototype.toISOString()","prototype.toJSON()","prototype.toLocaleDateString()","prototype.toLocaleString()","prototype.toLocaleTimeString()","prototype.toString()","prototype.toTimeString()","prototype.toUTCString()","prototype.valueOf()"]},
+{name:"Error",badge:"constructor",methods:["prototype.toString()","prototype.message","prototype.name","EvalError","InternalError","RangeError","ReferenceError","SyntaxError","TypeError","URIError"]},
+{name:"Function",badge:"constructor",methods:["prototype.apply()","prototype.bind()","prototype.call()","prototype.toString()","length","name"]},
+{name:"JSON",badge:"global",methods:["parse()","stringify()","isRawJSON()","rawJSON()"]},
+{name:"Math",badge:"global",methods:["E","LN2","LN10","LOG2E","LOG10E","PI","SQRT1_2","SQRT2","abs()","acos()","acosh()","asin()","asinh()","atan()","atan2()","atanh()","cbrt()","ceil()","clz32()","cos()","cosh()","exp()","expm1()","fround()","hypot()","imul()","log()","log10()","log1p()","log2()","max()","min()","pow()","random()","round()","sign()","sin()","sinh()","sqrt()","tan()","tanh()","trunc()"]},
+{name:"Map",badge:"constructor",methods:["prototype.clear()","prototype.delete()","prototype.entries()","prototype.forEach()","prototype.get()","prototype.has()","prototype.keys()","prototype.set()","prototype.size","prototype.values()"]},
+{name:"Number",badge:"constructor",methods:["isFinite()","isInteger()","isNaN()","isSafeInteger()","parseFloat()","parseInt()","MAX_SAFE_INTEGER","MAX_VALUE","MIN_SAFE_INTEGER","MIN_VALUE","NaN","NEGATIVE_INFINITY","POSITIVE_INFINITY","EPSILON","prototype.toFixed()","prototype.toExponential()","prototype.toPrecision()","prototype.toString()","prototype.toLocaleString()","prototype.valueOf()"]},
+{name:"Object",badge:"constructor",methods:["assign()","create()","defineProperties()","defineProperty()","entries()","freeze()","fromEntries()","getOwnPropertyDescriptor()","getOwnPropertyDescriptors()","getOwnPropertyNames()","getOwnPropertySymbols()","getPrototypeOf()","group()","hasOwn()","is()","isFrozen()","isSealed()","keys()","preventExtensions()","prototype.hasOwnProperty()","prototype.isPrototypeOf()","prototype.propertyIsEnumerable()","prototype.toLocaleString()","prototype.toString()","prototype.valueOf()","seal()","setPrototypeOf()","values()"]},
+{name:"Promise",badge:"constructor",methods:["all()","allSettled()","any()","race()","reject()","resolve()","prototype.catch()","prototype.finally()","prototype.then()","prototype.constructor"]},
+{name:"Proxy",badge:"constructor",methods:["handler.apply()","handler.construct()","handler.defineProperty()","handler.deleteProperty()","handler.get()","handler.getOwnPropertyDescriptor()","handler.getPrototypeOf()","handler.has()","handler.isExtensible()","handler.ownKeys()","handler.preventExtensions()","handler.set()","handler.setPrototypeOf()"]},
+{name:"RegExp",badge:"constructor",methods:["prototype.exec()","prototype.test()","prototype.toString()","prototype.source","prototype.flags","prototype.global","prototype.ignoreCase","prototype.multiline","prototype.dotAll","prototype.unicode","prototype.sticky","prototype.lastIndex","compile()"]},
+{name:"Set",badge:"constructor",methods:["prototype.add()","prototype.clear()","prototype.delete()","prototype.entries()","prototype.forEach()","prototype.has()","prototype.keys()","prototype.size","prototype.values()"]},
+{name:"String",badge:"constructor",methods:["fromCharCode()","fromCodePoint()","raw()","prototype.anchor()","prototype.at()","prototype.big()","prototype.blink()","prototype.bold()","prototype.charAt()","prototype.charCodeAt()","prototype.codePointAt()","prototype.concat()","prototype.endsWith()","prototype.fixed()","prototype.fontcolor()","prototype.fontsize()","prototype.includes()","prototype.indexOf()","prototype.isWellFormed()","prototype.italics()","prototype.lastIndexOf()","prototype.length","prototype.link()","prototype.localeCompare()","prototype.match()","prototype.matchAll()","prototype.normalize()","prototype.padEnd()","prototype.padStart()","prototype.repeat()","prototype.replace()","prototype.replaceAll()","prototype.search()","prototype.slice()","prototype.small()","prototype.split()","prototype.startsWith()","prototype.strike()","prototype.sub()","prototype.substr()","prototype.substring()","prototype.sup()","prototype.toLocaleLowerCase()","prototype.toLocaleUpperCase()","prototype.toLowerCase()","prototype.toString()","prototype.toUpperCase()","prototype.toWellFormed()","prototype.trim()","prototype.trimEnd()","prototype.trimStart()","prototype.valueOf()"]},
+{name:"Symbol",badge:"constructor",methods:["for()","keyFor()","prototype.description","prototype.toString()","prototype.valueOf()","iterator","hasInstance","isConcatSpreadable","toPrimitive","toStringTag","asyncIterator","match","replace","search","split"]},
+{name:"WeakMap",badge:"constructor",methods:["prototype.delete()","prototype.get()","prototype.has()","prototype.set()"]},
+{name:"WeakSet",badge:"constructor",methods:["prototype.add()","prototype.delete()","prototype.has()"]},
+{name:"BigInt",badge:"constructor",methods:["asIntN()","asUintN()","prototype.toLocaleString()","prototype.toString()","prototype.valueOf()"]},
+{name:"Atomics",badge:"global",methods:["add()","and()","compareExchange()","exchange()","isLockFree()","load()","notify()","or()","store()","sub()","wait()","waitAsync()","xor()"]},
+{name:"SharedArrayBuffer",badge:"constructor",methods:["prototype.slice()","prototype.byteLength","prototype.grow()","prototype.maxByteLength","prototype.growable"]},
+{name:"DataView",badge:"constructor",methods:["prototype.getFloat32()","prototype.getFloat64()","prototype.getInt8()","prototype.getInt16()","prototype.getInt32()","prototype.getUint8()","prototype.getUint16()","prototype.getUint32()","prototype.setFloat32()","prototype.setFloat64()","prototype.setInt8()","prototype.setInt16()","prototype.setInt32()","prototype.setUint8()","prototype.setUint16()","prototype.setUint32()","prototype.buffer","prototype.byteLength","prototype.byteOffset"]},
+{name:"ArrayBuffer",badge:"constructor",methods:["isView()","prototype.slice()","prototype.byteLength","prototype.detached","prototype.transfer()","prototype.transferToFixedLength()"]},
+{name:"Intl",badge:"global",methods:["DateTimeFormat","DisplayNames","Duration","ListFormat","Locale","NumberFormat","PluralRules","RelativeTimeFormat","Segmenter","supportedValuesOf()"]}
+];
+const grid=document.getElementById('grid');
+const searchInput=document.getElementById('searchInput');
+const stats=document.getElementById('stats');
+const toast=document.getElementById('toast');
+let toastTimer;
+function showToast(msg){toast.textContent=msg;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('show'),1500)}
+function copyText(text){navigator.clipboard.writeText(text).then(()=>showToast('Copied: '+text))}
+function render(filter=''){
+const f=filter.toLowerCase();
+const filtered=builtins.filter(b=>!f||b.name.toLowerCase().includes(f)||b.methods.some(m=>m.toLowerCase().includes(f)));
+stats.textContent=filtered.length+' of '+builtins.length+' objects';
+grid.innerHTML='';
+filtered.forEach(b=>{
+const card=document.createElement('div');
+card.className='card';
+let methodsHtml=b.methods.map(m=>`<span class="method-tag" data-copy="${m}">${m}</span>`).join('');
+card.innerHTML=`<div class="card-header"><span class="card-name">${b.name}</span><span class="card-badge ${b.badge}">${b.badge}</span></div><div class="methods-list">${methodsHtml}</div>`;
+card.querySelectorAll('.method-tag').forEach(tag=>{
+tag.addEventListener('click',e=>{
+e.stopPropagation();
+const val=tag.getAttribute('data-copy');
+copyText(val);
+tag.classList.add('copied');
+setTimeout(()=>tag.classList.remove('copied'),600);
+});
+});
+card.addEventListener('click',()=>{copyText(b.name);card.classList.add('copied');setTimeout(()=>card.classList.remove('copied'),600)});
+grid.appendChild(card);
+});
+}
+searchInput.addEventListener('input',e=>render(e.target.value));
+render();
+</script>
+</body>
+</html>

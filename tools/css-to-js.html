@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS to JavaScript Converter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #222;
+        }
+        .header h1 { font-size: 1.8rem; font-weight: 600; }
+        .header a {
+            color: #737373;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+        .header a:hover { color: #fff; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .input-section {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 16px;
+            color: #fff;
+            font-family: 'Outfit', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+        }
+        textarea:focus { outline: none; border-color: #444; }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        button {
+            background: #222;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px 24px;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button:hover { background: #333; }
+        .output-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            background: #0a0a0a;
+            border: 1px solid #222;
+        }
+        .tab-btn.active {
+            background: #fff;
+            color: #0a0a0a;
+            border-color: #fff;
+        }
+        .output-section {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 24px;
+        }
+        .output-section pre {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Outfit', monospace;
+            font-size: 0.85rem;
+            color: #737373;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .copied-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #222;
+            border: 1px solid #333;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        .copied-toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>CSS to JavaScript Converter</h1>
+            <a href="index.html">&larr; Back to Tools</a>
+        </div>
+
+        <div class="input-section">
+            <textarea id="inputCSS" placeholder="Paste your CSS here...
+
+Example:
+background-color: #fff;
+font-size: 16px;
+margin-top: 10px;
+padding: 20px;
+border-radius: 8px;"></textarea>
+        </div>
+
+        <div class="btn-group">
+            <button onclick="convertCSS()">Convert to JavaScript</button>
+            <button onclick="copyOutput()">Copy Output</button>
+            <button onclick="clearAll()">Clear All</button>
+        </div>
+
+        <div class="output-tabs">
+            <button class="tab-btn active" id="tabCamel" onclick="setTab('camel')">CamelCase (element.style)</button>
+            <button class="tab-btn" id="tabReact" onclick="setTab('react')">React Inline Style</button>
+            <button class="tab-btn" id="tabStyled" onclick="setTab('styled')">styled-components</button>
+            <button class="tab-btn" id="tabModules" onclick="setTab('modules')">CSS Modules</button>
+        </div>
+
+        <div class="output-section">
+            <pre id="outputCode">Converted JavaScript will appear here...</pre>
+        </div>
+    </div>
+
+    <div class="copied-toast" id="toast">Copied!</div>
+
+    <script>
+        const inputCSS = document.getElementById('inputCSS');
+        const outputCode = document.getElementById('outputCode');
+        const toast = document.getElementById('toast');
+        let currentTab = 'camel';
+        let conversions = {};
+
+        function setTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+            if (conversions[tab]) {
+                outputCode.textContent = conversions[tab];
+            }
+        }
+
+        function cssToCamelCase(prop) {
+            return prop.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
+        }
+
+        function parseCSS(css) {
+            const properties = [];
+            const cleaned = css.replace(/\s+/g, ' ').trim();
+
+            const propertyPattern = /([a-z-]+)\s*:\s*([^;]+)/gi;
+            let match;
+
+            while ((match = propertyPattern.exec(cleaned)) !== null) {
+                const property = match[1].trim();
+                const value = match[2].trim();
+                if (property && value) {
+                    properties.push({ property, value });
+                }
+            }
+
+            return properties;
+        }
+
+        function convertCSS() {
+            const css = inputCSS.value;
+            if (!css.trim()) return;
+
+            const properties = parseCSS(css);
+            if (properties.length === 0) return;
+
+            // CamelCase (element.style.propertyName)
+            let camelOutput = 'const style = {\n';
+            properties.forEach(p => {
+                const camelProp = cssToCamelCase(p.property);
+                camelOutput += `    ${camelProp}: '${p.value}',\n`;
+            });
+            camelOutput += '};\n\nelement.style = style;';
+            conversions.camel = camelOutput;
+
+            // React inline style
+            let reactOutput = 'const styles = {\n';
+            properties.forEach(p => {
+                const camelProp = cssToCamelCase(p.property);
+                reactOutput += `    ${camelProp}: '${p.value}',\n`;
+            });
+            reactOutput += '};\n\n// Usage: <div style={styles}>...</div>';
+            conversions.react = reactOutput;
+
+            // styled-components template literal
+            let styledOutput = 'const StyledComponent = styled.div`\n';
+            properties.forEach(p => {
+                styledOutput += `    ${p.property}: ${p.value};\n`;
+            });
+            styledOutput += '`;';
+            conversions.styled = styledOutput;
+
+            // CSS Modules object
+            let modulesOutput = '/* styles.module.css */\n.container {\n';
+            properties.forEach(p => {
+                modulesOutput += `    ${p.property}: ${p.value};\n`;
+            });
+            modulesOutput += '}\n\n// Usage:\nimport styles from \'./styles.module.css\';\n<div className={styles.container}>';
+            conversions.modules = modulesOutput;
+
+            outputCode.textContent = conversions[currentTab];
+        }
+
+        function copyOutput() {
+            navigator.clipboard.writeText(outputCode.textContent).then(() => {
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 1500);
+            });
+        }
+
+        function clearAll() {
+            inputCSS.value = '';
+            outputCode.textContent = 'Converted JavaScript will appear here...';
+            conversions = {};
+        }
+    </script>
+</body>
+</html>

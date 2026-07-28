@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Viewport Resizer / Responsive Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;display:flex;flex-direction:column}
+.header{padding:16px 30px;border-bottom:1px solid #222;display:flex;align-items:center;gap:20px;flex-shrink:0}
+.header h1{font-size:1.3rem;font-weight:600}
+.header a{color:#737373;text-decoration:none;font-size:.9rem;transition:color .2s}
+.header a:hover{color:#fff}
+.main{display:flex;flex:1;overflow:hidden}
+.sidebar{width:280px;background:#111;border-right:1px solid #222;padding:20px;overflow-y:auto;flex-shrink:0}
+.sidebar h2{font-size:.85rem;font-weight:500;color:#737373;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.preset-btn{width:100%;padding:10px 14px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#fff;text-align:left;cursor:pointer;font-family:'Outfit',sans-serif;font-size:.85rem;transition:all .2s;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.preset-btn:hover{border-color:#555;background:#151515}
+.preset-btn.active{border-color:#fff;background:#1a1a1a}
+.preset-btn .dims{font-size:.7rem;color:#737373;font-family:monospace}
+.divider{height:1px;background:#222;margin:16px 0}
+.custom-input{margin-top:8px}
+.custom-input label{display:block;font-size:.7rem;color:#737373;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.custom-input input{width:100%;padding:8px 12px;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem;outline:none;margin-bottom:8px}
+.custom-input input:focus{border-color:#555}
+.orientation-btns{display:flex;gap:6px}
+.orient-btn{flex:1;padding:8px;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;cursor:pointer;font-family:'Outfit',sans-serif;font-size:.8rem;transition:all .2s;text-align:center}
+.orient-btn:hover{border-color:#555}
+.orient-btn.active{border-color:#fff;background:#1a1a1a}
+.url-bar{padding:10px 20px;border-bottom:1px solid #222;display:flex;gap:10px;align-items:center;background:#111;flex-shrink:0}
+.url-bar input{flex:1;padding:8px 14px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem;outline:none}
+.url-bar input:focus{border-color:#555}
+.url-bar button{padding:8px 16px;background:#fff;color:#0a0a0a;border:none;border-radius:8px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:500}
+.url-bar button:hover{background:#e0e0e0}
+.preview-area{flex:1;display:flex;align-items:center;justify-content:center;padding:30px;background:#0a0a0a;overflow:auto}
+.device-frame{border:2px solid #333;border-radius:16px;overflow:hidden;background:#fff;position:relative;transition:width .3s,height .3s}
+.device-frame.landscape{border-radius:12px}
+.frame-header{padding:6px 12px;background:#1a1a1a;border-bottom:1px solid #222;display:flex;align-items:center;justify-content:space-between}
+.frame-header .title{font-size:.7rem;color:#737373}
+.frame-header .size{font-size:.7rem;color:#fff;font-family:monospace}
+.frame-body{width:100%;height:100%}
+.frame-body iframe{width:100%;height:100%;border:none}
+.no-url{display:flex;align-items:center;justify-content:center;height:100%;color:#737373;font-size:.9rem;min-height:400px}
+@media(max-width:900px){.sidebar{width:220px}}
+@media(max-width:700px){.sidebar{display:none}}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html">&larr; Back</a>
+<h1>Viewport Resizer / Responsive Preview</h1>
+</div>
+<div class="url-bar">
+<input type="text" id="urlInput" placeholder="Enter URL to preview (e.g. https://example.com)">
+<button onclick="loadUrl()">Load</button>
+</div>
+<div class="main">
+<div class="sidebar">
+<h2>Device Presets</h2>
+<div id="presetList"></div>
+<div class="divider"></div>
+<h2>Custom Size</h2>
+<div class="custom-input">
+<label>Width (px)</label>
+<input type="number" id="customW" value="375" min="100" max="3840">
+<label>Height (px)</label>
+<input type="number" id="customH" value="812" min="100" max="2160">
+<div class="orientation-btns">
+<button class="orient-btn active" id="btnPortrait" onclick="setOrientation('portrait')">Portrait</button>
+<button class="orient-btn" id="btnLandscape" onclick="setOrientation('landscape')">Landscape</button>
+</div>
+<button class="preset-btn" style="margin-top:12px;justify-content:center;text-align:center" onclick="applyCustom()">Apply Custom Size</button>
+</div>
+<div class="divider"></div>
+<h2>Current Viewport</h2>
+<div id="currentInfo" style="font-size:.85rem;color:#ccc;margin-top:8px;line-height:1.8"></div>
+</div>
+<div class="preview-area">
+<div class="device-frame" id="deviceFrame">
+<div class="frame-header">
+<span class="title" id="frameTitle">No device selected</span>
+<span class="size" id="frameSize">-</span>
+</div>
+<div class="frame-body" id="frameBody">
+<div class="no-url" id="noUrlMsg">Enter a URL above and click Load to preview</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+const presets=[
+{name:'iPhone SE',w:375,h:667,icon:'📱'},
+{name:'iPhone 14',w:390,h:844,icon:'📱'},
+{name:'iPhone 14 Pro Max',w:430,h:932,icon:'📱'},
+{name:'iPad',w:810,h:1080,icon:'📱'},
+{name:'iPad Pro 12.9"',w:1024,h:1366,icon:'📱'},
+{name:'Galaxy S21',w:360,h:800,icon:'📱'},
+{name:'Galaxy S23 Ultra',w:412,h:915,icon:'📱'},
+{name:'Surface Pro',w:912,h:1368,icon:'💻'},
+{name:'MacBook Air',w:1280,h:800,icon:'💻'},
+{name:'iMac 24"',w:1920,h:1080,icon:'🖥️'},
+{name:'4K Display',w:3840,h:2160,icon:'🖥️'},
+{name:'HD 720p',w:1280,h:720,icon:'📺'},
+{name:'Full HD 1080p',w:1920,h:1080,icon:'📺'}
+];
+let currentW=375,currentH=667,orientation='portrait';
+const presetList=document.getElementById('presetList');
+presets.forEach((p,i)=>{
+const btn=document.createElement('button');
+btn.className='preset-btn';
+btn.innerHTML=`<span>${p.icon} ${p.name}</span><span class="dims">${p.w}×${p.h}</span>`;
+btn.onclick=()=>{
+document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));
+btn.classList.add('active');
+applySize(p.w,p.h,p.name);
+};
+presetList.appendChild(btn);
+});
+function applySize(w,h,name){
+currentW=w;currentH=h;
+const maxW=document.querySelector('.preview-area').clientWidth-60;
+const maxH=document.querySelector('.preview-area').clientHeight-60;
+let scale=Math.min(maxW/w,maxH/h,1);
+const frame=document.getElementById('deviceFrame');
+frame.style.width=Math.round(w*scale)+'px';
+frame.style.height=Math.round(h*scale)+'px';
+document.getElementById('frameTitle').textContent=name||'Custom';
+document.getElementById('frameSize').textContent=w+'×'+h;
+updateInfo();
+}
+function setOrientation(o){
+orientation=o;
+document.getElementById('btnPortrait').classList.toggle('active',o==='portrait');
+document.getElementById('btnLandscape').classList.toggle('active',o==='landscape');
+applySize(currentH,currentW,document.getElementById('frameTitle').textContent);
+}
+function applyCustom(){
+const w=parseInt(document.getElementById('customW').value)||375;
+const h=parseInt(document.getElementById('customH').value)||812;
+if(orientation==='landscape')applySize(h,w,'Custom ('+w+'×'+h+')');
+else applySize(w,h,'Custom ('+w+'×'+h+')');
+}
+function updateInfo(){
+const frame=document.getElementById('deviceFrame');
+const w=Math.round(currentW);const h=Math.round(currentH);
+const dpr=window.devicePixelRatio||1;
+document.getElementById('currentInfo').innerHTML=`
+<div><span style="color:#737373">CSS:</span> ${w} × ${h}px</div>
+<div><span style="color:#737373">Physical:</span> ${Math.round(w*dpr)} × ${Math.round(h*dpr)}px</div>
+<div><span style="color:#737373">DPR:</span> ${dpr}</div>
+<div><span style="color:#737373">Orientation:</span> ${orientation}</div>
+`;
+}
+function loadUrl(){
+let url=document.getElementById('urlInput').value.trim();
+if(!url)return;
+if(!url.startsWith('http://')&&!url.startsWith('https://'))url='https://'+url;
+const frameBody=document.getElementById('frameBody');
+const noUrl=document.getElementById('noUrlMsg');
+if(noUrl)noUrl.remove();
+let iframe=frameBody.querySelector('iframe');
+if(!iframe){iframe=document.createElement('iframe');iframe.sandbox='allow-same-origin allow-scripts allow-forms allow-popups';frameBody.appendChild(iframe)}
+iframe.src=url;
+}
+document.getElementById('urlInput').addEventListener('keydown',e=>{if(e.key==='Enter')loadUrl()});
+applySize(375,667,'iPhone SE');
+</script>
+</body>
+</html>

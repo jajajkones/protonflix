@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YAML/JSON Converter</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;padding:20px}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #222}
+.header h1{font-size:1.5rem;font-weight:600}
+.header a{color:#737373;text-decoration:none;font-size:.9rem;transition:color .2s}
+.header a:hover{color:#fff}
+.controls{display:flex;gap:12px;margin-bottom:16px;align-items:center;flex-wrap:wrap}
+.btn{background:#222;border:1px solid #333;color:#fff;padding:8px 16px;border-radius:6px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:.85rem;transition:all .2s}
+.btn:hover{background:#333}
+.btn.primary{background:#3b82f6;border-color:#3b82f6}
+.btn.primary:hover{background:#2563eb}
+.btn.copied{background:#166534;border-color:#22c55e}
+.direction-indicator{color:#737373;font-size:.85rem}
+.container{display:flex;gap:20px;height:calc(100vh - 180px)}
+.panel{flex:1;display:flex;flex-direction:column;gap:12px}
+.panel-header{display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-size:.85rem;font-weight:500;color:#737373;text-transform:uppercase;letter-spacing:.5px}
+.editor{width:100%;flex:1;background:#111;border:1px solid #222;border-radius:8px;padding:16px;color:#fff;font-family:monospace;font-size:.9rem;resize:none;outline:none;line-height:1.6;tab-size:2}
+.editor:focus{border-color:#444}
+.output-area{flex:1;overflow:auto;background:#111;border:1px solid #222;border-radius:8px;padding:16px;font-family:monospace;font-size:.9rem;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.output-area::-webkit-scrollbar{width:6px}
+.output-area::-webkit-scrollbar-track{background:transparent}
+.output-area::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
+.error{color:#ef4444;padding:16px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px}
+.hl-key{color:#93c5fd}
+.hl-string{color:#4ade80}
+.hl-number{color:#facc15}
+.hl-bool{color:#c084fc}
+.hl-null{color:#737373;font-style:italic}
+.hl-bracket{color:#737373}
+.hl-dash{color:#f97316}
+.toast{position:fixed;bottom:20px;right:20px;background:#222;border:1px solid #333;color:#fff;padding:12px 20px;border-radius:8px;font-size:.9rem;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;z-index:100}
+.toast.show{opacity:1;transform:translateY(0)}
+.swap-icon{font-size:1.2rem;color:#737373;cursor:pointer;transition:color .2s;padding:4px 8px}
+.swap-icon:hover{color:#fff}
+@media(max-width:768px){.container{flex-direction:column;height:auto}.editor{min-height:200px}.output-area{min-height:200px}}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>YAML / JSON Converter</h1>
+<a href="index.html">← Back to Tools</a>
+</div>
+<div class="controls">
+<button class="btn primary" onclick="convertToJSON()" aria-label="Convert YAML to JSON">YAML → JSON</button>
+<span class="swap-icon" onclick="swapSides()" aria-label="Swap input and output">⇄</span>
+<button class="btn primary" onclick="convertToYAML()" aria-label="Convert JSON to YAML">JSON → YAML</button>
+<button class="btn" onclick="copyOutput()" aria-label="Copy output to clipboard">Copy Output</button>
+<button class="btn" onclick="clearAll()" aria-label="Clear input and output">Clear</button>
+<span class="direction-indicator" id="direction">Paste input on the left</span>
+</div>
+<div class="container">
+<div class="panel">
+<div class="panel-header">
+<span class="panel-title">Input</span>
+<span style="font-size:.75rem;color:#444" id="inputType"></span>
+</div>
+<textarea class="editor" id="inputEditor" placeholder="Paste YAML or JSON here..." aria-label="Input YAML or JSON text"></textarea>
+</div>
+<div class="panel">
+<div class="panel-header">
+<span class="panel-title">Output</span>
+<span style="font-size:.75rem;color:#444" id="outputType"></span>
+</div>
+<div class="output-area" id="outputArea">Output will appear here...</div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const inputEditor=document.getElementById('inputEditor');
+const outputArea=document.getElementById('outputArea');
+const directionEl=document.getElementById('direction');
+const inputTypeEl=document.getElementById('inputType');
+const outputTypeEl=document.getElementById('outputType');
+
+function detectFormat(input){
+input=input.trim();
+if(!input)return null;
+if(input.startsWith('{')||input.startsWith('['))return'json';
+if(input.includes(':')||input.startsWith('-'))return'yaml';
+return null;
+}
+
+function convertToJSON(){
+const input=inputEditor.value.trim();
+if(!input){outputArea.innerHTML='<span class="error">Please paste YAML input</span>';return}
+try{
+const obj=parseYAML(input);
+const json=JSON.stringify(obj,null,2);
+outputArea.innerHTML=syntaxHighlightJSON(json);
+directionEl.textContent='YAML → JSON';
+inputTypeEl.textContent='YAML';
+outputTypeEl.textContent='JSON';
+}catch(e){
+outputArea.innerHTML=`<span class="error">YAML Parse Error: ${esc(e.message)}</span>`;
+}
+}
+
+function convertToYAML(){
+const input=inputEditor.value.trim();
+if(!input){outputArea.innerHTML='<span class="error">Please paste JSON input</span>';return}
+try{
+const obj=JSON.parse(input);
+const yaml=toYAML(obj);
+outputArea.innerHTML=syntaxHighlightYAML(yaml);
+directionEl.textContent='JSON → YAML';
+inputTypeEl.textContent='JSON';
+outputTypeEl.textContent='YAML';
+}catch(e){
+outputArea.innerHTML=`<span class="error">JSON Parse Error: ${esc(e.message)}</span>`;
+}
+}
+
+function parseYAML(text){
+const lines=text.split('\n');
+const result={};
+let current=result;
+let stack=[{obj:result indent:-1}];
+let lastKey=null;
+let lastIndent=-1;
+for(let line of lines){
+if(line.trim()===''||line.trim().startsWith('#'))continue;
+const indent=line.length-line.trimStart().length;
+const trimmed=line.trim();
+while(stack.length>1&&stack[stack.length-1].indent>=indent)stack.pop();
+current=stack[stack.length-1].obj;
+if(trimmed.startsWith('- ')){
+const val=trimmed.substring(2).trim();
+if(lastKey&&Array.isArray(current[lastKey])){
+current[lastKey].push(parseYAMLValue(val));
+}else if(lastKey){
+current[lastKey]=[current[lastKey],parseYAMLValue(val)];
+}
+continue;
+}
+const colonIdx=trimmed.indexOf(':');
+if(colonIdx===-1)continue;
+const key=trimmed.substring(0,colonIdx).trim();
+const val=trimmed.substring(colonIdx+1).trim();
+lastKey=key;
+if(val===''){
+const newObj={};
+current[key]=newObj;
+stack.push({obj:newObj,indent});
+}else{
+current[key]=parseYAMLValue(val);
+}
+}
+return result;
+}
+
+function parseYAMLValue(val){
+if(val===''||val==='null'||val==='~')return null;
+if(val==='true')return true;
+if(val==='false')return false;
+if(/^-?\d+$/.test(val))return parseInt(val);
+if(/^-?\d+\.\d+$/.test(val))return parseFloat(val);
+if((val.startsWith('"')&&val.endsWith('"'))||(val.startsWith("'")&&val.endsWith("'"))){
+return val.slice(1,-1);
+}
+if(val.startsWith('[')&&val.endsWith(']')){
+try{return JSON.parse(val)}catch(e){return val}
+}
+return val;
+}
+
+function toYAML(obj,indent=0){
+let yaml='';
+const prefix='  '.repeat(indent);
+if(Array.isArray(obj)){
+obj.forEach(item=>{
+if(typeof item==='object'&&item!==null){
+yaml+=prefix+'- \n'+toYAML(item,indent+1);
+}else{
+yaml+=prefix+'- '+yamlValue(item)+'\n';
+}
+});
+}else if(typeof obj==='object'&&obj!==null){
+Object.keys(obj).forEach(key=>{
+const val=obj[key];
+if(typeof val==='object'&&val!==null){
+yaml+=prefix+key+':\n'+toYAML(val,indent+1);
+}else{
+yaml+=prefix+key+': '+yamlValue(val)+'\n';
+}
+});
+}
+return yaml;
+}
+
+function yamlValue(val){
+if(val===null)return 'null';
+if(typeof val==='boolean')return val.toString();
+if(typeof val==='number')return val.toString();
+if(typeof val==='string'){
+if(/[:{}\[\],&*?|>!%@`#'"\n]/.test(val)||val.trim()!==val){
+return'"'+val.replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'"';
+}
+return val;
+}
+return String(val);
+}
+
+function syntaxHighlightJSON(json){
+return json
+.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+.replace(/"([^"]+)":/g,'<span class="hl-key">"$1"</span>:')
+.replace(/: "([^"]*)"/g,': <span class="hl-string">"$1"</span>')
+.replace(/: (-?\d+\.?\d*)/g,': <span class="hl-number">$1</span>')
+.replace(/: (true|false)/g,': <span class="hl-bool">$1</span>')
+.replace(/: (null)/g,': <span class="hl-null">$1</span>')
+.replace(/([[\]{}])/g,'<span class="hl-bracket">$1</span>');
+}
+
+function syntaxHighlightYAML(yaml){
+return yaml
+.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+.replace(/^(\s*)([\w.-]+):/gm,'$1<span class="hl-key">$2</span>:')
+.replace(/(:\s*)"([^"]*)"/g,'$1<span class="hl-string">"$2"</span>')
+.replace(/(:\s*)(-?\d+\.?\d*)/g,'$1<span class="hl-number">$2</span>')
+.replace(/(:\s*)(true|false)/g,'$1<span class="hl-bool">$2</span>')
+.replace(/(:\s*)(null|~)/g,'$1<span class="hl-null">$2</span>')
+.replace(/^(\s*)- /gm,'<span class="hl-dash">$1- </span>');
+}
+
+function swapSides(){
+const output=outputArea.textContent;
+if(output&&output!=='Output will appear here...'){
+inputEditor.value=output;
+outputArea.innerHTML='';
+const fmt=detectFormat(output);
+if(fmt==='json')convertToYAML();
+else if(fmt==='yaml')convertToJSON();
+}
+}
+
+function copyOutput(){
+const text=outputArea.textContent;
+navigator.clipboard.writeText(text);
+showToast('Output copied!');
+}
+
+function clearAll(){
+inputEditor.value='';
+outputArea.innerHTML='Output will appear here...';
+directionEl.textContent='Paste input on the left';
+inputTypeEl.textContent='';
+outputTypeEl.textContent='';
+}
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function showToast(msg){
+const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+inputEditor.addEventListener('input',()=>{
+const fmt=detectFormat(inputEditor.value);
+if(fmt==='json'){inputTypeEl.textContent='JSON';convertToYAML()}
+else if(fmt==='yaml'){inputTypeEl.textContent='YAML';convertToJSON()}
+else{inputTypeEl.textContent='';outputArea.innerHTML='Output will appear here...'}
+});
+</script>
+</body>
+</html>

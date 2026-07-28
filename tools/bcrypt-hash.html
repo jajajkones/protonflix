@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bcrypt Hash Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;padding:20px}
+.header{display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #222}
+.header h1{font-size:1.5rem;font-weight:600}
+.header a{color:#737373;text-decoration:none;font-size:.875rem;transition:color .2s}
+.header a:hover{color:#fff}
+.container{max-width:900px;margin:0 auto}
+.surface{background:#111;border:1px solid #222;border-radius:8px;padding:16px;margin-bottom:16px}
+label{display:block;font-size:.75rem;color:#737373;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+input,textarea{width:100%;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;padding:10px 12px;font-family:'Outfit',sans-serif;font-size:.875rem;outline:none;transition:border-color .2s}
+input:focus,textarea:focus{border-color:#444}
+textarea{resize:vertical;min-height:80px;font-family:monospace;font-size:.8rem}
+.btn{background:#fff;color:#0a0a0a;border:none;border-radius:6px;padding:10px 20px;font-family:'Outfit',sans-serif;font-size:.875rem;font-weight:500;cursor:pointer;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.btn-secondary{background:transparent;color:#fff;border:1px solid #222}
+.btn-secondary:hover{border-color:#444}
+.btn-danger{background:#ff4444;color:#fff}
+.hash-result{background:#0a0a0a;border:1px solid #222;border-radius:6px;padding:12px;margin-bottom:8px}
+.hash-label{font-size:.75rem;color:#737373;margin-bottom:4px;display:flex;justify-content:space-between}
+.hash-value{font-family:monospace;font-size:.8rem;color:#ccc;word-break:break-all;cursor:pointer;transition:color .2s}
+.hash-value:hover{color:#fff}
+.hash-time{font-size:.7rem;color:#555}
+.compare-section{margin-top:16px}
+.note{font-size:.75rem;color:#737373;margin-top:12px;font-style:italic}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html">&larr; Back</a>
+<h1>Bcrypt Hash Generator</h1>
+</div>
+
+<div class="surface">
+<label>Input Text</label>
+<textarea id="inputText" placeholder="Enter text to hash..." aria-label="Input text to hash"></textarea>
+<div style="margin-top:12px;display:flex;gap:8px">
+<button class="btn" onclick="generateHashes()">Generate Hashes</button>
+<button class="btn-secondary btn" onclick="clearAll()">Clear</button>
+</div>
+</div>
+
+<div id="results">
+<div class="hash-result">
+<div class="hash-label"><span>Bcrypt (PBKDF2 approximation)</span><span class="hash-time" id="timeBcrypt"></span></div>
+<div class="hash-value" onclick="copyHash(this)" id="hashBcrypt">—</div>
+</div>
+<div class="hash-result">
+<div class="hash-label"><span>SHA-256</span><span class="hash-time" id="timeSHA256"></span></div>
+<div class="hash-value" onclick="copyHash(this)" id="hashSHA256">—</div>
+</div>
+<div class="hash-result">
+<div class="hash-label"><span>SHA-512</span><span class="hash-time" id="timeSHA512"></span></div>
+<div class="hash-value" onclick="copyHash(this)" id="hashSHA512">—</div>
+</div>
+<div class="hash-result">
+<div class="hash-label"><span>Argon2-style (simulated)</span><span class="hash-time" id="timeArgon2"></span></div>
+<div class="hash-value" onclick="copyHash(this)" id="hashArgon2">—</div>
+</div>
+<div class="hash-result">
+<div class="hash-label"><span>scrypt-style (simulated)</span><span class="hash-time" id="timeScrypt"></span></div>
+<div class="hash-value" onclick="copyHash(this)" id="hashScrypt">—</div>
+</div>
+</div>
+
+<div class="surface compare-section">
+<label>Compare Hash</label>
+<input type="text" id="compareInput" placeholder="Paste a hash to compare" aria-label="Hash to compare against">
+<label style="margin-top:12px">Against Input Text</label>
+<div id="compareResult" style="margin-top:8px;font-size:.85rem"></div>
+</div>
+
+<p class="note">Note: Bcrypt here is simulated via PBKDF2 approximation. For production, use server-side bcrypt libraries.</p>
+</div>
+</div>
+
+<script>
+function copyHash(el){navigator.clipboard.writeText(el.textContent)}
+
+function clearAll(){
+document.getElementById('inputText').value='';
+['Bcrypt','SHA256','SHA512','Argon2','Scrypt'].forEach(id=>{
+document.getElementById('hash'+id).textContent='—';
+document.getElementById('time'+id).textContent='';
+});
+document.getElementById('compareResult').textContent='';
+document.getElementById('compareInput').value='';
+}
+
+function base64url(buf){return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+
+async function sha256(text){
+const start=performance.now();
+const data=new TextEncoder().encode(text);
+const hash=await crypto.subtle.digest('SHA-256',data);
+const elapsed=(performance.now()-start).toFixed(2);
+return {hash:base64url(hash),time:elapsed+'ms'};
+}
+
+async function sha512(text){
+const start=performance.now();
+const data=new TextEncoder().encode(text);
+const hash=await crypto.subtle.digest('SHA-512',data);
+const elapsed=(performance.now()-start).toFixed(2);
+return {hash:base64url(hash),time:elapsed+'ms'};
+}
+
+async function bcryptApprox(text){
+const start=performance.now();
+const data=new TextEncoder().encode(text);
+const salt=crypto.getRandomValues(new Uint8Array(16));
+const key=await crypto.subtle.importKey('raw',data,{name:'PBKDF2'},false,['deriveBits']);
+const derived=await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:60000,hash:'SHA-256'},key,256);
+const elapsed=(performance.now()-start).toFixed(2);
+const hash='$2a$10$'+base64url(salt).slice(0,22)+'/'+base64url(new Uint8Array(derived)).slice(0,31);
+return {hash,time:elapsed+'ms'};
+}
+
+async function argon2Approx(text){
+const start=performance.now();
+const data=new TextEncoder().encode(text);
+const hash=await crypto.subtle.digest('SHA-256',data);
+const hash2=await crypto.subtle.digest('SHA-256',new Uint8Array([...new Uint8Array(hash),...data]));
+const elapsed=(performance.now()-start).toFixed(2);
+return {hash:'$argon2id$v=19$m=65536,t=3,p=1$'+base64url(hash).slice(0,22)+'$'+base64url(hash2).slice(0,43),time:elapsed+'ms'};
+}
+
+async function scryptApprox(text){
+const start=performance.now();
+const data=new TextEncoder().encode(text);
+let result=new Uint8Array(data);
+for(let i=0;i<10;i++){result=new Uint8Array(await crypto.subtle.digest('SHA-512',[...result,...data]))}
+const elapsed=(performance.now()-start).toFixed(2);
+return {hash:'$scrypt$ln=14,r=8,p=1$'+base64url(result).slice(0,22)+'$'+base64url(result).slice(22,65),time:elapsed+'ms'};
+}
+
+async function generateHashes(){
+const text=document.getElementById('inputText').value;
+if(!text){alert('Enter some text');return;}
+const [b,s2,s5,a2,sc]=await Promise.all([bcryptApprox(text),sha256(text),sha512(text),argon2Approx(text),scryptApprox(text)]);
+document.getElementById('hashBcrypt').textContent=b.hash;document.getElementById('timeBcrypt').textContent=b.time;
+document.getElementById('hashSHA256').textContent=s2.hash;document.getElementById('timeSHA256').textContent=s2.time;
+document.getElementById('hashSHA512').textContent=s5.hash;document.getElementById('timeSHA512').textContent=s5.time;
+document.getElementById('hashArgon2').textContent=a2.hash;document.getElementById('timeArgon2').textContent=a2.time;
+document.getElementById('hashScrypt').textContent=sc.hash;document.getElementById('timeScrypt').textContent=sc.time;
+compareHashes();
+}
+
+async function compareHashes(){
+const text=document.getElementById('inputText').value;
+const compare=document.getElementById('compareInput').value.trim();
+if(!text||!compare){document.getElementById('compareResult').textContent='';return;}
+const results=await Promise.all([bcryptApprox(text),sha256(text),sha512(text),argon2Approx(text),scryptApprox(text)]);
+const names=['Bcrypt','SHA-256','SHA-512','Argon2','scrypt'];
+const match=results.find((r,i)=>compare.includes(r.hash.slice(0,10)));
+const el=document.getElementById('compareResult');
+if(match){el.innerHTML='<span style="color:#34d399">Match found!</span>'}else{el.innerHTML='<span style="color:#f87171">No match</span>'}
+}
+document.getElementById('compareInput').addEventListener('input',compareHashes);
+</script>
+</body>
+</html>

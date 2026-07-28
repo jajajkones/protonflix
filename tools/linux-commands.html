@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linux Commands Cheat Sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a0a; color: #fff; font-family: 'Outfit', sans-serif; line-height: 1.6; }
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+header { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #222; }
+h1 { font-size: 2rem; font-weight: 600; }
+.back-link { color: #737373; text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+.back-link:hover { color: #fff; }
+.search-container { margin-bottom: 30px; }
+.search-input { width: 100%; max-width: 400px; padding: 12px 20px; background: #111; border: 1px solid #222; border-radius: 8px; color: #fff; font-family: 'Outfit', sans-serif; font-size: 1rem; outline: none; transition: border-color 0.2s; }
+.search-input:focus { border-color: #444; }
+.search-input::placeholder { color: #737373; }
+.section { background: #111; border: 1px solid #222; border-radius: 12px; margin-bottom: 20px; overflow: hidden; }
+.section-header { padding: 16px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
+.section-header:hover { background: #1a1a1a; }
+.section-title { font-size: 1.1rem; font-weight: 500; }
+.section-toggle { color: #737373; font-size: 1.2rem; transition: transform 0.3s; }
+.section.collapsed .section-content { display: none; }
+.section.collapsed .section-toggle { transform: rotate(-90deg); }
+.section-content { padding: 0 20px 20px; }
+.command { background: #0a0a0a; border: 1px solid #222; border-radius: 6px; padding: 12px 16px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; position: relative; }
+.command:hover { border-color: #444; background: #151515; }
+.command-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.command-name { font-weight: 500; color: #fff; font-size: 0.95rem; }
+.command-syntax { font-family: 'Courier New', monospace; color: #a0a0a0; font-size: 0.85rem; word-break: break-all; }
+.copy-hint { position: absolute; top: 8px; right: 12px; color: #737373; font-size: 0.75rem; opacity: 0; transition: opacity 0.2s; }
+.command:hover .copy-hint { opacity: 1; }
+.copied { background: #1a2a1a !important; border-color: #2a4a2a !important; }
+.copied .command-name::after { content: ' ✓ Copied!'; color: #4ade80; font-size: 0.8rem; }
+.hidden { display: none !important; }
+.tag { display: inline-block; background: #222; color: #a0a0a0; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-left: 8px; }
+
+@media(max-width:768px){header{padding:20px 16px}header h1{font-size:16px}.content{padding:20px 16px}.container{padding:16px}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>Linux Commands Cheat Sheet</h1>
+<a href="index.html" class="back-link">← Back to ProtonFlix</a>
+</header>
+
+<div class="search-container">
+<input type="text" class="search-input" placeholder="Search commands..." id="searchInput">
+</div>
+
+<div id="sections">
+
+<div class="section" data-category="files">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">File Operations <span class="tag">10 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="ls
+ls -la
+ls -lh
+ls -ltr
+ls -R
+">
+<div class="command-header">
+<span class="command-name">ls</span>
+</div>
+<div class="command-syntax">ls [-la] [-lh] [-ltr] [-R] [path]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="cp file.txt /dest/
+cp -r dir/ /dest/
+cp -p file.txt /dest/
+cp -a dir/ /dest/
+">
+<div class="command-header">
+<span class="command-name">cp</span>
+</div>
+<div class="command-syntax">cp [-r] [-p] [-a] source dest</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="mv file.txt /dest/
+mv oldname.txt newname.txt
+mv -i file.txt /dest/
+">
+<div class="command-header">
+<span class="command-name">mv</span>
+</div>
+<div class="command-syntax">mv [-i] source dest | mv oldname newname</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="rm file.txt
+rm -r directory/
+rm -rf directory/
+rm -i file.txt
+">
+<div class="command-header">
+<span class="command-name">rm</span>
+</div>
+<div class="command-syntax">rm [-r] [-f] [-i] file|dir</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="mkdir directory
+mkdir -p /path/to/nested/dir
+">
+<div class="command-header">
+<span class="command-name">mkdir</span>
+</div>
+<div class="command-syntax">mkdir [-p] directory</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="touch file.txt
+touch -t 202401011200 file.txt
+touch -r ref.txt file.txt
+">
+<div class="command-header">
+<span class="command-name">touch</span>
+</div>
+<div class="command-syntax">touch [-t timestamp] [-r ref] file</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="cat file.txt
+cat -n file.txt
+cat file1.txt file2.txt > combined.txt
+">
+<div class="command-header">
+<span class="command-name">cat</span>
+</div>
+<div class="command-syntax">cat [-n] file | cat file1 file2 > combined</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="less file.txt
+# Navigation: Space (next page), b (prev), /search, q (quit)
+">
+<div class="command-header">
+<span class="command-name">less</span>
+</div>
+<div class="command-syntax">less file | / search | Space next | b prev | q quit</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="head file.txt
+head -n 20 file.txt
+tail file.txt
+tail -n 20 file.txt
+tail -f /var/log/syslog
+">
+<div class="command-header">
+<span class="command-name">head / tail</span>
+</div>
+<div class="command-syntax">head [-n N] file | tail [-n N] [-f] file</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="permissions">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Permissions <span class="tag">3 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="chmod 755 file.sh
+chmod +x file.sh
+chmod u+x,g+w file.sh
+chmod -R 755 directory/
+">
+<div class="command-header">
+<span class="command-name">chmod</span>
+</div>
+<div class="command-syntax">chmod [ugoa][+-=][rwx] file | chmod NNN file</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="chown user:group file.txt
+chown -R user:group directory/
+chown :group file.txt
+">
+<div class="command-header">
+<span class="command-name">chown</span>
+</div>
+<div class="command-syntax">chown [-R] user[:group] file</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="chgrp group file.txt
+chgrp -R group directory/
+">
+<div class="command-header">
+<span class="command-name">chgrp</span>
+</div>
+<div class="command-syntax">chgrp [-R] group file</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="process">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Process Management <span class="tag">5 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="ps aux
+ps -ef
+ps aux | grep process_name
+">
+<div class="command-header">
+<span class="command-name">ps</span>
+</div>
+<div class="command-syntax">ps aux | ps -ef | ps aux | grep name</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="top
+htop
+top -bn1 | head -20
+">
+<div class="command-header">
+<span class="command-name">top / htop</span>
+</div>
+<div class="command-syntax">top | htop | top -bn1 | head</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kill PID
+kill -9 PID
+kill -15 PID
+killall process_name
+pkill process_name
+">
+<div class="command-header">
+<span class="command-name">kill</span>
+</div>
+<div class="command-syntax">kill [-signal] PID | killall | pkill name</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="nice -n 10 command
+renice -n 5 -p PID
+">
+<div class="command-header">
+<span class="command-name">nice / renice</span>
+</div>
+<div class="command-syntax">nice [-n N] command | renice [-n N] -p PID</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="nohup command &
+nohup command > output.log 2>&1 &
+disown
+">
+<div class="command-header">
+<span class="command-name">nohup</span>
+</div>
+<div class="command-syntax">nohup command > log 2>&1 & disown</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="network">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Network <span class="tag">6 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="netstat -tuln
+netstat -tulpn
+netstat -an | grep ESTABLISHED
+">
+<div class="command-header">
+<span class="command-name">netstat</span>
+</div>
+<div class="command-syntax">netstat [-tulpn] [-an]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="ss -tuln
+ss -tulpn
+ss -s
+">
+<div class="command-header">
+<span class="command-name">ss</span>
+</div>
+<div class="command-syntax">ss [-tulpn] [-s]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="curl -o file.txt https://example.com/file
+curl -I https://example.com
+curl -X POST -d 'data' https://api.example.com
+">
+<div class="command-header">
+<span class="command-name">curl</span>
+</div>
+<div class="command-syntax">curl [-o] [-I] [-X] [-d] URL</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="wget https://example.com/file
+wget -c https://example.com/file
+wget -r https://example.com/
+">
+<div class="command-header">
+<span class="command-name">wget</span>
+</div>
+<div class="command-syntax">wget [-c] [-r] URL</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="ping google.com
+ping -c 4 google.com
+">
+<div class="command-header">
+<span class="command-name">ping</span>
+</div>
+<div class="command-syntax">ping [-c count] host</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="traceroute google.com
+traceroute -n google.com
+">
+<div class="command-header">
+<span class="command-name">traceroute</span>
+</div>
+<div class="command-syntax">traceroute [-n] host</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="disk">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Disk <span class="tag">4 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="df -h
+df -h /home
+">
+<div class="command-header">
+<span class="command-name">df</span>
+</div>
+<div class="command-syntax">df [-h] [mountpoint]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="du -sh directory/
+du -sh *
+du -h --max-depth=1
+">
+<div class="command-header">
+<span class="command-name">du</span>
+</div>
+<div class="command-syntax">du [-sh] [-h] [--max-depth=N] [path]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="mount /dev/sda1 /mnt
+umount /mnt
+mount | grep sda
+">
+<div class="command-header">
+<span class="command-name">mount / umount</span>
+</div>
+<div class="command-syntax">mount device mountpoint | umount mountpoint</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="lsblk
+lsblk -f
+lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
+">
+<div class="command-header">
+<span class="command-name">lsblk</span>
+</div>
+<div class="command-syntax">lsblk [-f] [-o columns]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="system">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">System <span class="tag">4 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="systemctl start service
+systemctl stop service
+systemctl restart service
+systemctl status service
+systemctl enable service
+systemctl disable service
+">
+<div class="command-header">
+<span class="command-name">systemctl</span>
+</div>
+<div class="command-syntax">systemctl [start|stop|restart|status|enable|disable] service</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="journalctl -u service
+journalctl -f
+journalctl --since '1 hour ago'
+journalctl -n 50
+">
+<div class="command-header">
+<span class="command-name">journalctl</span>
+</div>
+<div class="command-syntax">journalctl [-u service] [-f] [--since] [-n N]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="uname -a
+uname -r
+">
+<div class="command-header">
+<span class="command-name">uname</span>
+</div>
+<div class="command-syntax">uname [-a] [-r]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="uptime
+uptime -p
+">
+<div class="command-header">
+<span class="command-name">uptime</span>
+</div>
+<div class="command-syntax">uptime [-p]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="packages">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Package Management <span class="tag">3 managers</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="sudo apt update
+sudo apt upgrade
+sudo apt install package
+sudo apt remove package
+sudo apt search keyword
+sudo apt list --installed
+">
+<div class="command-header">
+<span class="command-name">apt (Debian/Ubuntu)</span>
+</div>
+<div class="command-syntax">apt [update|upgrade|install|remove|search|list]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="sudo yum update
+sudo yum install package
+sudo yum remove package
+sudo yum search keyword
+sudo yum list installed
+">
+<div class="command-header">
+<span class="command-name">yum (RHEL/CentOS)</span>
+</div>
+<div class="command-syntax">yum [update|install|remove|search|list]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="sudo pacman -Syu
+sudo pacman -S package
+sudo pacman -R package
+sudo pacman -Ss keyword
+sudo pacman -Q
+">
+<div class="command-header">
+<span class="command-name">pacman (Arch)</span>
+</div>
+<div class="command-syntax">pacman [-Syu|-S|-R|-Ss|-Q]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<script>
+function toggleSection(header) {
+    header.parentElement.classList.toggle('collapsed');
+}
+
+function copyCommand(commandEl) {
+    const cmd = commandEl.getAttribute('data-command');
+    navigator.clipboard.writeText(cmd).then(() => {
+        commandEl.classList.add('copied');
+        setTimeout(() => commandEl.classList.remove('copied'), 1500);
+    });
+}
+
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    const query = e.target.value.toLowerCase();
+    document.querySelectorAll('.command').forEach(cmd => {
+        const text = cmd.textContent.toLowerCase();
+        const syntax = cmd.querySelector('.command-syntax').textContent.toLowerCase();
+        const name = cmd.querySelector('.command-name').textContent.toLowerCase();
+        if (text.includes(query) || syntax.includes(query) || name.includes(query)) {
+            cmd.classList.remove('hidden');
+        } else {
+            cmd.classList.add('hidden');
+        }
+    });
+    
+    document.querySelectorAll('.section').forEach(section => {
+        const visibleCommands = section.querySelectorAll('.command:not(.hidden)');
+        if (visibleCommands.length === 0 && query) {
+            section.classList.add('hidden');
+        } else {
+            section.classList.remove('hidden');
+        }
+    });
+});
+</script>
+</body>
+</html>

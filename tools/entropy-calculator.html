@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Password Entropy Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;padding:20px}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #222}
+.header h1{font-size:1.5rem;font-weight:600}
+.header a{color:#737373;text-decoration:none;font-size:.9rem;transition:color .2s}
+.header a:hover{color:#fff}
+.main{max-width:700px;margin:0 auto}
+.input-section{background:#111;border:1px solid #222;border-radius:10px;padding:24px;margin-bottom:20px}
+.input-section label{display:block;font-size:.85rem;color:#737373;margin-bottom:8px}
+.password-input{width:100%;background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:14px 18px;color:#fff;font-family:'Outfit',sans-serif;font-size:1.1rem;outline:none;letter-spacing:1px}
+.password-input:focus{border-color:#444}
+.toggle-visibility{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:#737373;cursor:pointer;font-size:1.1rem}
+.results{display:grid;gap:16px}
+.result-card{background:#111;border:1px solid #222;border-radius:10px;padding:20px}
+.result-label{font-size:.8rem;color:#737373;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.result-value{font-size:1.8rem;font-weight:600;color:#fff}
+.result-sub{font-size:.85rem;color:#737373;margin-top:4px}
+.entropy-bar{height:8px;background:#222;border-radius:4px;margin-top:12px;overflow:hidden}
+.entropy-fill{height:100%;border-radius:4px;transition:width .5s,background .5s}
+.strength-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:.8rem;font-weight:500;margin-top:8px}
+.strength-very-weak{background:#991b1b;color:#fca5a5}
+.strength-weak{background:#92400e;color:#fed7aa}
+.strength-fair{background:#854d0e;color:#fef08a}
+.strength-strong{background:#166534;color:#86efac}
+.strength-very-strong{background:#1e3a5f;color:#93c5fd}
+.crack-table{width:100%;border-collapse:collapse;margin-top:12px}
+.crack-table th{text-align:left;padding:8px 12px;font-size:.75rem;color:#737373;text-transform:uppercase;border-bottom:1px solid #222}
+.crack-table td{padding:8px 12px;font-size:.9rem;border-bottom:1px solid #1a1a1a}
+.crack-table td:last-child{text-align:right;color:#facc15;font-family:monospace}
+.charset-info{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:12px}
+.charset-item{background:#0a0a0a;border:1px solid #222;border-radius:6px;padding:8px 12px;text-align:center}
+.charset-item .type{font-size:.7rem;color:#737373;text-transform:uppercase}
+.charset-item .count{font-size:1.1rem;font-weight:600;color:#93c5fd}
+.optimal{background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:12px 16px;margin-top:12px;font-size:.9rem;color:#737373}
+.optimal strong{color:#4ade80}
+.toast{position:fixed;bottom:20px;right:20px;background:#222;border:1px solid #333;color:#fff;padding:12px 20px;border-radius:8px;font-size:.9rem;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;z-index:100}
+.toast.show{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>Password Entropy Calculator</h1>
+<a href="index.html">← Back to Tools</a>
+</div>
+<div class="main">
+<div class="input-section">
+<label>Enter Password</label>
+<div style="position:relative">
+<input type="password" class="password-input" id="passwordInput" placeholder="Type or paste a password..." oninput="calculate()" aria-label="Password to analyze">
+<button class="toggle-visibility" onclick="toggleVis()">👁</button>
+</div>
+</div>
+<div class="results" id="results" style="display:none">
+<div class="result-card">
+<div class="result-label">Entropy</div>
+<div class="result-value" id="entropyValue">0 bits</div>
+<div class="entropy-bar"><div class="entropy-fill" id="entropyFill"></div></div>
+<div id="strengthBadge" class="strength-badge"></div>
+</div>
+<div class="result-card">
+<div class="result-label">Character Set Analysis</div>
+<div class="charset-info" id="charsetInfo"></div>
+<div class="result-sub" id="charsetTotal"></div>
+</div>
+<div class="result-card">
+<div class="result-label">Time to Crack</div>
+<table class="crack-table">
+<thead><tr><th>Scenario</th><th>Speed</th><th>Time</th></tr></thead>
+<tbody id="crackTable"></tbody>
+</table>
+</div>
+<div class="result-card">
+<div class="result-label">Optimal Length Recommendation</div>
+<div class="optimal" id="optimalInfo"></div>
+</div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const CRACK_SCENARIOS=[
+{name:'Online (throttled)',speed:1000,unit:'guesses/sec'},
+{name:'Online (no throttle)',speed:10000,unit:'guesses/sec'},
+{name:'Offline (slow hash)',speed:100000,unit:'guesses/sec'},
+{name:'Offline (fast hash)',speed:1000000000,unit:'guesses/sec'},
+{name:'Offline (GPU cluster)',speed:10000000000,unit:'guesses/sec'}
+];
+
+function calculate(){
+const pw=document.getElementById('passwordInput').value;
+if(!pw){document.getElementById('results').style.display='none';return}
+document.getElementById('results').style.display='grid';
+let charsetSize=0;
+const hasLower=/[a-z]/.test(pw);if(hasLower)charsetSize+=26;
+const hasUpper=/[A-Z]/.test(pw);if(hasUpper)charsetSize+=26;
+const hasDigit=/[0-9]/.test(pw);if(hasDigit)charsetSize+=10;
+const hasSymbol=/[^a-zA-Z0-9]/.test(pw);if(hasSymbol)charsetSize+=33;
+if(charsetSize===0)charsetSize=26;
+const entropy=pw.length*Math.log2(charsetSize);
+const strength=getStrength(entropy);
+document.getElementById('entropyValue').textContent=entropy.toFixed(1)+' bits';
+const fill=document.getElementById('entropyFill');
+fill.style.width=Math.min(100,entropy/128*100)+'%';
+fill.style.background=strength.color;
+const badge=document.getElementById('strengthBadge');
+badge.textContent=strength.label;
+badge.className='strength-badge strength-'+strength.class;
+document.getElementById('charsetInfo').innerHTML=`
+<div class="charset-item"><div class="count">${hasLower?'26':'0'}</div><div class="type">Lowercase</div></div>
+<div class="charset-item"><div class="count">${hasUpper?'26':'0'}</div><div class="type">Uppercase</div></div>
+<div class="charset-item"><div class="count">${hasDigit?'10':'0'}</div><div class="type">Digits</div></div>
+<div class="charset-item"><div class="count">${hasSymbol?'33':'0'}</div><div class="type">Symbols</div></div>`;
+document.getElementById('charsetTotal').textContent=`Total charset size: ${charsetSize} characters`;
+const combinations=Math.pow(charsetSize,pw.length);
+document.getElementById('crackTable').innerHTML=CRACK_SCENARIOS.map(s=>{
+const seconds=combinations/s.speed/2;
+return `<tr><td>${s.name}</td><td style="color:#737373">${formatNum(s.speed)} ${s.unit}</td><td>${formatTime(seconds)}</td></tr>`;
+}).join('');
+const optimalBits=128;
+const optimalLen=Math.ceil(optimalBits/Math.log2(charsetSize));
+document.getElementById('optimalInfo').innerHTML=`For <strong>128-bit security</strong> with charset <strong>${charsetSize}</strong>: use at least <strong>${optimalLen} characters</strong>. Current length: <strong>${pw.length}</strong>`;
+}
+
+function getStrength(entropy){
+if(entropy<28)return{label:'Very Weak',class:'very-weak',color:'#ef4444'};
+if(entropy<36)return{label:'Weak',class:'weak',color:'#f97316'};
+if(entropy<60)return{label:'Fair',class:'fair',color:'#eab308'};
+if(entropy<128)return{label:'Strong',class:'strong',color:'#22c55e'};
+return{label:'Very Strong',class:'very-strong',color:'#3b82f6'};
+}
+
+function formatNum(n){
+if(n>=1e12)return(n/1e12).toFixed(1)+'T';
+if(n>=1e9)return(n/1e9).toFixed(1)+'B';
+if(n>=1e6)return(n/1e6).toFixed(1)+'M';
+if(n>=1e3)return(n/1e3).toFixed(1)+'K';
+return n.toString();
+}
+
+function formatTime(seconds){
+if(seconds<0.001)return 'Instant';
+if(seconds<1)return '< 1 second';
+if(seconds<60)return Math.round(seconds)+' seconds';
+if(seconds<3600)return Math.round(seconds/60)+' minutes';
+if(seconds<86400)return Math.round(seconds/3600)+' hours';
+if(seconds<31536000)return Math.round(seconds/86400)+' days';
+if(seconds<31536000*1000)return Math.round(seconds/31536000)+' years';
+if(seconds<31536000*1e6)return Math.round(seconds/31536000/1000)+'K years';
+if(seconds<31536000*1e9)return Math.round(seconds/31536000/1e6)+'M years';
+if(seconds<31536000*1e12)return Math.round(seconds/31536000/1e9)+'B years';
+return 'Heat death of universe+';
+}
+
+function toggleVis(){
+const inp=document.getElementById('passwordInput');
+inp.type=inp.type==='password'?'text':'password';
+}
+</script>
+</body>
+</html>

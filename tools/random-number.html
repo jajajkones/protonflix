@@ -29,6 +29,8 @@
 </style>
 </head>
 <body>
+<header style="position:fixed;top:0;left:0;right:0;padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;z-index:10;background:var(--bg)"><h1 style="font-size:20px;font-weight:500">Random Number Generator</h1><a href="index.html" style="color:var(--muted);text-decoration:none;font-size:13px">← Back to Tools</a></header>
+<div style="margin-top:80px"></div>
 <div class="big-num" id="result">-</div>
 <div class="controls">
 <div class="input-group"><label>Min</label><input type="number" id="min" value="1"></div>
@@ -46,7 +48,7 @@
 let hist=[];let lastResult='';
 function generate(){
 const min=+document.getElementById('min').value;const max=+document.getElementById('max').value;const count=+document.getElementById('count').value;const unique=document.getElementById('unique').checked;const noRepeat=document.getElementById('noRepeat').checked;
-if(min>max)return;
+if(min>max){document.getElementById('result').textContent='Min > Max';return;}
 const nums=[];const used=new Set();
 for(let i=0;i<count;i++){
 let n;let attempts=0;

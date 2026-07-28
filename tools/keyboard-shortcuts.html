@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Keyboard Shortcuts Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;padding:20px}
+.header{text-align:center;padding:30px 0;border-bottom:1px solid #222;margin-bottom:30px}
+.header h1{font-size:2rem;font-weight:600;margin-bottom:10px}
+.header a{color:#737373;text-decoration:none;font-size:0.9rem;transition:color .2s}
+.header a:hover{color:#fff}
+.search-wrap{max-width:600px;margin:0 auto 30px}
+.search{width:100%;padding:12px 16px;border-radius:8px;border:1px solid #222;background:#111;color:#fff;font-family:'Outfit',sans-serif;font-size:1rem;outline:none;transition:border .2s}
+.search:focus{border-color:#444}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:20px}
+.tab{padding:8px 16px;border-radius:6px;border:1px solid #222;background:#111;color:#737373;cursor:pointer;font-family:'Outfit',sans-serif;font-size:0.85rem;transition:all .2s}
+.tab.active,.tab:hover{background:#222;color:#fff;border-color:#444}
+.shortcuts-grid{display:grid;gap:1px;background:#222;border:1px solid #222;border-radius:8px;overflow:hidden;max-width:800px;margin:0 auto}
+.shortcut{background:#111;padding:12px 16px;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;cursor:pointer;transition:background .2s}
+.shortcut:hover{background:#1a1a1a}
+.shortcut.copied{background:#1a3a1a}
+.shortcut-action{font-size:0.9rem}
+.shortcut-keys{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.key{background:#222;padding:4px 10px;border-radius:4px;font-size:0.8rem;font-family:monospace;border:1px solid #333;white-space:nowrap}
+.toast{position:fixed;bottom:20px;right:20px;background:#222;color:#fff;padding:12px 20px;border-radius:8px;font-size:0.9rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:1000}
+.toast.show{opacity:1}
+@media(max-width:600px){.shortcut{grid-template-columns:1fr}.shortcut-keys{justify-content:flex-start}}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>Keyboard Shortcuts Reference</h1>
+<a href="index.html">← Back</a>
+</div>
+<div class="search-wrap">
+<input type="text" class="search" placeholder="Search shortcuts..." id="search" aria-label="Search keyboard shortcuts">
+</div>
+<div class="tabs" id="tabs"></div>
+<div id="container"></div>
+<div class="toast" id="toast"></div>
+<script>
+const data={
+Chrome:[
+{keys:["Ctrl","C"],action:"Copy"},
+{keys:["Ctrl","X"],action:"Cut"},
+{keys:["Ctrl","V"],action:"Paste"},
+{keys:["Ctrl","Z"],action:"Undo"},
+{keys:["Ctrl","Y"],action:"Redo"},
+{keys:["Ctrl","A"],action:"Select All"},
+{keys:["Ctrl","S"],action:"Save Page"},
+{keys:["Ctrl","P"],action:"Print"},
+{keys:["Ctrl","F"],action:"Find in Page"},
+{keys:["Ctrl","H"],action:"History"},
+{keys:["Ctrl","J"],action:"Downloads"},
+{keys:["Ctrl","T"],action:"New Tab"},
+{keys:["Ctrl","W"],action:"Close Tab"},
+{keys:["Ctrl","Shift","T"],action:"Reopen Closed Tab"},
+{keys:["Ctrl","Tab"],action:"Next Tab"},
+{keys:["Ctrl","Shift","Tab"],action:"Previous Tab"},
+{keys:["Ctrl","L"],action:"Focus Address Bar"},
+{keys:["Ctrl","D"],action:"Bookmark Page"},
+{keys:["Ctrl","Shift","Delete"],action:"Clear Browsing Data"},
+{keys:["Ctrl","Shift","I"],action:"DevTools"},
+{keys:["F5"],action:"Reload"},
+{keys:["Ctrl","R"],action:"Reload"},
+{keys:["Ctrl","Shift","R"],action:"Hard Reload"},
+{keys:["F11"],action:"Fullscreen"},
+{keys:["Alt","Left"],action:"Back"},
+{keys:["Alt","Right"],action:"Forward"},
+{keys:["Ctrl","1-9"],action:"Switch to Tab N"},
+{keys:["Ctrl","0"],action:"Reset Zoom"},
+{keys:["Ctrl","+"],action:"Zoom In"},
+{keys:["Ctrl","-"],action:"Zoom Out"},
+{keys:["Ctrl","Shift","Delete"],action:"Clear Browsing Data"},
+{keys:["Ctrl","L"],action:"Focus Address Bar"},
+{keys:["Ctrl","Shift","B"],action:"Show/Hide Bookmarks Bar"},
+{keys:["Ctrl","Shift","O"],action:"Bookmark Manager"}
+],
+"VS Code":[
+{keys:["Ctrl","P"],action:"Quick Open File"},
+{keys:["Ctrl","Shift","P"],action:"Command Palette"},
+{keys:["Ctrl","Shift","F"],action:"Search Across Files"},
+{keys:["Ctrl","F"],action:"Find in File"},
+{keys:["Ctrl","H"],action:"Find and Replace"},
+{keys:["Ctrl","G"],action:"Go to Line"},
+{keys:["Ctrl","B"],action:"Toggle Sidebar"},
+{keys:["Ctrl","`"],action:"Toggle Terminal"},
+{keys:["Ctrl","Shift","`"],action:"New Terminal"},
+{keys:["Ctrl","S"],action:"Save File"},
+{keys:["Ctrl","Shift","S"],action:"Save All"},
+{keys:["Ctrl","W"],action:"Close Editor"},
+{keys:["Ctrl","Shift","W"],action:"Close All"},
+{keys:["Ctrl","X"],action:"Cut Line"},
+{keys:["Ctrl","C"],action:"Copy Line"},
+{keys:["Ctrl","V"],action:"Paste"},
+{keys:["Ctrl","D"],action:"Select Next Occurrence"},
+{keys:["Ctrl","Shift","L"],action:"Select All Occurrences"},
+{keys:["Alt","Up"],action:"Move Line Up"},
+{keys:["Alt","Down"],action:"Move Line Down"},
+{keys:["Shift","Alt","Up"],action:"Copy Line Up"},
+{keys:["Shift","Alt","Down"],action:"Copy Line Down"},
+{keys:["Ctrl","/"],action:"Toggle Comment"},
+{keys:["Shift","Alt","F"],action:"Format Document"},
+{keys:["Ctrl","["],action:"Outdent"},
+{keys:["Ctrl","]"],action:"Indent"},
+{keys:["Ctrl","Enter"],action:"Insert Line Below"},
+{keys:["Ctrl","Shift","Enter"],action:"Insert Line Above"},
+{keys:["F12"],action:"Go to Definition"},
+{keys:["Alt","F12"],action:"Peek Definition"},
+{keys:["F2"],action:"Rename Symbol"},
+{keys:["Ctrl","K F"],action:"Toggle Fold"},
+{keys:["Ctrl","K Ctrl","J"],action:"Unfold All"},
+{keys:["Ctrl","K Ctrl","C"],action:"Copy with Line Numbers"},
+{keys:["Ctrl","K Ctrl","D"],action:"Copy without Line Numbers"},
+{keys:["Ctrl","K Ctrl","U"],action:"Copy with Line Numbers (no indent)"},
+{keys:["Ctrl","K Ctrl","0"],action:"Unfold All"},
+{keys:["Ctrl","K Ctrl","1"],action:"Fold Level 1"},
+{keys:["Ctrl","K Ctrl","2"],action:"Fold Level 2"},
+{keys:["Ctrl","K Ctrl","3"],action:"Fold Level 3"}
+],
+macOS:[
+{keys:["⌘","C"],action:"Copy"},
+{keys:["⌘","X"],action:"Cut"},
+{keys:["⌘","V"],action:"Paste"},
+{keys:["⌘","Z"],action:"Undo"},
+{keys:["⌘","Shift","Z"],action:"Redo"},
+{keys:["⌘","A"],action:"Select All"},
+{keys:["⌘","S"],action:"Save"},
+{keys:["⌘","Shift","S"],action:"Save As"},
+{keys:["⌘","P"],action:"Print"},
+{keys:["⌘","F"],action:"Find"},
+{keys:["⌘","G"],action:"Find Next"},
+{keys:["⌘","Shift","G"],action:"Find Previous"},
+{keys:["⌘","H"],action:"Hide App"},
+{keys:["⌘","Q"],action:"Quit App"},
+{keys:["⌘","W"],action:"Close Window"},
+{keys:["⌘","M"],action:"Minimize"},
+{keys:["⌘",","],action:"Preferences"},
+{keys:["⌘","Space"],action:"Spotlight Search"},
+{keys:["⌘","Tab"],action:"Switch Apps"},
+{keys:["⌘","Shift","3"],action:"Screenshot Full"},
+{keys:["⌘","Shift","4"],action:"Screenshot Selection"},
+{keys:["⌘","Shift","5"],action:"Screenshot Tool"},
+{keys:["⌘","N"],action:"New Window"},
+{keys:["⌘","T"],action:"New Tab"},
+{keys:["⌘","L"],action:"Focus URL Bar"},
+{keys:["⌘","["],action:"Back"},
+{keys:["⌘","]"],action:"Forward"},
+{keys:["⌘","+"],action:"Zoom In"},
+{keys:["⌘","-"],action:"Zoom Out"},
+{keys:["⌘","0"],action:"Reset Zoom"},
+{keys:["⌘","Option","Esc"],action:"Force Quit"},
+{keys:["⌘","Ctrl","Q"],action:"Lock Screen"},
+{keys:["⌘","Shift","N"],action:"New Folder"},
+{keys:["⌘","Delete"],action:"Move to Trash"},
+{keys:["⌘","Shift","Delete"],action:"Empty Trash"}
+],
+Windows:[
+{keys:["Ctrl","C"],action:"Copy"},
+{keys:["Ctrl","X"],action:"Cut"},
+{keys:["Ctrl","V"],action:"Paste"},
+{keys:["Ctrl","Z"],action:"Undo"},
+{keys:["Ctrl","Y"],action:"Redo"},
+{keys:["Ctrl","A"],action:"Select All"},
+{keys:["Ctrl","S"],action:"Save"},
+{keys:["Ctrl","P"],action:"Print"},
+{keys:["Ctrl","F"],action:"Find"},
+{keys:["Ctrl","W"],action:"Close Window"},
+{keys:["Alt","F4"],action:"Close App"},
+{keys:["Alt","Tab"],action:"Switch Windows"},
+{keys:["Alt","Esc"],action:"Cycle Windows"},
+{keys:["Win","D"],action:"Show Desktop"},
+{keys:["Win","E"],action:"File Explorer"},
+{keys:["Win","L"],action:"Lock Screen"},
+{keys:["Win","R"],action:"Run Dialog"},
+{keys:["Win","I"],action:"Settings"},
+{keys:["Win","X"],action:"Quick Link Menu"},
+{keys:["Win","Shift","S"],action:"Snipping Tool"},
+{keys:["Win","V"],action:"Clipboard History"},
+{keys:["Win","Ctrl","D"],action:"New Virtual Desktop"},
+{keys:["Win","Ctrl","F4"],action:"Close Virtual Desktop"},
+{keys:["Win","Ctrl","Left"],action:"Switch Desktop Left"},
+{keys:["Win","Ctrl","Right"],action:"Switch Desktop Right"},
+{keys:["Win","Up"],action:"Maximize"},
+{keys:["Win","Down"],action:"Minimize"},
+{keys:["Win","Left"],action:"Snap Left"},
+{keys:["Win","Right"],action:"Snap Right"},
+{keys:["Win","1-9"],action:"Open App N"},
+{keys:["Win","Shift","S"],action:"Screenshot"},
+{keys:["Win","PrintScreen"],action:"Screenshot to File"},
+{keys:["Alt","PrintScreen"],action:"Screenshot to Clipboard"},
+{keys:["Ctrl","Shift","Esc"],action:"Task Manager"}
+],
+Linux:[
+{keys:["Ctrl","C"],action:"Copy"},
+{keys:["Ctrl","X"],action:"Cut"},
+{keys:["Ctrl","V"],action:"Paste"},
+{keys:["Ctrl","Z"],action:"Undo"},
+{keys:["Ctrl","Y"],action:"Redo"},
+{keys:["Ctrl","A"],action:"Select All"},
+{keys:["Ctrl","S"],action:"Save"},
+{keys:["Ctrl","Q"],action:"Quit App"},
+{keys:["Alt","Tab"],action:"Switch Windows"},
+{keys:["Alt","F2"],action:"Run Command"},
+{keys:["Super"],action:"Activities/Menu"},
+{keys:["Ctrl","Alt","T"],action:"Open Terminal"},
+{keys:["Ctrl","Alt","Delete"],action:"Log Out"},
+{keys:["Alt","F4"],action:"Close Window"},
+{keys:["F11"],action:"Fullscreen"},
+{keys:["Super","L"],action:"Lock Screen"},
+{keys:["Super","D"],action:"Show Desktop"},
+{keys:["Super","Up"],action:"Maximize"},
+{keys:["Super","Down"],action:"Restore"},
+{keys:["Super","Left"],action:"Snap Left"},
+{keys:["Super","Right"],action:"Snap Right"},
+{keys:["Super","Tab"],action:"App Switcher"},
+{keys:["Ctrl","Super","D"],action:"New Workspace"},
+{keys:["PrintScreen"],action:"Screenshot"},
+{keys:["Alt","PrintScreen"],action:"Screenshot Window"},
+{keys:["Ctrl","Shift","PrintScreen"],action:"Area Screenshot"},
+{keys:["Super","Space"],action:"Switch Input Source"}
+],
+"Sublime Text":[
+{keys:["Ctrl","P"],action:"Go to Anything"},
+{keys:["Ctrl","Shift","P"],action:"Command Palette"},
+{keys:["Ctrl","G"],action:"Go to Line"},
+{keys:["Ctrl","F"],action:"Find"},
+{keys:["Ctrl","H"],action:"Find and Replace"},
+{keys:["Ctrl","D"],action:"Select Next Occurrence"},
+{keys:["Ctrl","Shift","D"],action:"Duplicate Line"},
+{keys:["Ctrl","["],action:"Outdent"},
+{keys:["Ctrl","]"],action:"Indent"},
+{keys:["Ctrl","/"],action:"Toggle Comment"},
+{keys:["Ctrl","Shift","K"],action:"Delete Line"},
+{keys:["Ctrl","K","K"],action:"Delete to End of Line"},
+{keys:["Ctrl","K","Backspace"],action:"Delete to Start of Line"},
+{keys:["Ctrl","T"],action:"Transpose"},
+{keys:["Ctrl","Enter"],action:"Insert Line After"},
+{keys:["Ctrl","Shift","Enter"],action:"Insert Line Before"},
+{keys:["Alt","Up"],action:"Move Line Up"},
+{keys:["Alt","Down"],action:"Move Line Down"},
+{keys:["Alt","F3"],action:"Select All Occurrences"},
+{keys:["Ctrl","L"],action:"Expand Selection to Line"},
+{keys:["Ctrl","Shift","L"],action:"Split into Lines"},
+{keys:["Ctrl","M"],action:"Jump to Matching Bracket"},
+{keys:["Ctrl","Shift","M"],action:"Select to Matching Bracket"},
+{keys:["F11"],action:"Toggle Fullscreen"},
+{keys:["Shift","F11"],action:"Toggle Distraction Free"},
+{keys:["Ctrl","Shift","P"],action:"Command Palette"},
+{keys:["Ctrl","1-9"],action:"Switch Tab"},
+{keys:["Ctrl","Tab"],action:"Next Tab"},
+{keys:["Ctrl","Shift","Tab"],action:"Previous Tab"},
+{keys:["Ctrl","Shift","T"],action:"Reopen Last Closed"},
+{keys:["Ctrl","N"],action:"New File"},
+{keys:["Ctrl","O"],action:"Open File"},
+{keys:["Ctrl","S"],action:"Save"},
+{keys:["Ctrl","Shift","S"],action:"Save As"},
+{keys:["Ctrl","W"],action:"Close File"},
+{keys:["Ctrl","Shift","W"],action:"Close All Files"}
+],
+Figma:[
+{keys:["V"],action:"Move Tool"},
+{keys:["F"],action:"Frame Tool"},
+{keys:["R"],action:"Rectangle Tool"},
+{keys:["O"],action:"Ellipse Tool"},
+{keys:["L"],action:"Line Tool"},
+{keys:["T"],action:"Text Tool"},
+{keys:["P"],action:"Pen Tool"},
+{keys:["Shift","P"],action:"Pencil Tool"},
+{keys:["I"],action:"Eyedropper Tool"},
+{keys:["H"],action:"Hand Tool"},
+{keys:["K"],action:"Scale Tool"},
+{keys:["B"],action:"Brush Tool"},
+{keys:["Ctrl","Z"],action:"Undo"},
+{keys:["Ctrl","Shift","Z"],action:"Redo"},
+{keys:["Ctrl","C"],action:"Copy"},
+{keys:["Ctrl","V"],action:"Paste"},
+{keys:["Ctrl","X"],action:"Cut"},
+{keys:["Ctrl","D"],action:"Duplicate"},
+{keys:["Ctrl","G"],action:"Group Selection"},
+{keys:["Ctrl","Shift","G"],action:"Ungroup Selection"},
+{keys:["Ctrl","A"],action:"Select All"},
+{keys:["Ctrl","Shift","H"],action:"Show/Hide UI"},
+{keys:["Ctrl","E"],action:"Export"},
+{keys:["Ctrl","Shift","E"],action:"Export Selection"},
+{keys:["Ctrl","Shift","K"],action:"Create Component"},
+{keys:["Ctrl","Alt","K"],action:"Detach Instance"},
+{keys:["Ctrl","Shift","I"],action:"Toggle Prototype"},
+{keys:["Ctrl","P"],action:"Quick Actions"},
+{keys:["Ctrl","/"],action:"Search"},
+{keys:["Ctrl","Shift","O"],action:"Show/Hide Layers"},
+{keys:["Ctrl","Shift","A"],action:"Show/Hide Assets"},
+{keys:["Ctrl","Shift","S"],action:"Show/Hide Styles"},
+{keys:["Ctrl","Shift","D"],action:"Show/Hide Design Tokens"},
+{keys:["Ctrl","Shift","M"],action:"Show/Hide Comments"},
+{keys:["Space"],action:"Pan"},
+{keys:["Shift"],action:"Constrain Proportions"},
+{keys:["Alt"],action:"Duplicate on Drag"},
+{keys:["Ctrl"],action:"Move Z-Index"},
+{keys:["1-5"],action:"Zoom to Fit/Selection"}
+]};
+let activeTab='Chrome';
+function renderTabs(){
+const t=document.getElementById('tabs');t.innerHTML='';
+Object.keys(data).forEach(k=>{const b=document.createElement('button');b.className=`tab ${activeTab===k?'active':''}`;b.textContent=k;b.onclick=()=>{activeTab=k;renderTabs();render()};t.appendChild(b)});
+}
+function render(filter=''){
+const c=document.getElementById('container');c.innerHTML='';
+const items=data[activeTab]||[];
+const f=items.filter(i=>!filter||i.action.toLowerCase().includes(filter.toLowerCase())||i.keys.join(' ').toLowerCase().includes(filter.toLowerCase()));
+const grid=document.createElement('div');grid.className='shortcuts-grid';
+f.forEach(s=>{
+const el=document.createElement('div');el.className='shortcut';
+el.innerHTML=`<span class="shortcut-action">${s.action}</span><span class="shortcut-keys">${s.keys.map(k=>`<span class="key">${k}</span>`).join('')}</span>`;
+const text=s.keys.join(' + ');
+el.onclick=()=>{navigator.clipboard.writeText(text);el.classList.add('copied');showToast('Copied: '+text);setTimeout(()=>el.classList.remove('copied'),500)};
+grid.appendChild(el);
+});
+c.appendChild(grid);
+}
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+document.getElementById('search').oninput=e=>render(e.target.value);
+renderTabs();render();
+</script>
+</body>
+</html>

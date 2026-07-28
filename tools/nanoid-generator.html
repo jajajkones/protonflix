@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NanoID Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;padding:20px}
+.header{display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #222}
+.header h1{font-size:1.5rem;font-weight:600}
+.header a{color:#737373;text-decoration:none;font-size:.875rem;transition:color .2s}
+.header a:hover{color:#fff}
+.container{max-width:900px;margin:0 auto}
+.surface{background:#111;border:1px solid #222;border-radius:8px;padding:16px;margin-bottom:16px}
+label{display:block;font-size:.75rem;color:#737373;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+input,textarea,select{width:100%;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;padding:10px 12px;font-family:'Outfit',sans-serif;font-size:.875rem;outline:none;transition:border-color .2s}
+input:focus,textarea:focus,select:focus{border-color:#444}
+textarea{resize:vertical;font-family:monospace;font-size:.8rem}
+.btn{background:#fff;color:#0a0a0a;border:none;border-radius:6px;padding:10px 20px;font-family:'Outfit',sans-serif;font-size:.875rem;font-weight:500;cursor:pointer;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.btn-secondary{background:transparent;color:#fff;border:1px solid #222}
+.btn-secondary:hover{border-color:#444}
+.row{display:flex;gap:12px;align-items:flex-end}
+.row>*{flex:1}
+.slider-row{display:flex;align-items:center;gap:12px}
+.slider-row input[type=range]{flex:1;accent-color:#fff}
+.slider-val{font-size:1.1rem;font-weight:600;min-width:30px;text-align:center}
+.output-area{background:#0a0a0a;border:1px solid #222;border-radius:6px;padding:12px;max-height:400px;overflow:auto;font-family:monospace;font-size:.8rem;color:#ccc;line-height:1.8}
+.output-line{cursor:pointer;padding:2px 4px;border-radius:3px;transition:background .2s}
+.output-line:hover{background:#222}
+.stats{font-size:.8rem;color:#737373;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html">&larr; Back</a>
+<h1>NanoID Generator</h1>
+</div>
+
+<div class="surface">
+<div class="row" style="margin-bottom:16px">
+<div>
+<label>Length</label>
+<div class="slider-row">
+<input type="range" id="length" min="6" max="64" value="21" oninput="document.getElementById('lengthVal').textContent=this.value" aria-label="NanoID length">
+<span class="slider-val" id="lengthVal">21</span>
+</div>
+</div>
+<div>
+<label>Batch Size</label>
+<div class="slider-row">
+<input type="range" id="batch" min="1" max="1000" value="10" oninput="document.getElementById('batchVal').textContent=this.value" aria-label="Batch size">
+<span class="slider-val" id="batchVal">10</span>
+</div>
+</div>
+</div>
+<label>Alphabet</label>
+<input type="text" id="alphabet" value="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-" aria-label="NanoID alphabet characters">
+<div style="margin-top:12px;display:flex;gap:8px">
+<button class="btn" onclick="generate()">Generate</button>
+<button class="btn-secondary btn" onclick="copyAll()">Copy All</button>
+<button class="btn-secondary btn" onclick="exportAs('txt')">Export TXT</button>
+<button class="btn-secondary btn" onclick="exportAs('json')">Export JSON</button>
+</div>
+</div>
+
+<div class="surface">
+<div class="stats" id="stats">Ready</div>
+<div class="output-area" id="output"></div>
+</div>
+</div>
+
+<script>
+let ids=[];
+
+function generate(){
+const len=parseInt(document.getElementById('length').value);
+const count=parseInt(document.getElementById('batch').value);
+const alpha=document.getElementById('alphabet').value;
+if(!alpha){alert('Enter an alphabet');return;}
+const arr=new Uint32Array(count);
+crypto.getRandomValues(arr);
+ids=[];
+for(let i=0;i<count;i++){
+let id='';
+const r=arr[i];
+for(let j=0;j<len;j++){id+=alpha[r%alpha.length]}
+ids.push(id);
+}
+render();
+}
+
+function render(){
+const el=document.getElementById('output');
+el.innerHTML=ids.map((id,i)=>`<div class="output-line" onclick="copySingle(${i})">${id}</div>`).join('');
+const unique=new Set(ids).size;
+document.getElementById('stats').textContent=`${ids.length} IDs generated | ${unique} unique`;
+}
+
+function copySingle(i){navigator.clipboard.writeText(ids[i])}
+function copyAll(){navigator.clipboard.writeText(ids.join('\n'))}
+
+function exportAs(fmt){
+if(!ids.length){alert('Generate IDs first');return;}
+let content,filename;
+if(fmt==='json'){content=JSON.stringify(ids,null,2);filename='nanoids.json'}
+else{content=ids.join('\n');filename='nanoids.txt'}
+const blob=new Blob([content],{type:'text/plain'});
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();
+}
+</script>
+</body>
+</html>

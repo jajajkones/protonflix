@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML5 Boilerplate Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .header {
+            max-width: 900px;
+            margin: 0 auto 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #222;
+        }
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .header a {
+            color: #737373;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+        .header a:hover { color: #fff; }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        @media (max-width: 768px) {
+            .container { grid-template-columns: 1fr; }
+        }
+        .panel {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        .panel h2 {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 1.2rem;
+            color: #fff;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: #737373;
+            margin-bottom: 0.4rem;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="url"],
+        .form-group input[type="color"] {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 6px;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus {
+            border-color: #444;
+        }
+        .form-group input[type="color"] {
+            height: 38px;
+            padding: 4px;
+            cursor: pointer;
+        }
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        .toggle-group:last-child { border-bottom: none; }
+        .toggle-group span {
+            font-size: 0.85rem;
+            color: #737373;
+        }
+        .toggle {
+            position: relative;
+            width: 40px;
+            height: 22px;
+            cursor: pointer;
+        }
+        .toggle input { display: none; }
+        .toggle .slider {
+            position: absolute;
+            inset: 0;
+            background: #222;
+            border-radius: 11px;
+            transition: background 0.2s;
+        }
+        .toggle .slider::before {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            left: 3px;
+            top: 3px;
+            background: #737373;
+            border-radius: 50%;
+            transition: transform 0.2s, background 0.2s;
+        }
+        .toggle input:checked + .slider { background: #333; }
+        .toggle input:checked + .slider::before {
+            transform: translateX(18px);
+            background: #fff;
+        }
+        .btn {
+            padding: 0.7rem 1.2rem;
+            border: 1px solid #222;
+            border-radius: 6px;
+            background: #111;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn:hover { background: #1a1a1a; border-color: #333; }
+        .btn-primary { background: #fff; color: #0a0a0a; border-color: #fff; }
+        .btn-primary:hover { background: #e0e0e0; }
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+        .output-area {
+            margin-top: 1.5rem;
+        }
+        .output-area pre {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            max-height: 500px;
+            overflow-y: auto;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .output-area pre:hover { border-color: #444; }
+        .output-area pre::-webkit-scrollbar { width: 6px; height: 6px; }
+        .output-area pre::-webkit-scrollbar-track { background: #111; }
+        .output-area pre::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        .copy-toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #222;
+            color: #fff;
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .copy-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>HTML5 Boilerplate Generator</h1>
+        <a href="index.html">← Back to ProtonFlix Tools</a>
+    </div>
+
+    <div class="container">
+        <div class="panel">
+            <h2>Settings</h2>
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="pageTitle" value="My Website" oninput="generate()">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <input type="text" id="description" value="A modern website" oninput="generate()">
+            </div>
+            <div class="form-group">
+                <label>Canonical URL</label>
+                <input type="url" id="canonical" placeholder="https://example.com" oninput="generate()">
+            </div>
+            <div class="form-group">
+                <label>Favicon URL</label>
+                <input type="url" id="favicon" placeholder="/favicon.ico" oninput="generate()">
+            </div>
+            <div class="form-group">
+                <label>Theme Color</label>
+                <input type="color" id="themeColor" value="#0a0a0a" oninput="generate()">
+            </div>
+            <div class="form-group">
+                <label>Apple Touch Icon</label>
+                <input type="url" id="appleTouchIcon" placeholder="/apple-touch-icon.png" oninput="generate()">
+            </div>
+            <div class="form-group">
+                <label>Manifest Link</label>
+                <input type="url" id="manifest" placeholder="/manifest.json" oninput="generate()">
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Options</h2>
+            <div class="toggle-group">
+                <span>Open Graph Tags</span>
+                <label class="toggle"><input type="checkbox" id="ogTags" checked onchange="generate()"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-group">
+                <span>Twitter Card Tags</span>
+                <label class="toggle"><input type="checkbox" id="twitterTags" checked onchange="generate()"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-group">
+                <span>Robots Meta</span>
+                <label class="toggle"><input type="checkbox" id="robots" checked onchange="generate()"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-group">
+                <span>Viewport Meta</span>
+                <label class="toggle"><input type="checkbox" id="viewport" checked onchange="generate()"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-group">
+                <span>Preconnect Google Fonts</span>
+                <label class="toggle"><input type="checkbox" id="preconnect" checked onchange="generate()"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-group">
+                <span>Normalize CSS</span>
+                <label class="toggle"><input type="checkbox" id="normalize" checked onchange="generate()"><span class="slider"></span></label>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="copyOutput()">Copy HTML</button>
+                <button class="btn" onclick="downloadOutput()">Download</button>
+            </div>
+        </div>
+    </div>
+
+    <div style="max-width:900px;margin:2rem auto 0;">
+        <div class="output-area">
+            <pre id="output" onclick="copyOutput()"></pre>
+        </div>
+    </div>
+
+    <div class="copy-toast" id="toast">Copied to clipboard!</div>
+
+    <script>
+        function generate() {
+            const title = document.getElementById('pageTitle').value || 'My Website';
+            const desc = document.getElementById('description').value || '';
+            const canonical = document.getElementById('canonical').value;
+            const favicon = document.getElementById('favicon').value;
+            const themeColor = document.getElementById('themeColor').value;
+            const appleTouchIcon = document.getElementById('appleTouchIcon').value;
+            const manifest = document.getElementById('manifest').value;
+            const ogTags = document.getElementById('ogTags').checked;
+            const twitterTags = document.getElementById('twitterTags').checked;
+            const robots = document.getElementById('robots').checked;
+            const viewport = document.getElementById('viewport').checked;
+            const preconnect = document.getElementById('preconnect').checked;
+            const normalize = document.getElementById('normalize').checked;
+
+            let lines = [];
+            lines.push('<!DOCTYPE html>');
+            lines.push('<html lang="en">');
+            lines.push('<head>');
+            lines.push('    <meta charset="UTF-8">');
+            if (viewport) lines.push('    <meta name="viewport" content="width=device-width, initial-scale=1.0">');
+            lines.push(`    <title>${esc(title)}</title>`);
+            if (desc) lines.push(`    <meta name="description" content="${esc(desc)}">`);
+            if (robots) lines.push('    <meta name="robots" content="index, follow">');
+            if (themeColor) lines.push(`    <meta name="theme-color" content="${themeColor}">`);
+            if (canonical) lines.push(`    <link rel="canonical" href="${esc(canonical)}">`);
+            if (favicon) lines.push(`    <link rel="icon" href="${esc(favicon)}">`);
+            if (appleTouchIcon) lines.push(`    <link rel="apple-touch-icon" href="${esc(appleTouchIcon)}">`);
+            if (manifest) lines.push(`    <link rel="manifest" href="${esc(manifest)}">`);
+
+            if (ogTags) {
+                lines.push('');
+                lines.push('    <!-- Open Graph -->');
+                lines.push(`    <meta property="og:title" content="${esc(title)}">`);
+                lines.push(`    <meta property="og:type" content="website">`);
+                if (canonical) lines.push(`    <meta property="og:url" content="${esc(canonical)}">`);
+                if (desc) lines.push(`    <meta property="og:description" content="${esc(desc)}">`);
+                if (favicon) lines.push(`    <meta property="og:image" content="${esc(favicon)}">`);
+            }
+
+            if (twitterTags) {
+                lines.push('');
+                lines.push('    <!-- Twitter Card -->');
+                lines.push('    <meta name="twitter:card" content="summary_large_image">');
+                lines.push(`    <meta name="twitter:title" content="${esc(title)}">`);
+                if (desc) lines.push(`    <meta name="twitter:description" content="${esc(desc)}">`);
+                if (favicon) lines.push(`    <meta name="twitter:image" content="${esc(favicon)}">`);
+            }
+
+            if (preconnect) {
+                lines.push('');
+                lines.push('    <!-- Preconnect -->');
+                lines.push('    <link rel="preconnect" href="https://fonts.googleapis.com">');
+                lines.push('    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>');
+            }
+
+            if (normalize) {
+                lines.push('');
+                lines.push('    <!-- Normalize -->');
+                lines.push('    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">');
+            }
+
+            lines.push('');
+            lines.push('    <style>');
+            lines.push('        body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; color: #333; }');
+            lines.push('    </style>');
+            lines.push('</head>');
+            lines.push('<body>');
+            lines.push('    <h1>' + esc(title) + '</h1>');
+            lines.push('');
+            lines.push('    <!-- Content -->');
+            lines.push('');
+            lines.push('    <script>');
+            lines.push('        // Your JavaScript here');
+            lines.push('    <\/script>');
+            lines.push('</body>');
+            lines.push('</html>');
+
+            document.getElementById('output').textContent = lines.join('\n');
+        }
+
+        function esc(s) {
+            return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function copyOutput() {
+            const text = document.getElementById('output').textContent;
+            navigator.clipboard.writeText(text).then(() => showToast());
+        }
+
+        function downloadOutput() {
+            const text = document.getElementById('output').textContent;
+            const blob = new Blob([text], { type: 'text/html' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'index.html';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+
+        function showToast() {
+            const t = document.getElementById('toast');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        generate();
+    </script>
+</body>
+</html>

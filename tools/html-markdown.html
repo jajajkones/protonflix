@@ -29,14 +29,14 @@ textarea{flex:1;background:var(--bg);color:var(--text);border:none;padding:20px;
 <body>
 <header><h1>HTML / Markdown Converter</h1><a href="index.html">← Back to Tools</a></header>
 <div class="toolbar">
-<button class="btn primary" onclick="htmlToMd()">HTML → Markdown</button>
-<button class="btn primary" onclick="mdToHtml()">Markdown → HTML</button>
-<button class="btn" onclick="copyOutput()">Copy</button>
+<button class="btn primary" onclick="htmlToMd()" aria-label="Convert HTML to Markdown">HTML → Markdown</button>
+<button class="btn primary" onclick="mdToHtml()" aria-label="Convert Markdown to HTML">Markdown → HTML</button>
+<button class="btn" onclick="copyOutput()" aria-label="Copy output to clipboard">Copy</button>
 </div>
 <div class="container">
 <div class="pane">
 <div class="pane-header">Input</div>
-<textarea id="input" placeholder="Paste HTML or Markdown..." spellcheck="false"></textarea>
+<textarea id="input" placeholder="Paste HTML or Markdown..." spellcheck="false" aria-label="Input HTML or Markdown text"></textarea>
 </div>
 <div class="pane">
 <div class="pane-header">Output</div>
@@ -98,7 +98,7 @@ html=html.replace(/<\/(h[1-6]|blockquote|hr|pre)>\s*<\/p>/g,'</$1>');
 html=html.replace(/<p>\s*<\/p>/g,'');
 document.getElementById('output').textContent=html;
 }
-function copyOutput(){navigator.clipboard.writeText(document.getElementById('output').textContent)}
+function copyOutput(){navigator.clipboard.writeText(document.getElementById('output').textContent).then(()=>{const b=document.querySelector('[onclick="copyOutput()"]');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500)})}
 </script>
 </body>
 </html>

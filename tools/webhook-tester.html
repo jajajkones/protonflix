@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Webhook Tester</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;padding:20px}
+.container{max-width:900px;margin:0 auto}
+header{display:flex;align-items:center;gap:16px;margin-bottom:32px;padding-bottom:16px;border-bottom:1px solid #222}
+h1{font-size:1.8rem;font-weight:600}
+.back{color:#737373;text-decoration:none;font-size:0.9rem;transition:color .2s}
+.back:hover{color:#fff}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:24px;margin-bottom:20px}
+label{display:block;font-weight:500;margin-bottom:8px;color:#e0e0e0;font-size:0.9rem}
+input[type=text],textarea{width:100%;background:#0a0a0a;border:1px solid #222;color:#fff;font-family:'Outfit',sans-serif;padding:12px;border-radius:8px;font-size:0.9rem;resize:vertical}
+input[type=text]{height:42px}
+textarea{min-height:150px;font-family:'Courier New',monospace}
+.webhook-url{background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:16px;display:flex;align-items:center;gap:12px;margin:12px 0}
+.webhook-url code{flex:1;font-family:'Courier New',monospace;font-size:0.95rem;color:#34d399;word-break:break-all}
+.btn{background:#2563eb;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-family:'Outfit',sans-serif;font-weight:500;font-size:0.9rem;cursor:pointer;transition:background .2s}
+.btn:hover{background:#1d4ed8}
+.btn-sm{padding:8px 14px;font-size:0.8rem}
+.btn-outline{background:transparent;border:1px solid #222;color:#fff}
+.btn-outline:hover{background:#222}
+.btn-danger{background:#dc2626}
+.btn-danger:hover{background:#b91c1c}
+.btn-row{display:flex;gap:12px;margin:16px 0;flex-wrap:wrap}
+.request-list{display:grid;gap:8px}
+.request-item{background:#0a0a0a;border:1px solid #222;border-radius:8px;overflow:hidden;cursor:pointer;transition:border-color .2s}
+.request-item:hover{border-color:#2563eb}
+.request-item.active{border-color:#2563eb}
+.request-header{display:flex;align-items:center;gap:12px;padding:12px 16px}
+.method-badge{padding:4px 10px;border-radius:4px;font-size:0.75rem;font-weight:600;text-transform:uppercase;min-width:60px;text-align:center}
+.method-badge.get{background:#052e16;color:#34d399}
+.method-badge.post{background:#1e3a5f;color:#60a5fa}
+.method-badge.put{background:#422006;color:#fbbf24}
+.method-badge.delete{background:#450a0a;color:#f87171}
+.method-badge.patch{background:#3b0764;color:#c084fc}
+.request-time{color:#737373;font-size:0.82rem;flex:1}
+.request-path{font-family:'Courier New',monospace;font-size:0.85rem;color:#e0e0e0}
+.request-details{padding:0 16px 16px;display:none}
+.request-item.active .request-details{display:block}
+.detail-section{margin-bottom:12px}
+.detail-section h4{font-size:0.8rem;color:#737373;text-transform:uppercase;margin-bottom:6px;letter-spacing:0.5px}
+.detail-section pre{background:#0a0a0a;border:1px solid #222;border-radius:6px;padding:12px;font-family:'Courier New',monospace;font-size:0.82rem;color:#e0e0e0;overflow-x:auto;white-space:pre-wrap;word-break:break-all}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.status-dot.listening{background:#34d399;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.empty-state{text-align:center;padding:40px;color:#737373}
+.auto-refresh{display:flex;align-items:center;gap:8px;color:#737373;font-size:0.85rem}
+.auto-refresh input[type=checkbox]{accent-color:#2563eb}
+.count-badge{background:#2563eb;color:#fff;padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:600}
+
+@media(max-width:768px){header{padding:20px 16px}header h1{font-size:16px}.content{padding:20px 16px}.container{padding:16px}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<a href="index.html" class="back">← Back</a>
+<h1>Webhook Tester</h1>
+</header>
+
+<div class="card">
+<label>Mock Webhook Endpoint</label>
+<div class="webhook-url">
+<span class="status-dot listening"></span>
+<code id="webhookUrl">https://webhook.site/abc-123-def-456</code>
+<button class="btn btn-sm" onclick="copyUrl()">Copy URL</button>
+</div>
+<p style="color:#737373;font-size:0.82rem;margin-top:8px">This is a simulated endpoint. Use the form below to simulate incoming webhooks.</p>
+</div>
+
+<div class="card">
+<label>Simulate Incoming Webhook</label>
+<div style="display:grid;grid-template-columns:120px 1fr;gap:8px;margin-bottom:12px">
+<select id="simMethod">
+<option value="POST">POST</option>
+<option value="PUT">PUT</option>
+<option value="PATCH">PATCH</option>
+<option value="DELETE">DELETE</option>
+<option value="GET">GET</option>
+</select>
+<input type="text" id="simPath" value="/api/webhook" placeholder="Path">
+</div>
+<label>Headers (JSON)</label>
+<textarea id="simHeaders" style="min-height:80px;margin-bottom:12px">{"Content-Type":"application/json","X-Webhook-Secret":"whsec_abc123","User-Agent":"WebhookBot/1.0"}</textarea>
+<label>Payload (JSON)</label>
+<textarea id="simPayload">{"event":"order.created","data":{"id":"ord_12345","amount":99.99,"currency":"USD","customer":{"email":"test@example.com","name":"John Doe"}},"timestamp":"2026-07-28T22:00:00Z"}</textarea>
+<div class="btn-row">
+<button class="btn" onclick="simulateWebhook()">Send Webhook</button>
+<button class="btn btn-outline btn-sm" onclick="loadSamplePayload()">Load Sample</button>
+</div>
+</div>
+
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<label style="margin:0">Request History <span class="count-badge" id="requestCount">0</span></label>
+<div style="display:flex;gap:12px;align-items:center">
+<div class="auto-refresh">
+<input type="checkbox" id="autoRefresh" checked>
+<label for="autoRefresh" style="margin:0">Auto-refresh</label>
+</div>
+<button class="btn btn-danger btn-sm" onclick="clearHistory()">Clear All</button>
+</div>
+</div>
+<div class="request-list" id="requestList">
+<div class="empty-state">No requests received yet. Simulate a webhook above.</div>
+</div>
+</div>
+</div>
+
+<script>
+let requests=[];
+const webhookId='abc-123-def-456';
+document.getElementById('webhookUrl').textContent='https://webhook.site/'+webhookId;
+
+function generateId(){return Math.random().toString(36).substr(2,9)}
+
+function simulateWebhook(){
+const method=document.getElementById('simMethod').value;
+const path=document.getElementById('simPath').value||'/';
+let headers={};
+let body=document.getElementById('simPayload').value;
+try{headers=JSON.parse(document.getElementById('simHeaders').value)}catch(e){}
+const request={
+id:generateId(),
+method,
+path,
+headers,
+body,
+query:paramsFromString(path),
+timestamp:new Date().toISOString(),
+rawBody:body
+};
+requests.unshift(request);
+renderRequests();
+}
+
+function paramsFromString(path){
+const q=path.indexOf('?');
+if(q===-1)return{};
+const params={};
+path.slice(q+1).split('&').forEach(p=>{const[k,v]=p.split('=');params[decodeURIComponent(k)]=decodeURIComponent(v||'')});
+return params;
+}
+
+function renderRequests(){
+const list=document.getElementById('requestList');
+document.getElementById('requestCount').textContent=requests.length;
+if(requests.length===0){
+list.innerHTML='<div class="empty-state">No requests received yet. Simulate a webhook above.</div>';
+return;
+}
+list.innerHTML=requests.map(r=>{
+const methodClass=r.method.toLowerCase();
+const time=new Date(r.timestamp).toLocaleTimeString();
+const date=new Date(r.timestamp).toLocaleDateString();
+return'<div class="request-item" onclick="toggleRequest(this)">'+
+'<div class="request-header">'+
+'<span class="method-badge '+methodClass+'">'+r.method+'</span>'+
+'<span class="request-path">'+r.path+'</span>'+
+'<span class="request-time">'+date+' '+time+'</span>'+
+'</div>'+
+'<div class="request-details">'+
+'<div class="detail-section"><h4>Headers</h4><pre>'+JSON.stringify(r.headers,null,2)+'</pre></div>'+
+'<div class="detail-section"><h4>Query Params</h4><pre>'+JSON.stringify(r.query,null,2)+'</pre></div>'+
+'<div class="detail-section"><h4>Body</h4><pre>'+escapeHtml(r.body)+'</pre></div>'+
+'</div></div>';
+}).join('');
+}
+
+function toggleRequest(el){
+document.querySelectorAll('.request-item').forEach(i=>{if(i!==el)i.classList.remove('active')});
+el.classList.toggle('active');
+}
+
+function clearHistory(){requests=[];renderRequests()}
+
+function copyUrl(){navigator.clipboard.writeText(document.getElementById('webhookUrl').textContent)}
+
+function loadSamplePayload(){
+document.getElementById('simHeaders').value=JSON.stringify({"Content-Type":"application/json","X-Webhook-Secret":"whsec_"+generateId(),"X-Event-Type":"order.created","User-Agent":"Shopify/2.0"},null,2);
+document.getElementById('simPayload').value=JSON.stringify({event:"order.created",data:{id:"ord_"+generateId(),amount:parseFloat((Math.random()*200+10).toFixed(2)),currency:"USD",items:[{name:"Widget Pro",qty:2,price:49.99}],customer:{id:"cust_"+generateId(),email:"buyer@example.com",name:"Jane Smith"}},created_at:new Date().toISOString()},null,2);
+}
+
+function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+// Auto-refresh simulation
+setInterval(()=>{
+if(document.getElementById('autoRefresh').checked){
+// Visual indicator that we're live
+}
+},1000);
+</script>
+</body>
+</html>

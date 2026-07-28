@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS Units Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#fff;font-family:'Outfit',sans-serif;min-height:100vh;padding:20px}
+.header{display:flex;align-items:center;gap:20px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #222}
+.header h1{font-size:1.8rem;font-weight:600}
+.header a{color:#737373;text-decoration:none;font-size:0.9rem;transition:color .2s}
+.header a:hover{color:#fff}
+.search{width:100%;padding:12px 16px;background:#111;border:1px solid #222;border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:1rem;outline:none;transition:border-color .2s;margin-bottom:20px}
+.search:focus{border-color:#555}
+.search::placeholder{color:#737373}
+.stats{color:#737373;font-size:0.85rem;margin-bottom:16px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{text-align:left;padding:12px 16px;background:#111;border-bottom:2px solid #222;font-weight:600;font-size:0.85rem;color:#737373;text-transform:uppercase;letter-spacing:0.5px;position:sticky;top:0}
+tbody tr{border-bottom:1px solid #1a1a1a;transition:background .2s;cursor:pointer}
+tbody tr:hover{background:#111}
+tbody tr.copied{background:rgba(74,222,128,0.08)}
+td{padding:12px 16px;font-size:0.95rem}
+.unit{font-weight:600;color:#e5e5e5;font-family:'Courier New',monospace}
+.type{display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:500}
+.type-length{background:#1e3a5f;color:#60a5fa}
+.type-angle{background:#3b1f4e;color:#c084fc}
+.type-time{background:#1f3b2a;color:#4ade80}
+.type-frequency{background:#3b2f1f;color:#fbbf24}
+.type-resolution{background:#3b1f2a;color:#f472b6}
+.desc{color:#a5a5a5;font-size:0.85rem}
+.example{font-family:'Courier New',monospace;color:#737373;font-size:0.8rem}
+.copied-toast{position:fixed;bottom:24px;right:24px;background:#222;color:#4ade80;padding:10px 18px;border-radius:8px;font-size:0.85rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.copied-toast.show{opacity:1}
+@media(max-width:768px){
+table{font-size:0.85rem}
+td,th{padding:8px 10px}
+}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html">← Back</a>
+<h1>CSS Units Reference</h1>
+</div>
+<input type="text" class="search" placeholder="Search units by name, type, or description..." id="searchInput" aria-label="Search CSS units">
+<div class="stats" id="stats"></div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr><th>Unit</th><th>Type</th><th>Description</th><th>Example</th></tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+</div>
+<div class="copied-toast" id="toast">Copied!</div>
+<script>
+const units=[
+{unit:"px",type:"length",desc:"Pixels - absolute unit, 1px = 1/96th of an inch",example:"font-size: 16px; width: 100px;"},
+{unit:"em",type:"length",desc:"Relative to the font-size of the element",example:"font-size: 1.5em; margin: 2em;"},
+{unit:"rem",type:"length",desc:"Relative to the font-size of the root element",example:"font-size: 1rem; padding: 1.5rem;"},
+{unit:"%",type:"length",desc:"Relative to the parent element's size",example:"width: 50%; height: 100%;"},
+{unit:"vw",type:"length",desc:"1% of the viewport's width",example:"width: 100vw; font-size: 5vw;"},
+{unit:"vh",type:"length",desc:"1% of the viewport's height",example:"height: 100vh; min-height: 50vh;"},
+{unit:"vmin",type:"length",desc:"1% of the smaller viewport dimension",example:"width: 50vmin; font-size: 3vmin;"},
+{unit:"vmax",type:"length",desc:"1% of the larger viewport dimension",example:"height: 50vmax; font-size: 4vmax;"},
+{unit:"ch",type:"length",desc:"Width of the '0' character of the current font",example:"max-width: 60ch; width: 40ch;"},
+{unit:"ex",type:"length",desc:"x-height of the current font (roughly lowercase height)",example:"line-height: 2ex; margin-top: 1ex;"},
+{unit:"cm",type:"length",desc:"Centimeters",example:"width: 10cm; padding: 2.54cm;"},
+{unit:"mm",type:"length",desc:"Millimeters",example:"border-width: 1mm; margin: 5mm;"},
+{unit:"in",type:"length",desc:"Inches (1in = 96px = 2.54cm)",example:"width: 8.5in; padding: 1in;"},
+{unit:"pt",type:"length",desc:"Points (1pt = 1/72 of an inch)",example:"font-size: 12pt; line-height: 14pt;"},
+{unit:"pc",type:"length",desc:"Picas (1pc = 12pt)",example:"font-size: 1pc; margin: 2pc;"},
+{unit:"fr",type:"length",desc:"Fraction of available space in CSS Grid",example:"grid-template-columns: 1fr 2fr;"},
+{unit:"s",type:"time",desc:"Seconds",example:"transition: 0.3s; animation-duration: 2s;"},
+{unit:"ms",type:"time",desc:"Milliseconds",example:"transition: 300ms; animation-delay: 500ms;"},
+{unit:"deg",type:"angle",desc:"Degrees (360deg = full circle)",example:"transform: rotate(45deg);"},
+{unit:"rad",type:"angle",desc:"Radians (2π rad = full circle)",example:"transform: rotate(3.14rad);"},
+{unit:"turn",type:"angle",desc:"Turns (1turn = 360deg)",example:"transform: rotate(0.5turn);"},
+{unit:"Hz",type:"frequency",desc:"Hertz - cycles per second",example:"pitch: 440Hz;"},
+{unit:"kHz",type:"frequency",desc:"Kilohertz - thousands of cycles per second",example:"pitch: 2kHz;"},
+{unit:"dpi",type:"resolution",desc:"Dots per inch",example:"resolution: 300dpi;"},
+{unit:"dpcm",type:"resolution",desc:"Dots per centimeter",example:"resolution: 118dpcm;"},
+{unit:"dppx",type:"resolution",desc:"Dots per pixel unit (1dppx = 96dpi)",example:"resolution: 2dppx;"}
+];
+const tbody=document.getElementById('tbody');
+const searchInput=document.getElementById('searchInput');
+const stats=document.getElementById('stats');
+const toast=document.getElementById('toast');
+let toastTimer;
+function showToast(msg){toast.textContent=msg;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('show'),1500)}
+function copyText(text){navigator.clipboard.writeText(text).then(()=>showToast('Copied: '+text))}
+function render(filter=''){
+const f=filter.toLowerCase();
+const filtered=units.filter(u=>!f||u.unit.toLowerCase().includes(f)||u.type.toLowerCase().includes(f)||u.desc.toLowerCase().includes(f));
+stats.textContent=filtered.length+' of '+units.length+' units';
+tbody.innerHTML='';
+filtered.forEach(u=>{
+const tr=document.createElement('tr');
+tr.innerHTML=`<td class="unit">${u.unit}</td><td><span class="type type-${u.type}">${u.type}</span></td><td class="desc">${u.desc}</td><td class="example">${u.example}</td>`;
+tr.addEventListener('click',()=>{copyText(u.unit);tr.classList.add('copied');setTimeout(()=>tr.classList.remove('copied'),600)});
+tbody.appendChild(tr);
+});
+}
+searchInput.addEventListener('input',e=>render(e.target.value));
+render();
+</script>
+</body>
+</html>

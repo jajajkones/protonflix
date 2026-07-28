@@ -32,17 +32,17 @@ textarea{flex:1;background:var(--bg);color:var(--text);border:none;padding:20px;
 <a href="index.html">← Back to Tools</a>
 </header>
 <div class="toolbar">
-<button class="btn primary" onclick="encode()">Encode</button>
-<button class="btn primary" onclick="decode()">Decode</button>
-<button class="btn" onclick="encodeComponent()">Encode Component</button>
-<button class="btn" onclick="decodeComponent()">Decode Component</button>
-<button class="btn" onclick="copyOutput()">Copy</button>
-<button class="btn" onclick="clearAll()">Clear</button>
+<button class="btn primary" onclick="encode()" aria-label="Encode URL">Encode</button>
+<button class="btn primary" onclick="decode()" aria-label="Decode URL">Decode</button>
+<button class="btn" onclick="encodeComponent()" aria-label="Encode URL component">Encode Component</button>
+<button class="btn" onclick="decodeComponent()" aria-label="Decode URL component">Decode Component</button>
+<button class="btn" onclick="copyOutput()" aria-label="Copy output to clipboard">Copy</button>
+<button class="btn" onclick="clearAll()" aria-label="Clear input and output">Clear</button>
 </div>
 <div class="container">
 <div class="pane">
 <div class="pane-header">Input</div>
-<textarea id="input" placeholder="Enter URL or encoded string..." spellcheck="false"></textarea>
+<textarea id="input" placeholder="Enter URL or encoded string..." spellcheck="false" aria-label="Input text for URL encoding or decoding"></textarea>
 </div>
 <div class="pane">
 <div class="pane-header">Output</div>
@@ -55,7 +55,7 @@ function encode(){output.textContent=encodeURI(input.value)}
 function decode(){try{output.textContent=decodeURI(input.value)}catch(e){output.textContent='Error: '+e.message}}
 function encodeComponent(){output.textContent=encodeURIComponent(input.value)}
 function decodeComponent(){try{output.textContent=decodeURIComponent(input.value)}catch(e){output.textContent='Error: '+e.message}}
-function copyOutput(){navigator.clipboard.writeText(output.textContent)}
+function copyOutput(){navigator.clipboard.writeText(output.textContent).then(()=>{const b=event.target;b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500)})}
 function clearAll(){input.value='';output.textContent=''}
 </script>
 </body>

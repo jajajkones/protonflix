@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kubernetes Cheat Sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a0a; color: #fff; font-family: 'Outfit', sans-serif; line-height: 1.6; }
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+header { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #222; }
+h1 { font-size: 2rem; font-weight: 600; }
+.back-link { color: #737373; text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+.back-link:hover { color: #fff; }
+.search-container { margin-bottom: 30px; }
+.search-input { width: 100%; max-width: 400px; padding: 12px 20px; background: #111; border: 1px solid #222; border-radius: 8px; color: #fff; font-family: 'Outfit', sans-serif; font-size: 1rem; outline: none; transition: border-color 0.2s; }
+.search-input:focus { border-color: #444; }
+.search-input::placeholder { color: #737373; }
+.section { background: #111; border: 1px solid #222; border-radius: 12px; margin-bottom: 20px; overflow: hidden; }
+.section-header { padding: 16px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
+.section-header:hover { background: #1a1a1a; }
+.section-title { font-size: 1.1rem; font-weight: 500; }
+.section-toggle { color: #737373; font-size: 1.2rem; transition: transform 0.3s; }
+.section.collapsed .section-content { display: none; }
+.section.collapsed .section-toggle { transform: rotate(-90deg); }
+.section-content { padding: 0 20px 20px; }
+.command { background: #0a0a0a; border: 1px solid #222; border-radius: 6px; padding: 12px 16px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; position: relative; }
+.command:hover { border-color: #444; background: #151515; }
+.command-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.command-name { font-weight: 500; color: #fff; font-size: 0.95rem; }
+.command-syntax { font-family: 'Courier New', monospace; color: #a0a0a0; font-size: 0.85rem; word-break: break-all; }
+.copy-hint { position: absolute; top: 8px; right: 12px; color: #737373; font-size: 0.75rem; opacity: 0; transition: opacity 0.2s; }
+.command:hover .copy-hint { opacity: 1; }
+.copied { background: #1a2a1a !important; border-color: #2a4a2a !important; }
+.copied .command-name::after { content: ' ✓ Copied!'; color: #4ade80; font-size: 0.8rem; }
+.hidden { display: none !important; }
+.tag { display: inline-block; background: #222; color: #a0a0a0; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-left: 8px; }
+
+@media(max-width:768px){header{padding:20px 16px}header h1{font-size:16px}.content{padding:20px 16px}.container{padding:16px}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>Kubernetes Cheat Sheet</h1>
+<a href="index.html" class="back-link">← Back to ProtonFlix</a>
+</header>
+
+<div class="search-container">
+<input type="text" class="search-input" placeholder="Search commands..." id="searchInput">
+</div>
+
+<div id="sections">
+
+<div class="section" data-category="pods">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Pods <span class="tag">6 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="kubectl get pods
+kubectl get pods -n namespace
+kubectl get pods -o wide
+kubectl get pods --all-namespaces
+">
+<div class="command-header">
+<span class="command-name">Get Pods</span>
+</div>
+<div class="command-syntax">kubectl get pods [-n ns] [-o wide] [--all-namespaces]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl describe pod pod-name
+kubectl describe pod pod-name -n namespace
+">
+<div class="command-header">
+<span class="command-name">Describe Pod</span>
+</div>
+<div class="command-syntax">kubectl describe pod pod-name [-n ns]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl logs pod-name
+kubectl logs pod-name -c container
+kubectl logs -f pod-name
+kubectl logs --previous pod-name
+">
+<div class="command-header">
+<span class="command-name">Pod Logs</span>
+</div>
+<div class="command-syntax">kubectl logs [-c container] [-f] [--previous] pod-name</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl exec -it pod-name -- /bin/bash
+kubectl exec -it pod-name -c container -- /bin/sh
+">
+<div class="command-header">
+<span class="command-name">Exec into Pod</span>
+</div>
+<div class="command-syntax">kubectl exec -it pod-name -c container -- /bin/bash</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl delete pod pod-name
+kubectl delete pod pod-name -n namespace
+kubectl delete pod pod-name --grace-period=0 --force
+">
+<div class="command-header">
+<span class="command-name">Delete Pod</span>
+</div>
+<div class="command-syntax">kubectl delete pod pod-name [-n ns] [--force]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl run nginx --image=nginx:latest --port=80
+kubectl run redis --image=redis:alpine --restart=Never
+">
+<div class="command-header">
+<span class="command-name">Run Pod</span>
+</div>
+<div class="command-syntax">kubectl run name --image=image --port=port</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="deployments">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Deployments <span class="tag">6 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="kubectl get deployments
+kubectl get deploy -n namespace
+kubectl get deploy -o wide
+">
+<div class="command-header">
+<span class="command-name">Get Deployments</span>
+</div>
+<div class="command-syntax">kubectl get deploy [-n ns] [-o wide]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl create deployment nginx --image=nginx --replicas=3
+kubectl create deployment nginx --image=nginx -n namespace
+">
+<div class="command-header">
+<span class="command-name">Create Deployment</span>
+</div>
+<div class="command-syntax">kubectl create deploy name --image=img --replicas=N</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl scale deployment nginx --replicas=5
+kubectl scale deploy nginx --replicas=5 -n namespace
+">
+<div class="command-header">
+<span class="command-name">Scale Deployment</span>
+</div>
+<div class="command-syntax">kubectl scale deploy name --replicas=N [-n ns]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl set image deployment/nginx nginx=nginx:1.19
+kubectl rollout status deployment/nginx
+kubectl rollout history deployment/nginx
+">
+<div class="command-header">
+<span class="command-name">Update Deployment</span>
+</div>
+<div class="command-syntax">kubectl set image deploy name container=img | rollout status|history</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl rollout undo deployment/nginx
+kubectl rollout undo deployment/nginx --to-revision=2
+">
+<div class="command-header">
+<span class="command-name">Rollback Deployment</span>
+</div>
+<div class="command-syntax">kubectl rollout undo deploy name [--to-revision=N]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl delete deployment nginx
+kubectl delete deploy nginx -n namespace
+">
+<div class="command-header">
+<span class="command-name">Delete Deployment</span>
+</div>
+<div class="command-syntax">kubectl delete deploy name [-n ns]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="services">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Services <span class="tag">5 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="kubectl get services
+kubectl get svc -n namespace
+kubectl get svc -o wide
+">
+<div class="command-header">
+<span class="command-name">Get Services</span>
+</div>
+<div class="command-syntax">kubectl get svc [-n ns] [-o wide]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl expose deployment nginx --port=80 --type=ClusterIP
+kubectl expose deployment nginx --port=80 --type=NodePort
+kubectl expose deployment nginx --port=80 --type=LoadBalancer
+">
+<div class="command-header">
+<span class="command-name">Expose Deployment</span>
+</div>
+<div class="command-syntax">kubectl expose deploy name --port=P --type=ClusterIP|NodePort|LoadBalancer</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl describe svc service-name
+kubectl get svc service-name -o yaml
+">
+<div class="command-header">
+<span class="command-name">Describe Service</span>
+</div>
+<div class="command-syntax">kubectl describe svc name | get svc name -o yaml</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl delete svc service-name
+kubectl delete svc service-name -n namespace
+">
+<div class="command-header">
+<span class="command-name">Delete Service</span>
+</div>
+<div class="command-syntax">kubectl delete svc name [-n ns]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl port-forward svc/nginx 8080:80
+kubectl port-forward pod/pod-name 8080:80
+">
+<div class="command-header">
+<span class="command-name">Port Forward</span>
+</div>
+<div class="command-syntax">kubectl port-forward svc|pod/name local:remote</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="configmaps">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">ConfigMaps <span class="tag">4 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="kubectl get configmaps
+kubectl get cm
+kubectl describe cm config-name
+">
+<div class="command-header">
+<span class="command-name">Get ConfigMaps</span>
+</div>
+<div class="command-syntax">kubectl get cm [-n ns] | describe cm name</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl create configmap myconfig --from-literal=key1=value1 --from-literal=key2=value2
+kubectl create configmap myconfig --from-file=config.yaml
+">
+<div class="command-header">
+<span class="command-name">Create ConfigMap</span>
+</div>
+<div class="command-syntax">kubectl create cm name --from-literal=key=val | --from-file=file</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl create configmap myconfig --from-env-file=.env
+kubectl create configmap myconfig --from-file=config-dir/
+">
+<div class="command-header">
+<span class="command-name">Create from File/Dir</span>
+</div>
+<div class="command-syntax">kubectl create cm name --from-env-file=.env | --from-file=dir/</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl delete configmap myconfig
+kubectl delete cm myconfig -n namespace
+">
+<div class="command-header">
+<span class="command-name">Delete ConfigMap</span>
+</div>
+<div class="command-syntax">kubectl delete cm name [-n ns]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="secrets">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Secrets <span class="tag">4 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="kubectl get secrets
+kubectl get secret secret-name
+kubectl describe secret secret-name
+">
+<div class="command-header">
+<span class="command-name">Get Secrets</span>
+</div>
+<div class="command-syntax">kubectl get secret name | describe secret name</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl create secret generic mysecret --from-literal=username=admin --from-literal=password=secret123
+kubectl create secret tls mysecret --cert=cert.pem --key=key.pem
+">
+<div class="command-header">
+<span class="command-name">Create Secret</span>
+</div>
+<div class="command-syntax">kubectl create secret generic|tls name --from-literal=key=val</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl get secret mysecret -o jsonpath='{.data.username}' | base64 --decode
+">
+<div class="command-header">
+<span class="command-name">Decode Secret</span>
+</div>
+<div class="command-syntax">kubectl get secret name -o jsonpath='{.data.key}' | base64 --decode</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl delete secret mysecret
+kubectl delete secret mysecret -n namespace
+">
+<div class="command-header">
+<span class="command-name">Delete Secret</span>
+</div>
+<div class="command-syntax">kubectl delete secret name [-n ns]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="namespaces">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Namespaces <span class="tag">4 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="kubectl get namespaces
+kubectl get ns
+kubectl describe ns namespace-name
+">
+<div class="command-header">
+<span class="command-name">Get Namespaces</span>
+</div>
+<div class="command-syntax">kubectl get ns | describe ns name</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl create namespace mynamespace
+kubectl create ns mynamespace
+">
+<div class="command-header">
+<span class="command-name">Create Namespace</span>
+</div>
+<div class="command-syntax">kubectl create ns name</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl config set-context --current --namespace=mynamespace
+kubectl config view | grep namespace
+">
+<div class="command-header">
+<span class="command-name">Switch Namespace</span>
+</div>
+<div class="command-syntax">kubectl config set-context --current --namespace=ns</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl delete namespace mynamespace
+">
+<div class="command-header">
+<span class="command-name">Delete Namespace</span>
+</div>
+<div class="command-syntax">kubectl delete ns name</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="nodes">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Nodes <span class="tag">3 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="kubectl get nodes
+kubectl get nodes -o wide
+kubectl get nodes --show-labels
+">
+<div class="command-header">
+<span class="command-name">Get Nodes</span>
+</div>
+<div class="command-syntax">kubectl get nodes [-o wide] [--show-labels]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl describe node node-name
+kubectl top nodes
+">
+<div class="command-header">
+<span class="command-name">Describe Node</span>
+</div>
+<div class="command-syntax">kubectl describe node name | top nodes</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl cordon node-name
+kubectl uncordon node-name
+kubectl drain node-name --ignore-daemonsets --delete-emptydir-data
+">
+<div class="command-header">
+<span class="command-name">Cordon/Drain</span>
+</div>
+<div class="command-syntax">kubectl cordon|uncordon|drain node-name</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="pv">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Persistent Volumes <span class="tag">4 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="kubectl get persistentvolumes
+kubectl get pv
+kubectl describe pv pv-name
+">
+<div class="command-header">
+<span class="command-name">Get PVs</span>
+</div>
+<div class="command-syntax">kubectl get pv | describe pv name</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl get persistentvolumeclaims
+kubectl get pvc -n namespace
+kubectl describe pvc pvc-name
+">
+<div class="command-header">
+<span class="command-name">Get PVCs</span>
+</div>
+<div class="command-syntax">kubectl get pvc [-n ns] | describe pvc name</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl delete pv pv-name
+kubectl delete pvc pvc-name -n namespace
+">
+<div class="command-header">
+<span class="command-name">Delete PV/PVC</span>
+</div>
+<div class="command-syntax">kubectl delete pv|pvc name [-n ns]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl get storageclass
+kubectl get sc
+">
+<div class="command-header">
+<span class="command-name">Storage Classes</span>
+</div>
+<div class="command-syntax">kubectl get sc</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="ingress">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Ingress <span class="tag">4 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="kubectl get ingress
+kubectl get ing -n namespace
+kubectl describe ingress ingress-name
+">
+<div class="command-header">
+<span class="command-name">Get Ingress</span>
+</div>
+<div class="command-syntax">kubectl get ing [-n ns] | describe ing name</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl create ingress myingress --rule='host.com/=svc:80'
+">
+<div class="command-header">
+<span class="command-name">Create Ingress</span>
+</div>
+<div class="command-syntax">kubectl create ingress name --rule='host/=svc:port'</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl delete ingress ingress-name
+kubectl delete ingress ingress-name -n namespace
+">
+<div class="command-header">
+<span class="command-name">Delete Ingress</span>
+</div>
+<div class="command-syntax">kubectl delete ing name [-n ns]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl get svc -n ingress-nginx
+kubectl get pods -n ingress-nginx
+">
+<div class="command-header">
+<span class="command-name">Ingress Controller</span>
+</div>
+<div class="command-syntax">kubectl get svc|pods -n ingress-nginx</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="rbac">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">RBAC <span class="tag">4 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="kubectl get rolebindings
+kubectl get clusterrolebindings
+kubectl describe rolebinding name
+">
+<div class="command-header">
+<span class="command-name">Get RoleBindings</span>
+</div>
+<div class="command-syntax">kubectl get rolebindings|clusterrolebindings</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl get roles
+kubectl get clusterroles
+kubectl describe role name
+">
+<div class="command-header">
+<span class="command-name">Get Roles</span>
+</div>
+<div class="command-syntax">kubectl get roles|clusterroles</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl get serviceaccounts
+kubectl get sa -n namespace
+kubectl describe sa name
+">
+<div class="command-header">
+<span class="command-name">Service Accounts</span>
+</div>
+<div class="command-syntax">kubectl get sa [-n ns] | describe sa name</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl auth can-i get pods
+kubectl auth can-i get pods --as=system:serviceaccount:ns:sa
+">
+<div class="command-header">
+<span class="command-name">Auth Check</span>
+</div>
+<div class="command-syntax">kubectl auth can-i verb resource [--as=user]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="debug">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Logs & Debug <span class="tag">4 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="kubectl logs pod-name
+kubectl logs -f pod-name
+kubectl logs pod-name -c container
+kubectl logs --previous pod-name
+kubectl logs -l app=nginx --all-containers
+">
+<div class="command-header">
+<span class="command-name">Logs</span>
+</div>
+<div class="command-syntax">kubectl logs [-f] [-c] [--previous] [-l label] pod</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl describe pod pod-name
+kubectl describe deploy deploy-name
+kubectl describe node node-name
+">
+<div class="command-header">
+<span class="command-name">Describe Resources</span>
+</div>
+<div class="command-syntax">kubectl describe pod|deploy|node|svc name</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl get events
+kubectl get events --sort-by='.lastTimestamp'
+kubectl get events -n namespace
+">
+<div class="command-header">
+<span class="command-name">Events</span>
+</div>
+<div class="command-syntax">kubectl get events [--sort-by='.lastTimestamp'] [-n ns]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl run debug --image=busybox --rm -it -- /bin/sh
+kubectl run debug --image=nicolaka/netshoot --rm -it -- /bin/bash
+">
+<div class="command-header">
+<span class="command-name">Debug Pods</span>
+</div>
+<div class="command-syntax">kubectl run debug --image=img --rm -it -- /bin/sh</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="scaling">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Scaling <span class="tag">3 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="kubectl scale deployment nginx --replicas=5
+kubectl scale deploy nginx --replicas=5 -n namespace
+">
+<div class="command-header">
+<span class="command-name">Scale Deployment</span>
+</div>
+<div class="command-syntax">kubectl scale deploy name --replicas=N [-n ns]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl autoscale deployment nginx --min=2 --max=10 --cpu-percent=80
+">
+<div class="command-header">
+<span class="command-name">Auto Scale (HPA)</span>
+</div>
+<div class="command-syntax">kubectl autoscale deploy name --min=N --max=M --cpu-percent=N</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl get hpa
+kubectl describe hpa hpa-name
+">
+<div class="command-header">
+<span class="command-name">Get HPAs</span>
+</div>
+<div class="command-syntax">kubectl get hpa | describe hpa name</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="rollouts">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Rollouts</span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="kubectl rollout status deployment/nginx
+kubectl rollout history deployment/nginx
+kubectl rollout history deploy/nginx --revision=3
+">
+<div class="command-header">
+<span class="command-name">Rollout Status/History</span>
+</div>
+<div class="command-syntax">kubectl rollout status|history deploy name [--revision=N]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl rollout undo deployment/nginx
+kubectl rollout undo deployment/nginx --to-revision=2
+kubectl rollout restart deployment/nginx
+">
+<div class="command-header">
+<span class="command-name">Undo/Restart Rollout</span>
+</div>
+<div class="command-syntax">kubectl rollout undo deploy name [--to-revision=N] | restart</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="kubectl rollout pause deployment/nginx
+kubectl rollout resume deployment/nginx
+">
+<div class="command-header">
+<span class="command-name">Pause/Resume Rollout</span>
+</div>
+<div class="command-syntax">kubectl rollout pause|resume deploy name</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<script>
+function toggleSection(header) {
+    header.parentElement.classList.toggle('collapsed');
+}
+
+function copyCommand(commandEl) {
+    const cmd = commandEl.getAttribute('data-command');
+    navigator.clipboard.writeText(cmd).then(() => {
+        commandEl.classList.add('copied');
+        setTimeout(() => commandEl.classList.remove('copied'), 1500);
+    });
+}
+
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    const query = e.target.value.toLowerCase();
+    document.querySelectorAll('.command').forEach(cmd => {
+        const text = cmd.textContent.toLowerCase();
+        const syntax = cmd.querySelector('.command-syntax').textContent.toLowerCase();
+        const name = cmd.querySelector('.command-name').textContent.toLowerCase();
+        if (text.includes(query) || syntax.includes(query) || name.includes(query)) {
+            cmd.classList.remove('hidden');
+        } else {
+            cmd.classList.add('hidden');
+        }
+    });
+    
+    document.querySelectorAll('.section').forEach(section => {
+        const visibleCommands = section.querySelectorAll('.command:not(.hidden)');
+        if (visibleCommands.length === 0 && query) {
+            section.classList.add('hidden');
+        } else {
+            section.classList.remove('hidden');
+        }
+    });
+});
+</script>
+</body>
+</html>

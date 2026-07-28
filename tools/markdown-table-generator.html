@@ -33,6 +33,8 @@ a{color:#fff;text-decoration:none}
 .code-box{position:relative}
 .code-box pre{background:#0a0a0a;border:1px solid #222;border-radius:6px;padding:14px;font-size:.8rem;overflow-x:auto;line-height:1.6;max-height:400px;overflow-y:auto}
 .code-box pre code{font-family:'Courier New',monospace}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+@media(max-width:768px){.container{padding:0 10px}.controls{flex-direction:column;align-items:stretch}.field{flex-direction:column;align-items:stretch}}
 </style>
 </head>
 <body>
@@ -62,11 +64,12 @@ const r=+document.getElementById('rows').value,c=+document.getElementById('cols'
 data=Array.from({length:r+1},(_,i)=>Array.from({length:c},(_,j)=>i===0?`Header ${j+1}`:`Row ${i} Col ${j+1}`));
 renderEditor();updateCode();
 }
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function renderEditor(){
 const el=document.getElementById('editor');
 let html='<table>';
 data.forEach((row,ri)=>{
-html+=`<tr>${row.map((cell,ci)=>`<td><input value="${cell}" oninput="data[${ri}][${ci}]=this.value;updateCode()"></td>`).join('')}</tr>`;
+html+=`<tr>${row.map((cell,ci)=>`<td><input value="${escHtml(cell)}" oninput="data[${ri}][${ci}]=this.value;updateCode()"></td>`).join('')}</tr>`;
 });
 html+='</table>';el.innerHTML=html;
 }

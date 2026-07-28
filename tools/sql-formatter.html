@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL Formatter</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;padding:20px}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #222}
+.header h1{font-size:1.5rem;font-weight:600}
+.header a{color:#737373;text-decoration:none;font-size:.9rem;transition:color .2s}
+.header a:hover{color:#fff}
+.controls{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.control-group{display:flex;align-items:center;gap:8px}
+.control-label{font-size:.8rem;color:#737373}
+select,input[type=number]{background:#111;border:1px solid #222;border-radius:6px;padding:8px 12px;color:#fff;font-family:'Outfit',sans-serif;font-size:.9rem;outline:none;cursor:pointer}
+select:focus,input:focus{border-color:#444}
+.btn{background:#222;border:1px solid #333;color:#fff;padding:8px 16px;border-radius:6px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:.85rem;transition:all .2s}
+.btn:hover{background:#333}
+.btn.primary{background:#3b82f6;border-color:#3b82f6}
+.btn.primary:hover{background:#2563eb}
+.btn.copied{background:#166534;border-color:#22c55e}
+.container{display:flex;gap:20px;height:calc(100vh - 180px)}
+.panel{flex:1;display:flex;flex-direction:column;gap:12px}
+.panel-title{font-size:.85rem;font-weight:500;color:#737373;text-transform:uppercase;letter-spacing:.5px}
+textarea{width:100%;flex:1;background:#111;border:1px solid #222;border-radius:8px;padding:16px;color:#fff;font-family:'Outfit',sans-serif;font-size:.9rem;resize:none;outline:none;line-height:1.6}
+textarea:focus{border-color:#444}
+.output-area{flex:1;overflow:auto;background:#111;border:1px solid #222;border-radius:8px;padding:16px;font-family:monospace;font-size:.9rem;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.output-area::-webkit-scrollbar{width:6px;height:6px}
+.output-area::-webkit-scrollbar-track{background:transparent}
+.output-area::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
+.sql-keyword{color:#c084fc;font-weight:600}
+.sql-function{color:#93c5fd}
+.sql-string{color:#4ade80}
+.sql-number{color:#facc15}
+.sql-comment{color:#737373;font-style:italic}
+.toast{position:fixed;bottom:20px;right:20px;background:#222;border:1px solid #333;color:#fff;padding:12px 20px;border-radius:8px;font-size:.9rem;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;z-index:100}
+.toast.show{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>SQL Formatter / Beautifier</h1>
+<a href="index.html">← Back to Tools</a>
+</div>
+<div class="controls">
+<div class="control-group">
+<span class="control-label">Indent:</span>
+<select id="indentSize">
+<option value="2">2 spaces</option>
+<option value="4" selected>4 spaces</option>
+</select>
+</div>
+<div class="control-group">
+<span class="control-label">Keywords:</span>
+<select id="keywordCase">
+<option value="upper">UPPER</option>
+<option value="lower">lower</option>
+<option value="preserve">Preserve</option>
+</select>
+</div>
+<button class="btn primary" onclick="formatSQL()">Format</button>
+<button class="btn" onclick="copyOutput()">Copy Output</button>
+<button class="btn" onclick="clearAll()">Clear</button>
+</div>
+<div class="container">
+<div class="panel">
+<span class="panel-title">Input SQL</span>
+<textarea id="sqlInput" placeholder="Paste your SQL here..." aria-label="SQL input to format"></textarea>
+</div>
+<div class="panel">
+<span class="panel-title">Formatted Output</span>
+<div class="output-area" id="outputArea">Formatted SQL will appear here...</div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const KEYWORDS=['SELECT','FROM','WHERE','AND','OR','NOT','IN','ON','JOIN','LEFT','RIGHT','INNER','OUTER','FULL','CROSS','GROUP','BY','ORDER','ASC','DESC','HAVING','LIMIT','OFFSET','INSERT','INTO','VALUES','UPDATE','SET','DELETE','CREATE','TABLE','ALTER','DROP','INDEX','VIEW','AS','DISTINCT','ALL','UNION','EXCEPT','INTERSECT','CASE','WHEN','THEN','ELSE','END','BETWEEN','LIKE','IS','NULL','EXISTS','COUNT','SUM','AVG','MIN','MAX','WITH','RECURSIVE','FETCH','NEXT','ROWS','ONLY','FIRST','LAST','BETWEEN','LIKE','IS','IN','ANY','SOME'];
+const FUNCTIONS=['COUNT','SUM','AVG','MIN','MAX','COALESCE','NULLIF','CAST','CONVERT','ROUND','CEIL','FLOOR','ABS','MOD','POWER','SQRT','LOG','EXP','UPPER','LOWER','TRIM','LTRIM','RTRIM','SUBSTRING','SUBSTR','CONCAT','LENGTH','LEN','REPLACE','REVERSE','LEFT','RIGHT','CHARINDEX','PATINDEX','DATEADD','DATEDIFF','GETDATE','NOW','CURRENT_DATE','CURRENT_TIMESTAMP','YEAR','MONTH','DAY','HOUR','MINUTE','SECOND'];
+
+function formatSQL(){
+const sql=document.getElementById('sqlInput').value.trim();
+if(!sql){document.getElementById('outputArea').textContent='';return}
+const indent=parseInt(document.getElementById('indentSize').value);
+const kwCase=document.getElementById('keywordCase').value;
+let formatted=sql.replace(/\s+/g,' ').trim();
+const lineBreaks=['SELECT','FROM','WHERE','AND','OR','GROUP BY','ORDER BY','HAVING','LIMIT','OFFSET','UNION','EXCEPT','INTERSECT','WITH','SET','VALUES','ON','JOIN','LEFT JOIN','RIGHT JOIN','INNER JOIN','OUTER JOIN','FULL JOIN','CROSS JOIN','LEFT OUTER JOIN','RIGHT OUTER JOIN','FULL OUTER JOIN'];
+lineBreaks.sort((a,b)=>b.length-a.length);
+lineBreaks.forEach(kw=>{
+const regex=new RegExp(`\\b${kw.replace(/ /g,'\\s+')}\\b`,'gi');
+formatted=formatted.replace(regex,'\n'+kw);
+});
+formatted=formatted.replace(/,\s*/g,',\n');
+formatted=formatted.replace(/\bAND\b/g,'\n  AND').replace(/\bOR\b/g,'\n  OR');
+formatted=formatted.replace(/\bWHEN\b/g,'\n    WHEN').replace(/\bTHEN\b/g,' THEN').replace(/\bELSE\b/g,'\n    ELSE').replace(/\bEND\b/g,'\n  END');
+const lines=formatted.split('\n').map(l=>l.trim()).filter(l=>l);
+let result='';
+let depth=0;
+const indentStr=' '.repeat(indent);
+lines.forEach(line=>{
+const upper=line.toUpperCase().trim();
+if(upper.startsWith('END')||upper.startsWith('ELSE')||upper.startsWith('WHEN')){if(upper.startsWith('END')||upper.startsWith('ELSE'))depth=Math.max(0,depth-1)}
+result+=indentStr.repeat(depth)+line+'\n';
+if(upper.startsWith('CASE')||upper.startsWith('WHEN'))depth++;
+if(upper.startsWith('END'))depth--;
+if(upper.startsWith('SELECT')||upper.startsWith('FROM')||upper.startsWith('WHERE')||upper.startsWith('GROUP')||upper.startsWith('ORDER')||upper.startsWith('HAVING'))depth++;
+if(upper.startsWith('FROM')||upper.startsWith('WHERE')||upper.startsWith('GROUP')||upper.startsWith('ORDER')||upper.startsWith('HAVING')||upper.startsWith('LIMIT'))depth--;
+depth=Math.max(0,depth);
+});
+result=result.trim();
+if(kwCase==='upper')result=result.replace(/\b(SELECT|FROM|WHERE|AND|OR|NOT|IN|ON|JOIN|LEFT|RIGHT|INNER|OUTER|FULL|CROSS|GROUP|BY|ORDER|ASC|DESC|HAVING|LIMIT|OFFSET|INSERT|INTO|VALUES|UPDATE|SET|DELETE|CREATE|TABLE|ALTER|DROP|INDEX|VIEW|AS|DISTINCT|UNION|EXCEPT|INTERSECT|CASE|WHEN|THEN|ELSE|END|BETWEEN|LIKE|IS|NULL|EXISTS|WITH|RECURSIVE|FETCH|NEXT|ROWS|ONLY|FIRST|LAST|ANY|SOME)\b/g,m=>m.toUpperCase());
+else if(kwCase==='lower')result=result.replace(/\b(SELECT|FROM|WHERE|AND|OR|NOT|IN|ON|JOIN|LEFT|RIGHT|INNER|OUTER|FULL|CROSS|GROUP|BY|ORDER|ASC|DESC|HAVING|LIMIT|OFFSET|INSERT|INTO|VALUES|UPDATE|SET|DELETE|CREATE|TABLE|ALTER|DROP|INDEX|VIEW|AS|DISTINCT|UNION|EXCEPT|INTERSECT|CASE|WHEN|THEN|ELSE|END|BETWEEN|LIKE|IS|NULL|EXISTS|WITH|RECURSIVE|FETCH|NEXT|ROWS|ONLY|FIRST|LAST|ANY|SOME)\b/g,m=>m.toLowerCase());
+document.getElementById('outputArea').innerHTML=syntaxHighlight(result);
+}
+
+function syntaxHighlight(sql){
+return sql.replace(/'([^']*)'/g,'<span class="sql-string">\'$1\'</span>')
+.replace(/"([^"]*)"/g,'<span class="sql-string">"$1"</span>')
+.replace(/\b(\d+\.?\d*)\b/g,'<span class="sql-number">$1</span>')
+.replace(/(--[^\n]*)/g,'<span class="sql-comment">$1</span>')
+.replace(/\b(SELECT|FROM|WHERE|AND|OR|NOT|IN|ON|JOIN|LEFT|RIGHT|INNER|OUTER|FULL|CROSS|GROUP|BY|ORDER|ASC|DESC|HAVING|LIMIT|OFFSET|INSERT|INTO|VALUES|UPDATE|SET|DELETE|CREATE|TABLE|ALTER|DROP|INDEX|VIEW|AS|DISTINCT|UNION|EXCEPT|INTERSECT|CASE|WHEN|THEN|ELSE|END|BETWEEN|LIKE|IS|NULL|EXISTS|WITH|RECURSIVE|FETCH|NEXT|ROWS|ONLY|FIRST|LAST|ANY|SOME)\b/gi,m=>`<span class="sql-keyword">${m}</span>`)
+.replace(/\b(COUNT|SUM|AVG|MIN|MAX|COALESCE|NULLIF|CAST|CONVERT|ROUND|CEIL|FLOOR|ABS|MOD|POWER|SQRT|LOG|EXP|UPPER|LOWER|TRIM|LTRIM|RTRIM|SUBSTRING|SUBSTR|CONCAT|LENGTH|LEN|REPLACE|REVERSE|CHARINDEX|PATINDEX|DATEADD|DATEDIFF|GETDATE|NOW|CURRENT_DATE|CURRENT_TIMESTAMP|YEAR|MONTH|DAY|HOUR|MINUTE|SECOND)\b/gi,m=>`<span class="sql-function">${m}</span>`);
+}
+
+function copyOutput(){
+const text=document.getElementById('outputArea').textContent;
+navigator.clipboard.writeText(text);
+const btn=event.target;btn.textContent='Copied!';btn.classList.add('copied');
+setTimeout(()=>{btn.textContent='Copy Output';btn.classList.remove('copied')},2000);
+showToast('SQL copied!');
+}
+
+function clearAll(){
+document.getElementById('sqlInput').value='';
+document.getElementById('outputArea').innerHTML='Formatted SQL will appear here...';
+}
+
+function showToast(msg){
+const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+document.getElementById('sqlInput').addEventListener('input',formatSQL);
+</script>
+</body>
+</html>

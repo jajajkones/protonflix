@@ -32,16 +32,16 @@ textarea{flex:1;background:var(--bg);color:var(--text);border:none;padding:20px;
 <body>
 <header><h1>HTML Entity Encoder / Decoder</h1><a href="index.html">← Back to Tools</a></header>
 <div class="toolbar">
-<button class="btn primary" onclick="encode()">Encode</button>
-<button class="btn primary" onclick="decode()">Decode</button>
-<button class="btn" onclick="encodeAll()">Encode All</button>
-<button class="btn" onclick="copyOutput()">Copy</button>
-<button class="btn" onclick="clearAll()">Clear</button>
+<button class="btn primary" onclick="encode()" aria-label="Encode text to HTML entities">Encode</button>
+<button class="btn primary" onclick="decode()" aria-label="Decode HTML entities to text">Decode</button>
+<button class="btn" onclick="encodeAll()" aria-label="Encode all characters including non-ASCII">Encode All</button>
+<button class="btn" onclick="copyOutput()" aria-label="Copy output to clipboard">Copy</button>
+<button class="btn" onclick="clearAll()" aria-label="Clear input and output">Clear</button>
 </div>
 <div class="container">
 <div class="pane">
 <div class="pane-header">Input</div>
-<textarea id="input" placeholder="Enter text or HTML entities..." spellcheck="false"></textarea>
+<textarea id="input" placeholder="Enter text or HTML entities..." spellcheck="false" aria-label="Input text for HTML entity encoding or decoding"></textarea>
 </div>
 <div class="pane">
 <div class="pane-header">Output</div>
@@ -54,7 +54,7 @@ const reverseEntities=Object.fromEntries(Object.entries(entities).map(([k,v])=>[
 function encode(){const t=document.getElementById('input').value;let r='';for(const c of t){r+=entities[c]||c}document.getElementById('output').textContent=r}
 function encodeAll(){const t=document.getElementById('input').value;let r='';for(const c of t){const code=c.charCodeAt(0);r+=code>127?`&#${code};`:(entities[c]||c)}document.getElementById('output').textContent=r}
 function decode(){const t=document.getElementById('input').value;let r=t;for(const[entity,char]of Object.entries(reverseEntities).sort((a,b)=>b[0].length-a[0].length)){r=r.split(entity).join(char)}r=r.replace(/&#(\d+);/g,(m,c)=>String.fromCharCode(+c));r=r.replace(/&#x([0-9a-f]+);/gi,(m,c)=>String.fromCharCode(parseInt(c,16)));document.getElementById('output').textContent=r}
-function copyOutput(){navigator.clipboard.writeText(document.getElementById('output').textContent)}
+function copyOutput(){navigator.clipboard.writeText(document.getElementById('output').textContent).then(()=>{const b=document.querySelector('[onclick="copyOutput()"]');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500)})}
 function clearAll(){document.getElementById('input').value='';document.getElementById('output').textContent=''}
 </script>
 </body>

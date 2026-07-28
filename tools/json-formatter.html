@@ -27,6 +27,7 @@ textarea{flex:1;background:var(--bg);color:var(--text);border:none;padding:20px;
 .status{padding:10px 20px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);display:flex;justify-content:space-between}
 .error{color:#ef4444}
 .success{color:#22c55e}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
 @media(max-width:768px){.container{grid-template-columns:1fr}.pane{min-height:40vh}.pane:last-child{border-right:none;border-top:1px solid var(--border)}}
 </style>
 </head>
@@ -47,6 +48,7 @@ textarea{flex:1;background:var(--bg);color:var(--text);border:none;padding:20px;
 <div class="container">
 <div class="pane">
 <div class="pane-header">Input</div>
+<label class="sr-only" for="input">JSON input</label>
 <textarea id="input" placeholder="Paste your JSON here..." spellcheck="false"></textarea>
 </div>
 <div class="pane">

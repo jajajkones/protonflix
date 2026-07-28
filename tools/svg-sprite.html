@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG Sprite Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .header {
+            max-width: 900px;
+            margin: 0 auto 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #222;
+        }
+        .header h1 { font-size: 1.8rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .header a { color: #737373; text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+        .header a:hover { color: #fff; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .panel {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .panel h2 { font-size: 1.1rem; font-weight: 500; margin-bottom: 1rem; }
+        .drop-zone {
+            border: 2px dashed #222;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            color: #737373;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1rem;
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: #444;
+            color: #fff;
+            background: #0d0d0d;
+        }
+        .drop-zone p { font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .drop-zone small { font-size: 0.75rem; color: #555; }
+        .svg-input {
+            width: 100%;
+            min-height: 150px;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 1rem;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            resize: vertical;
+            outline: none;
+            margin-bottom: 1rem;
+        }
+        .svg-input:focus { border-color: #444; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.85rem; color: #737373; margin-bottom: 0.4rem; }
+        .form-group input {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 6px;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .form-group input:focus { border-color: #444; }
+        .btn {
+            padding: 0.7rem 1.2rem;
+            border: 1px solid #222;
+            border-radius: 6px;
+            background: #111;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn:hover { background: #1a1a1a; border-color: #333; }
+        .btn-primary { background: #fff; color: #0a0a0a; border-color: #fff; }
+        .btn-primary:hover { background: #e0e0e0; }
+        .btn-danger { border-color: #442222; color: #ff6666; }
+        .btn-danger:hover { background: #221111; }
+        .btn-group { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+        .svg-list { margin-top: 1rem; }
+        .svg-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+        .svg-preview {
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .svg-preview svg { width: 100%; height: 100%; }
+        .svg-info { flex: 1; min-width: 0; }
+        .svg-info .name { font-size: 0.85rem; font-weight: 500; }
+        .svg-info .size { font-size: 0.75rem; color: #737373; }
+        .svg-item .btn { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
+        pre {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+            font-size: 0.75rem;
+            line-height: 1.5;
+            max-height: 400px;
+            overflow-y: auto;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        pre:hover { border-color: #444; }
+        .tab-bar {
+            display: flex;
+            gap: 0;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #222;
+        }
+        .tab {
+            padding: 0.6rem 1.2rem;
+            background: none;
+            border: none;
+            color: #737373;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .tab:hover { color: #fff; }
+        .tab.active { color: #fff; border-bottom-color: #fff; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .copy-toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #222;
+            color: #fff;
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .copy-toast.show { opacity: 1; transform: translateY(0); }
+        .usage-example {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+        }
+        .usage-example h3 {
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .usage-example code {
+            display: block;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #737373;
+            line-height: 1.6;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #555;
+            font-size: 0.85rem;
+        }
+    
+@media(max-width:768px){header{padding:20px 16px}header h1{font-size:16px}.content{padding:20px 16px}.container{padding:16px}}
+</style>
+</head>
+<body>
+    <div class="header">
+        <h1>SVG Sprite Generator</h1>
+        <a href="index.html">← Back to ProtonFlix Tools</a>
+    </div>
+
+    <div class="container">
+        <div class="panel">
+            <h2>Add SVGs</h2>
+            <div class="drop-zone" id="dropZone">
+                <p>Drop SVG files here</p>
+                <small>or paste SVG code below</small>
+            </div>
+            <textarea class="svg-input" id="svgInput" placeholder="<svg viewBox='0 0 24 24'>...</svg>"></textarea>
+            <div class="form-group">
+                <label>Symbol ID Prefix</label>
+                <input type="text" id="prefix" value="icon-" oninput="generate()">
+            </div>
+            <div class="btn-group">
+                <button class="btn" onclick="addFromInput()">Add SVG</button>
+                <button class="btn btn-primary" onclick="copyOutput()">Copy Sprite</button>
+                <button class="btn" onclick="downloadOutput()">Download</button>
+                <button class="btn btn-danger" onclick="clearAll()">Clear All</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>SVGs <span id="svgCount" style="color:#737373;font-weight:400;font-size:0.85rem;"></span></h2>
+            <div id="svgList"></div>
+        </div>
+
+        <div class="panel" id="outputPanel" style="display:none;">
+            <div class="tab-bar">
+                <button class="tab active" onclick="switchTab('sprite')">Sprite</button>
+                <button class="tab" onclick="switchTab('usage')">Usage</button>
+            </div>
+            <div class="tab-content active" id="tab-sprite">
+                <pre id="spriteOutput" onclick="copySprite()"></pre>
+            </div>
+            <div class="tab-content" id="tab-usage">
+                <div class="usage-example">
+                    <h3>HTML Usage</h3>
+                    <code id="usageHtml"></code>
+                </div>
+                <div class="usage-example" style="margin-top:1rem;">
+                    <h3>Inline SVG Reference</h3>
+                    <code id="usageInline"></code>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="copy-toast" id="toast">Copied to clipboard!</div>
+
+    <script>
+        let svgs = [];
+        let svgId = 0;
+
+        const dropZone = document.getElementById('dropZone');
+        const svgInput = document.getElementById('svgInput');
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.svg';
+        fileInput.multiple = true;
+        fileInput.style.display = 'none';
+        document.body.appendChild(fileInput);
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+        fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+        function handleFiles(files) {
+            Array.from(files).forEach(file => {
+                if (file.type === 'image/svg+xml' || file.name.endsWith('.svg')) {
+                    const reader = new FileReader();
+                    reader.onload = e => addSvg(e.target.result, file.name);
+                    reader.readAsText(file);
+                }
+            });
+        }
+
+        function addFromInput() {
+            const svg = svgInput.value.trim();
+            if (!svg) return;
+            addSvg(svg, 'svg-' + (svgs.length + 1));
+            svgInput.value = '';
+        }
+
+        function addSvg(content, name) {
+            const id = extractId(content) || name.replace(/\.svg$/i, '').replace(/[^a-zA-Z0-9-_]/g, '-');
+            svgs.push({ id: svgId++, content, name, symbolId: id });
+            renderList();
+            generate();
+        }
+
+        function extractId(svg) {
+            const match = svg.match(/<svg[^>]*\bid=["']([^"']+)["']/);
+            return match ? match[1] : null;
+        }
+
+        function removeSvg(id) {
+            svgs = svgs.filter(s => s.id !== id);
+            renderList();
+            generate();
+        }
+
+        function renderList() {
+            const list = document.getElementById('svgList');
+            document.getElementById('svgCount').textContent = `(${svgs.length} SVGs)`;
+
+            if (svgs.length === 0) {
+                list.innerHTML = '<div class="empty-state">No SVGs added yet</div>';
+                return;
+            }
+
+            list.innerHTML = svgs.map(s => `
+                <div class="svg-item">
+                    <div class="svg-preview">${cleanSvgForPreview(s.content)}</div>
+                    <div class="svg-info">
+                        <div class="name">${esc(s.name)}</div>
+                        <div class="size">ID: ${esc(s.symbolId)}</div>
+                    </div>
+                    <button class="btn btn-danger" onclick="removeSvg(${s.id})">×</button>
+                </div>
+            `).join('');
+
+            document.getElementById('outputPanel').style.display = 'block';
+        }
+
+        function cleanSvgForPreview(svg) {
+            return svg.replace(/<svg/, '<svg style="width:100%;height:100%;fill:currentColor"');
+        }
+
+        function generate() {
+            const prefix = document.getElementById('prefix').value;
+            if (svgs.length === 0) {
+                document.getElementById('spriteOutput').textContent = '';
+                document.getElementById('usageHtml').textContent = '';
+                document.getElementById('usageInline').textContent = '';
+                return;
+            }
+
+            let sprite = [];
+            sprite.push('<svg xmlns="http://www.w3.org/2000/svg" style="display:none">');
+            svgs.forEach(s => {
+                const id = prefix + s.symbolId;
+                let content = s.content;
+                content = content.replace(/<svg[^>]*>/, '');
+                content = content.replace(/<\/svg>/, '');
+                content = content.trim();
+                content = content.replace(/<symbol[^>]*>/g, '').replace(/<\/symbol>/g, '');
+                sprite.push(`  <symbol id="${esc(id)}" viewBox="0 0 24 24">`);
+                sprite.push('    ' + content);
+                sprite.push('  </symbol>');
+            });
+            sprite.push('</svg>');
+
+            const spriteText = sprite.join('\n');
+            document.getElementById('spriteOutput').textContent = spriteText;
+
+            const usageHtml = svgs.map(s => {
+                const id = prefix + s.symbolId;
+                return `<svg width="24" height="24"><use href="#${id}"></use></svg>`;
+            }).join('\n');
+            document.getElementById('usageHtml').textContent = usageHtml;
+
+            const usageInline = svgs.map(s => {
+                const id = prefix + s.symbolId;
+                return `<svg width="24" height="24"><use href="sprite.svg#${id}"></use></svg>`;
+            }).join('\n');
+            document.getElementById('usageInline').textContent = usageInline;
+        }
+
+        function esc(s) {
+            return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function copySprite() {
+            const text = document.getElementById('spriteOutput').textContent;
+            navigator.clipboard.writeText(text).then(() => showToast());
+        }
+
+        function copyOutput() {
+            copySprite();
+        }
+
+        function downloadOutput() {
+            const text = document.getElementById('spriteOutput').textContent;
+            const blob = new Blob([text], { type: 'image/svg+xml' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'sprite.svg';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+
+        function clearAll() {
+            svgs = [];
+            renderList();
+            generate();
+        }
+
+        function switchTab(name) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById('tab-' + name).classList.add('active');
+        }
+
+        function showToast() {
+            const t = document.getElementById('toast');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        renderList();
+    </script>
+</body>
+</html>

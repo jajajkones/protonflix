@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Cleaner / Formatter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #222;
+        }
+        .header h1 { font-size: 1.8rem; font-weight: 600; }
+        .header a {
+            color: #737373;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+        .header a:hover { color: #fff; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .input-section {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 250px;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 16px;
+            color: #fff;
+            font-family: 'Outfit', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+        }
+        textarea:focus { outline: none; border-color: #444; }
+        .options-section {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .options-title {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+            color: #737373;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .option-item:hover { border-color: #444; }
+        .option-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #fff;
+            cursor: pointer;
+        }
+        .option-item label {
+            color: #fff;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        button {
+            background: #222;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px 24px;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button:hover { background: #333; }
+        .stats-section {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .stats-title {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+            color: #737373;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+        }
+        .stat-card {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: #737373;
+        }
+        .output-section {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 24px;
+        }
+        .output-section pre {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Outfit', monospace;
+            font-size: 0.85rem;
+            color: #737373;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .copied-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #222;
+            border: 1px solid #333;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        .copied-toast.show { opacity: 1; }
+    
+@media(max-width:768px){header{padding:20px 16px}header h1{font-size:16px}.content{padding:20px 16px}.container{padding:16px}}
+</style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>HTML Cleaner / Formatter</h1>
+            <a href="index.html">&larr; Back to Tools</a>
+        </div>
+
+        <div class="input-section">
+            <textarea id="inputHTML" placeholder="Paste your HTML here..."></textarea>
+        </div>
+
+        <div class="options-section">
+            <div class="options-title">Cleaning Options</div>
+            <div class="options-grid">
+                <div class="option-item">
+                    <input type="checkbox" id="optComments" checked>
+                    <label for="optComments">Remove Comments</label>
+                </div>
+                <div class="option-item">
+                    <input type="checkbox" id="optEmptyTags" checked>
+                    <label for="optEmptyTags">Remove Empty Tags</label>
+                </div>
+                <div class="option-item">
+                    <input type="checkbox" id="optWhitespace" checked>
+                    <label for="optWhitespace">Remove Extra Whitespace</label>
+                </div>
+                <div class="option-item">
+                    <input type="checkbox" id="optInlineStyles" checked>
+                    <label for="optInlineStyles">Remove Inline Styles</label>
+                </div>
+                <div class="option-item">
+                    <input type="checkbox" id="optScripts" checked>
+                    <label for="optScripts">Remove Scripts</label>
+                </div>
+                <div class="option-item">
+                    <input type="checkbox" id="optEventHandlers" checked>
+                    <label for="optEventHandlers">Remove Event Handlers</label>
+                </div>
+                <div class="option-item">
+                    <input type="checkbox" id="optClassId" checked>
+                    <label for="optClassId">Remove Class/ID Attributes</label>
+                </div>
+                <div class="option-item">
+                    <input type="checkbox" id="optFormat" checked>
+                    <label for="optFormat">Format with Indentation</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button onclick="cleanHTML()">Clean HTML</button>
+            <button onclick="copyOutput()">Copy Cleaned HTML</button>
+            <button onclick="clearAll()">Clear All</button>
+        </div>
+
+        <div class="stats-section" id="statsSection" style="display: none;">
+            <div class="stats-title">Statistics</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="statOrigChars">0</div>
+                    <div class="stat-label">Original Characters</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statCleanChars">0</div>
+                    <div class="stat-label">Cleaned Characters</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statReduction">0%</div>
+                    <div class="stat-label">Size Reduction</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statTagsRemoved">0</div>
+                    <div class="stat-label">Tags/Items Removed</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="output-section">
+            <pre id="outputHTML">Cleaned HTML will appear here...</pre>
+        </div>
+    </div>
+
+    <div class="copied-toast" id="toast">Copied!</div>
+
+    <script>
+        const inputHTML = document.getElementById('inputHTML');
+        const outputHTML = document.getElementById('outputHTML');
+        const toast = document.getElementById('toast');
+
+        function getOptions() {
+            return {
+                comments: document.getElementById('optComments').checked,
+                emptyTags: document.getElementById('optEmptyTags').checked,
+                whitespace: document.getElementById('optWhitespace').checked,
+                inlineStyles: document.getElementById('optInlineStyles').checked,
+                scripts: document.getElementById('optScripts').checked,
+                eventHandlers: document.getElementById('optEventHandlers').checked,
+                classId: document.getElementById('optClassId').checked,
+                format: document.getElementById('optFormat').checked
+            };
+        }
+
+        function cleanHTML() {
+            let html = inputHTML.value;
+            if (!html.trim()) return;
+
+            let removedCount = 0;
+            const options = getOptions();
+            const originalLength = html.length;
+
+            // Remove comments
+            if (options.comments) {
+                const before = html.length;
+                html = html.replace(/<!--[\s\S]*?-->/g, '');
+                removedCount += before - html.length;
+            }
+
+            // Remove scripts
+            if (options.scripts) {
+                const before = html.length;
+                html = html.replace(/<script[\s\S]*?<\/script>/gi, '');
+                removedCount += before - html.length;
+            }
+
+            // Remove event handlers
+            if (options.eventHandlers) {
+                const before = html.length;
+                html = html.replace(/\son\w+\s*=\s*"[^"]*"/gi, '');
+                html = html.replace(/\son\w+\s*=\s*'[^']*'/gi, '');
+                removedCount += before - html.length;
+            }
+
+            // Remove inline styles
+            if (options.inlineStyles) {
+                const before = html.length;
+                html = html.replace(/\sstyle\s*=\s*"[^"]*"/gi, '');
+                html = html.replace(/\sstyle\s*=\s*'[^']*'/gi, '');
+                removedCount += before - html.length;
+            }
+
+            // Remove class and id attributes
+            if (options.classId) {
+                const before = html.length;
+                html = html.replace(/\sclass\s*=\s*"[^"]*"/gi, '');
+                html = html.replace(/\sclass\s*=\s*'[^']*'/gi, '');
+                html = html.replace(/\sid\s*=\s*"[^"]*"/gi, '');
+                html = html.replace(/\sid\s*=\s*'[^']*'/gi, '');
+                removedCount += before - html.length;
+            }
+
+            // Remove empty tags
+            if (options.emptyTags) {
+                const before = html.length;
+                html = html.replace(/<(\w+)>\s*<\/\1>/gi, '');
+                html = html.replace(/<(\w+)\/>/gi, '');
+                removedCount += before - html.length;
+            }
+
+            // Remove extra whitespace
+            if (options.whitespace) {
+                html = html.replace(/\s+/g, ' ');
+                html = html.replace(/>\s+</g, '><');
+            }
+
+            // Format with indentation
+            if (options.format) {
+                html = formatHTML(html);
+            }
+
+            html = html.trim();
+
+            outputHTML.textContent = html;
+
+            // Update stats
+            const cleanedLength = html.length;
+            const reduction = originalLength > 0 ? Math.round(((originalLength - cleanedLength) / originalLength) * 100) : 0;
+
+            document.getElementById('statOrigChars').textContent = originalLength.toLocaleString();
+            document.getElementById('statCleanChars').textContent = cleanedLength.toLocaleString();
+            document.getElementById('statReduction').textContent = reduction + '%';
+            document.getElementById('statTagsRemoved').textContent = Math.round(removedCount / 10);
+            document.getElementById('statsSection').style.display = 'block';
+        }
+
+        function formatHTML(html) {
+            let formatted = '';
+            let indent = 0;
+            const tab = '    ';
+
+            html = html.replace(/>\s+</g, '><');
+            const tags = html.match(/(<[^>]+>)/g) || [];
+
+            tags.forEach(tag => {
+                if (tag.match(/^<\/\w/)) {
+                    indent = Math.max(0, indent - 1);
+                }
+
+                formatted += tab.repeat(indent) + tag + '\n';
+
+                if (tag.match(/^<\w[^>]*[^\/]>$/) && !tag.match(/^<(img|br|hr|input|meta|link)/i)) {
+                    indent++;
+                }
+            });
+
+            return formatted.trim();
+        }
+
+        function copyOutput() {
+            navigator.clipboard.writeText(outputHTML.textContent).then(() => {
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 1500);
+            });
+        }
+
+        function clearAll() {
+            inputHTML.value = '';
+            outputHTML.textContent = 'Cleaned HTML will appear here...';
+            document.getElementById('statsSection').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS Specificity Calculator - ProtonFlix Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh}
+header{background:#111;border-bottom:1px solid #222;padding:16px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+header h1{font-size:1.3rem;font-weight:600}
+header a{color:#737373;text-decoration:none;font-size:.9rem;transition:color .2s}
+header a:hover{color:#fff}
+.container{max-width:900px;margin:0 auto;padding:24px}
+.btn{padding:8px 16px;border:1px solid #222;background:#111;color:#fff;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.85rem;transition:all .2s}
+.btn:hover{background:#222}
+.btn-danger{border-color:#ff4444;color:#ff4444}
+.btn-danger:hover{background:#ff444420}
+.btn-primary{background:#2563eb;border-color:#2563eb}
+.btn-primary:hover{background:#1d4ed8}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:16px;margin-bottom:12px}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.card-actions{display:flex;gap:6px;flex-wrap:wrap}
+.form-row{display:flex;gap:8px;margin-bottom:12px}
+.form-row input{flex:1;padding:10px 14px;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;font-family:'Outfit',sans-serif;font-size:.9rem}
+.form-row input:focus{outline:none;border-color:#2563eb}
+.selector-list{display:flex;flex-direction:column;gap:8px}
+.selector-item{display:flex;align-items:center;gap:10px;background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:12px 14px;transition:border-color .2s}
+.selector-item.winner{border-color:#22c55e;box-shadow:0 0 12px #22c55e20}
+.selector-item input{flex:1;padding:8px 12px;background:transparent;border:none;color:#fff;font-family:monospace;font-size:.9rem}
+.selector-item input:focus{outline:none}
+.specificity-score{display:flex;gap:2px;font-family:monospace;font-size:1rem;font-weight:600}
+.score-part{padding:4px 10px;border-radius:4px;background:#2563eb20}
+.score-a{color:#f59e0b}
+.score-b{color:#22c55e}
+.score-c{color:#60a5fa}
+.score-d{color:#a78bfa}
+.winner-badge{background:#22c55e;color:#fff;padding:2px 8px;border-radius:4px;font-size:.7rem;font-weight:600}
+.examples{margin-top:20px}
+.examples h3{font-size:.9rem;color:#737373;margin-bottom:10px}
+.example-chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:6px 12px;background:#111;border:1px solid #222;border-radius:6px;font-family:monospace;font-size:.8rem;cursor:pointer;transition:all .2s}
+.chip:hover{border-color:#2563eb;color:#60a5fa}
+.comparison-box{background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:16px;margin-top:16px;text-align:center}
+.comparison-box h3{font-size:1rem;margin-bottom:8px}
+.winner-text{font-size:1.1rem;color:#22c55e;font-weight:600}
+.tie-text{color:#f59e0b}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html">← Back</a>
+  <h1>⚖ CSS Specificity Calculator</h1>
+</header>
+<div class="container">
+  <div class="card">
+    <div class="card-header">
+      <h2 style="font-size:1rem">Selectors</h2>
+      <div class="card-actions">
+        <button class="btn btn-primary" onclick="addSelector()">+ Add Selector</button>
+        <button class="btn" onclick="clearAll()">Clear All</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <input type="text" id="newSelector" placeholder="Enter CSS selector (e.g. #id.class div > p)" onkeydown="if(event.key==='Enter')addSelector()">
+      <button class="btn btn-primary" onclick="addSelector()">Add</button>
+    </div>
+    <div class="selector-list" id="selectorList"></div>
+    <div class="comparison-box" id="comparisonBox" style="display:none">
+      <h3>Winner</h3>
+      <div class="winner-text" id="winnerText"></div>
+    </div>
+  </div>
+
+  <div class="examples">
+    <h3>Common Selector Examples (click to add)</h3>
+    <div class="example-chips">
+      <div class="chip" onclick="addExample(this)">div</div>
+      <div class="chip" onclick="addExample(this)">p</div>
+      <div class="chip" onclick="addExample(this)">.class</div>
+      <div class="chip" onclick="addExample(this)">#id</div>
+      <div class="chip" onclick="addExample(this)">div p</div>
+      <div class="chip" onclick="addExample(this)">div > p</div>
+      <div class="chip" onclick="addExample(this)">div + p</div>
+      <div class="chip" onclick="addExample(this)">div ~ p</div>
+      <div class="chip" onclick="addExample(this)">#id.class</div>
+      <div class="chip" onclick="addExample(this)">.class.class2</div>
+      <div class="chip" onclick="addExample(this)">div.class#id</div>
+      <div class="chip" onclick="addExample(this)">* (universal)</div>
+      <div class="chip" onclick="addExample(this)">div, p (group)</div>
+      <div class="chip" onclick="addExample(this)">[type="text"]</div>
+      <div class="chip" onclick="addExample(this)">div:pseudo</div>
+      <div class="chip" onclick="addExample(this)">div::before</div>
+      <div class="chip" onclick="addExample(this)">:not(.class)</div>
+      <div class="chip" onclick="addExample(this)">div#id.class.active</div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" style="display:none;position:fixed;bottom:24px;right:24px;background:#22c55e;color:#fff;padding:12px 20px;border-radius:8px;font-size:.85rem;z-index:300"></div>
+
+<script>
+let selectors = [];
+
+function calculateSpecificity(sel) {
+  let a = 0, b = 0, c = 0, d = 0;
+  const s = sel.trim();
+  if (!s || s === '*') return { a: 0, b: 0, c: 0, d: 0, text: '0,0,0,0' };
+
+  const idMatches = s.match(/#[\w-]+/g);
+  if (idMatches) a = idMatches.length;
+
+  const classesAndAttrs = s.match(/(\.[\w-]+|\[[^\]]+\]|:[\w-]+(?::[\w-]+)?)/g);
+  if (classesAndAttrs) b = classesAndAttrs.length;
+
+  const parts = s.replace(/#[\w-]+/g, '').replace(/(\.[\w-]+|\[[^\]]+\]|:[\w-]+(?::[\w-]+)?)/g, ' ').split(/[\s>+~]+/).filter(p => p.trim() && p.trim() !== '*');
+  c = parts.length;
+
+  d = s.includes('::') ? (s.match(/::[\w-]+/g) || []).length : 0;
+
+  return { a, b, c, d, text: `${a},${b},${c + d}` };
+}
+
+function renderSelectors() {
+  const container = document.getElementById('selectorList');
+  if (!selectors.length) {
+    container.innerHTML = '<div class="empty-state" style="color:#737373;text-align:center;padding:20px">Add CSS selectors to compare specificity</div>';
+    document.getElementById('comparisonBox').style.display = 'none';
+    return;
+  }
+
+  const specs = selectors.map((s, i) => ({ ...calculateSpecificity(s), index: i, selector: s }));
+  const maxScore = Math.max(...specs.map(s => s.a * 1000 + s.b * 100 + s.c * 10 + s.d));
+  const winners = specs.filter(s => s.a * 1000 + s.b * 100 + s.c * 10 + s.d === maxScore);
+  const isTie = winners.length > 1;
+
+  container.innerHTML = specs.map((s, i) => `
+    <div class="selector-item ${!isTie && winners[0]?.index === i ? 'winner' : ''}">
+      <input value="${esc(s.selector)}" onchange="updateSelector(${i}, this.value)" spellcheck="false">
+      <div class="specificity-score">
+        <span class="score-part score-a">${s.a}</span>
+        <span class="score-part score-b">${s.b}</span>
+        <span class="score-part score-c">${s.c}</span>
+        <span class="score-part score-d">${s.d}</span>
+      </div>
+      ${!isTie && winners[0]?.index === i ? '<span class="winner-badge">WINS</span>' : ''}
+      <button class="btn btn-danger" onclick="removeSelector(${i})" style="padding:4px 8px;font-size:.75rem">✕</button>
+    </div>
+  `).join('');
+
+  const box = document.getElementById('comparisonBox');
+  box.style.display = 'block';
+  if (isTie) {
+    document.getElementById('winnerText').innerHTML = '<span class="tie-text">Tie — equal specificity</span>';
+  } else if (winners[0]) {
+    document.getElementById('winnerText').innerHTML = `<code>${esc(winners[0].selector)}</code> wins with <code>${winners[0].text}</code>`;
+  }
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function addSelector() {
+  const input = document.getElementById('newSelector');
+  const val = input.value.trim();
+  if (!val) return;
+  selectors.push(val);
+  input.value = '';
+  renderSelectors();
+}
+
+function addExample(el) {
+  const text = el.textContent.split(' ')[0];
+  selectors.push(text);
+  renderSelectors();
+}
+
+function updateSelector(i, val) {
+  selectors[i] = val;
+  renderSelectors();
+}
+
+function removeSelector(i) {
+  selectors.splice(i, 1);
+  renderSelectors();
+}
+
+function clearAll() {
+  selectors = [];
+  renderSelectors();
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 2500);
+}
+
+renderSelectors();
+</script>
+</body>
+</html>

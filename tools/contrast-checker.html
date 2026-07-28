@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contrast Ratio Checker</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh}
+.header{padding:20px 30px;border-bottom:1px solid #222;display:flex;align-items:center;gap:20px}
+.header h1{font-size:1.4rem;font-weight:600}
+.header a{color:#737373;text-decoration:none;font-size:.9rem;transition:color .2s}
+.header a:hover{color:#fff}
+.container{max-width:1000px;margin:0 auto;padding:30px}
+.panel{background:#111;border:1px solid #222;border-radius:12px;padding:24px;margin-bottom:20px}
+.panel h2{font-size:1rem;font-weight:500;margin-bottom:16px}
+.color-row{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:600px){.color-row{grid-template-columns:1fr}}
+.color-input{display:flex;align-items:center;gap:10px;margin-top:8px}
+.color-input input[type="color"]{width:50px;height:42px;padding:3px;background:#0a0a0a;border:1px solid #222;border-radius:8px;cursor:pointer}
+.color-input input[type="text"]{flex:1;padding:10px 14px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:.9rem;outline:none}
+.color-input input[type="text"]:focus{border-color:#555}
+.label{font-size:.75rem;color:#737373;text-transform:uppercase;letter-spacing:.5px}
+.ratio-display{text-align:center;padding:30px;background:#0a0a0a;border:1px solid #222;border-radius:12px;margin:20px 0}
+.ratio-value{font-size:3rem;font-weight:700}
+.ratio-label{font-size:.85rem;color:#737373;margin-top:4px}
+.wcag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-top:20px}
+.wcag-card{background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:16px;text-align:center}
+.wcag-card .level{font-size:.7rem;color:#737373;text-transform:uppercase;letter-spacing:.5px}
+.wcag-card .type{font-size:.85rem;font-weight:500;margin-top:4px}
+.wcag-card .result{font-size:1.1rem;font-weight:600;margin-top:8px}
+.wcag-card .result.pass{color:#4ade80}
+.wcag-card .result.fail{color:#f87171}
+.preview-box{margin-top:20px;border-radius:12px;overflow:hidden}
+.preview-section{padding:30px;text-align:center}
+.preview-section .large{font-size:1.5rem;font-weight:700;margin-bottom:8px}
+.preview-section .normal{font-size:1rem;margin-bottom:8px}
+.preview-section .small{font-size:.8rem;color:#ccc}
+.suggestions{margin-top:16px}
+.suggestion-row{display:flex;gap:12px;align-items:center;margin-top:8px;padding:10px;background:#0a0a0a;border:1px solid #222;border-radius:8px}
+.suggestion-swatch{width:40px;height:40px;border-radius:6px;border:1px solid #333;flex-shrink:0}
+.suggestion-info{flex:1;font-size:.85rem}
+.suggestion-ratio{font-size:.8rem;color:#737373}
+.suggestion-apply{padding:4px 12px;background:#1a1a1a;border:1px solid #333;color:#fff;border-radius:6px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:.75rem}
+.suggestion-apply:hover{background:#252525}
+.btn{background:#1a1a1a;border:1px solid #333;color:#fff;padding:8px 18px;border-radius:8px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:.85rem;transition:all .2s}
+.btn:hover{background:#252525;border-color:#555}
+.btn-row{display:flex;gap:10px;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html">&larr; Back</a>
+<h1>Contrast Ratio Checker</h1>
+</div>
+<div class="container">
+<div class="panel">
+<h2>Colors</h2>
+<div class="color-row">
+<div>
+<div class="label">Foreground (Text)</div>
+<div class="color-input">
+<input type="color" id="fgPicker" value="#ffffff">
+<input type="text" id="fgHex" value="#ffffff" maxlength="7">
+</div>
+</div>
+<div>
+<div class="label">Background</div>
+<div class="color-input">
+<input type="color" id="bgPicker" value="#1a1a2e">
+<input type="text" id="bgHex" value="#1a1a2e" maxlength="7">
+</div>
+</div>
+</div>
+</div>
+<div class="ratio-display">
+<div class="ratio-value" id="ratioValue">-</div>
+<div class="ratio-label">Contrast Ratio</div>
+</div>
+<div class="panel">
+<h2>WCAG 2.1 Compliance</h2>
+<div class="wcag-grid" id="wcagGrid"></div>
+</div>
+<div class="panel">
+<h2>Preview</h2>
+<div class="preview-box" id="previewBox">
+<div class="preview-section">
+<div class="large">Large Text (18pt+)</div>
+<div class="normal">Normal body text appears like this paragraph with standard sizing for reading comfort.</div>
+<div class="small">Small UI elements and labels often use this size. Make sure contrast is sufficient.</div>
+</div>
+</div>
+</div>
+<div class="panel">
+<h2>Accessibility Suggestions</h2>
+<div class="suggestions" id="suggestions"></div>
+<div class="btn-row">
+<button class="btn" onclick="swapColors()">Swap Colors</button>
+</div>
+</div>
+</div>
+<script>
+function hexToRgb(hex){hex=hex.replace('#','');if(hex.length===3)hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];return{r:parseInt(hex.substr(0,2),16),g:parseInt(hex.substr(2,2),16),b:parseInt(hex.substr(4,2),16)}}
+function rgbToHex(r,g,b){return'#'+[r,g,b].map(x=>{const h=Math.max(0,Math.min(255,Math.round(x))).toString(16);return h.length===1?'0'+h:h}).join('')}
+function relativeLuminance(rgb){const s=[rgb.r/255,rgb.g/255,rgb.b/255].map(v=>v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4));return 0.2126*s[0]+0.7152*s[1]+0.0722*s[2]}
+function contrastRatio(hex1,hex2){const l1=relativeLuminance(hexToRgb(hex1));const l2=relativeLuminance(hexToRgb(hex2));const lighter=Math.max(l1,l2);const darker=Math.min(l1,l2);return(lighter+0.05)/(darker+0.05)}
+function getTextColor(hex){const rgb=hexToRgb(hex);return(rgb.r*0.299+rgb.g*0.587+rgb.b*0.114)>150?'#000000':'#ffffff'}
+function updateAll(){
+const fg=document.getElementById('fgHex').value;
+const bg=document.getElementById('bgHex').value;
+if(!/^#[0-9a-fA-F]{6}$/.test(fg)||!/^#[0-9a-fA-F]{6}$/.test(bg))return;
+const ratio=contrastRatio(fg,bg);
+document.getElementById('ratioValue').textContent=ratio.toFixed(2)+':1';
+document.getElementById('ratioValue').style.color=ratio>=7?'#4ade80':ratio>=4.5?'#facc15':ratio>=3?'#fb923c':'#f87171';
+const wcag=[
+{level:'AA',type:'Normal Text (≥4.5:1)',pass:ratio>=4.5},
+{level:'AA',type:'Large Text (≥3:1)',pass:ratio>=3},
+{level:'AAA',type:'Normal Text (≥7:1)',pass:ratio>=7},
+{level:'AAA',type:'Large Text (≥4.5:1)',pass:ratio>=4.5},
+{level:'AA',type:'UI Components (≥3:1)',pass:ratio>=3}
+];
+const grid=document.getElementById('wcagGrid');grid.innerHTML='';
+wcag.forEach(w=>{
+const card=document.createElement('div');card.className='wcag-card';
+card.innerHTML=`<div class="level">${w.level}</div><div class="type">${w.type}</div><div class="result ${w.pass?'pass':'fail'}">${w.pass?'PASS':'FAIL'}</div>`;
+grid.appendChild(card);
+});
+const box=document.getElementById('previewBox');
+box.style.background=bg;
+box.querySelectorAll('.preview-section>*').forEach(el=>el.style.color=fg);
+generateSuggestions(fg,bg,ratio);
+}
+function generateSuggestions(fg,bg,currentRatio){
+const container=document.getElementById('suggestions');container.innerHTML='';
+const targets=[{label:'AA Normal (4.5:1)',min:4.5},{label:'AA Large (3:1)',min:3},{label:'AAA Normal (7:1)',min:7}];
+const fgRgb=hexToRgb(fg);const bgRgb=hexToRgb(bg);
+targets.forEach(target=>{
+if(currentRatio>=target.min)return;
+for(let step=0;step<50;step++){
+for(let dir=-1;dir<=1;dir+=2){
+const tryRgb={r:fgRgb.r+step*dir*3,g:fgRgb.g+step*dir*3,b:fgRgb.b+step*dir*3};
+const tryHex=rgbToHex(tryRgb.r,tryRgb.g,tryRgb.b);
+const tryRatio=contrastRatio(tryHex,bg);
+if(tryRatio>=target.min){
+const row=document.createElement('div');row.className='suggestion-row';
+row.innerHTML=`<div class="suggestion-swatch" style="background:${tryHex}"></div><div class="suggestion-info"><div style="font-weight:500">${tryHex.toUpperCase()}</div><div class="suggestion-ratio">${tryRatio.toFixed(2)}:1 — Meets ${target.label}</div></div><button class="suggestion-apply" onclick="applySuggestion('${tryHex}')">Apply</button>`;
+container.appendChild(row);
+return;
+}
+}
+}
+});
+if(container.children.length===0){container.innerHTML='<div style="font-size:.85rem;color:#737373;padding:10px">Current colors meet all targets.</div>'}
+}
+function applySuggestion(hex){document.getElementById('fgHex').value=hex;document.getElementById('fgPicker').value=hex;updateAll()}
+function swapColors(){const fg=document.getElementById('fgHex').value;const bg=document.getElementById('bgHex').value;document.getElementById('fgHex').value=bg;document.getElementById('bgHex').value=fg;document.getElementById('fgPicker').value=bg;document.getElementById('bgPicker').value=fg;updateAll()}
+['fgPicker','fgHex','bgPicker','bgHex'].forEach(id=>{
+document.getElementById(id).addEventListener('input',e=>{
+const val=e.target.value;const hexId=id.includes('fg')?'fgHex':'bgHex';const pickerId=id.includes('fg')?'fgPicker':'bgPicker';
+if(id.endsWith('Picker')){document.getElementById(hexId).value=val}
+else{if(/^#[0-9a-fA-F]{6}$/.test(val))document.getElementById(pickerId).value=val}
+updateAll();
+});
+});
+updateAll();
+</script>
+</body>
+</html>

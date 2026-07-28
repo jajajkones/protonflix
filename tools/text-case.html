@@ -22,11 +22,16 @@ textarea:focus{border-color:#444}
 .output{margin-top:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;font-size:15px;line-height:1.6;min-height:100px;white-space:pre-wrap;word-break:break-word;position:relative}
 .copy-btn{position:absolute;top:10px;right:10px;background:var(--accent);color:#fff;border:none;padding:6px 12px;border-radius:var(--radius);font-size:11px;cursor:pointer;opacity:0;transition:opacity .2s}
 .output:hover .copy-btn{opacity:1}
+.copy-toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#22c55e;color:#000;padding:8px 16px;border-radius:var(--radius);font-size:12px;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:101}
+.copy-toast.show{opacity:1}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+@media(max-width:768px){.content{padding:20px}.btn-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}}
 </style>
 </head>
 <body>
 <header><h1>Text Case Converter</h1><a href="index.html">← Back to Tools</a></header>
 <div class="content">
+<label class="sr-only" for="input">Text to transform</label>
 <textarea id="input" placeholder="Enter text to transform..." oninput="autoConvert()">hello world this is a SAMPLE TEXT for testing case conversions.</textarea>
 <div class="btn-grid">
 <button class="btn" onclick="convert('upper')">UPPERCASE</button>
@@ -50,6 +55,7 @@ textarea:focus{border-color:#444}
 </div>
 <div class="output" id="output"><button class="copy-btn" onclick="copyOutput()">Copy</button><span id="outputText"></span></div>
 </div>
+<div class="copy-toast" id="copyToast">Copied!</div>
 <script>
 function convert(type){
 const t=document.getElementById('input').value;
@@ -77,7 +83,7 @@ case'reverseLines':r=t.split('\n').reverse().join('\n');break;
 document.getElementById('outputText').textContent=r;
 }
 function autoConvert(){convert('lower')}
-function copyOutput(){navigator.clipboard.writeText(document.getElementById('outputText').textContent)}
+function copyOutput(){navigator.clipboard.writeText(document.getElementById('outputText').textContent);const t=document.getElementById('copyToast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
 convert('lower');
 </script>
 </body>

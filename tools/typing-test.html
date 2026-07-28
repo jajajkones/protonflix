@@ -33,10 +33,16 @@ h1{font-size:20px;font-weight:500;margin-bottom:30px}
 .result-stats div{text-align:center}
 .result-stats .val{font-size:20px;font-family:var(--mono)}
 .result-stats .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+
+@media(max-width:768px){header{padding:20px 16px}header h1{font-size:16px}.content{padding:20px 16px}.container{padding:16px}}
 </style>
 </head>
 <body>
-<h1>Typing Test</h1>
+<header style="position:fixed;top:0;left:0;right:0;padding:16px 24px;background:#0a0a0a;border-bottom:1px solid #222;display:flex;align-items:center;gap:16px;z-index:100">
+<a href="index.html" style="color:#737373;text-decoration:none;font-size:13px;transition:color .2s">← Back to Tools</a>
+<h1 style="font-size:16px;font-weight:500;margin:0">Typing Test</h1>
+</header>
+<div style="padding-top:60px">
 <div class="controls">
 <button class="btn active" onclick="setTime(30,this)">30s</button>
 <button class="btn" onclick="setTime(60,this)">60s</button>
@@ -61,6 +67,7 @@ h1{font-size:20px;font-weight:500;margin-bottom:30px}
 </div>
 </div>
 <button class="btn" onclick="closeResult();newTest()">Try Again</button>
+</div>
 </div>
 <script>
 const WORDS=['the','be','to','of','and','a','in','that','have','I','it','for','not','on','with','he','as','you','do','at','this','but','his','by','from','they','we','her','she','or','an','will','my','one','all','would','there','their','what','so','up','out','if','about','who','get','which','go','me','when','make','can','like','time','no','just','him','know','take','people','into','year','your','good','some','could','them','see','other','than','then','now','look','only','come','its','over','think','also','back','after','use','two','how','our','work','first','well','way','even','new','want','because','any','these','give','day','most','us','find','here','thing','many','well','those','tell','one','very','her','own','may','still','should','world','long','keep','let','begin','life','where','need','house','too','high','right','old','large','small','great','young','first','last','next','long','short','good','new','old','big','little','different','important'];

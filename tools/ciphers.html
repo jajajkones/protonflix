@@ -26,77 +26,77 @@ textarea{width:100%;height:150px;background:var(--surface);color:var(--text);bor
 <header><h1>Cipher & Encoding Toolkit</h1><a href="index.html">← Back to Tools</a></header>
 <div class="content">
 <div class="tabs">
-<div class="tab active" onclick="switchTab('rot13')">ROT13</div>
-<div class="tab" onclick="switchTab('caesar')">Caesar</div>
-<div class="tab" onclick="switchTab('morse')">Morse Code</div>
-<div class="tab" onclick="switchTab('binary')">Binary</div>
-<div class="tab" onclick="switchTab('ascii')">ASCII Art</div>
-<div class="tab" onclick="switchTab('atbash')">Atbash</div>
-<div class="tab" onclick="switchTab('rail')">Rail Fence</div>
-<div class="tab" onclick="switchTab('reverse')">Reverse</div>
-<div class="tab" onclick="switchTab('piglatin')">Pig Latin</div>
-<div class="tab" onclick="switchTab('leetspeak')">Leet Speak</div>
+<div class="tab active" onclick="switchTab('rot13')" role="tab" aria-label="ROT13 cipher tab">ROT13</div>
+<div class="tab" onclick="switchTab('caesar')" role="tab" aria-label="Caesar cipher tab">Caesar</div>
+<div class="tab" onclick="switchTab('morse')" role="tab" aria-label="Morse code tab">Morse Code</div>
+<div class="tab" onclick="switchTab('binary')" role="tab" aria-label="Binary tab">Binary</div>
+<div class="tab" onclick="switchTab('ascii')" role="tab" aria-label="ASCII art tab">ASCII Art</div>
+<div class="tab" onclick="switchTab('atbash')" role="tab" aria-label="Atbash cipher tab">Atbash</div>
+<div class="tab" onclick="switchTab('rail')" role="tab" aria-label="Rail fence cipher tab">Rail Fence</div>
+<div class="tab" onclick="switchTab('reverse')" role="tab" aria-label="Reverse text tab">Reverse</div>
+<div class="tab" onclick="switchTab('piglatin')" role="tab" aria-label="Pig Latin converter tab">Pig Latin</div>
+<div class="tab" onclick="switchTab('leetspeak')" role="tab" aria-label="Leet speak converter tab">Leet Speak</div>
 </div>
 <div id="rot13Panel">
 <div class="label">ROT13 / ROT47 Encoder</div>
-<textarea id="rot13Input" oninput="doROT13()" placeholder="Enter text...">Hello, World!</textarea>
-<div class="btn-row"><button class="btn" onclick="doROT13()">Encode</button><button class="btn-outline" onclick="copyOut('rot13Out')">Copy</button></div>
+<textarea id="rot13Input" oninput="doROT13()" placeholder="Enter text..." aria-label="Input text for ROT13 encoding">Hello, World!</textarea>
+<div class="btn-row"><button class="btn" onclick="doROT13()" aria-label="Generate ROT13 and ROT47">Encode</button><button class="btn-outline" onclick="copyOut('rot13Out')" aria-label="Copy ROT13 output">Copy</button></div>
 <div class="output" id="rot13Out"></div>
 </div>
 <div id="caesarPanel" class="hidden">
 <div class="label">Caesar Cipher</div>
-<div class="shift-row"><span>Shift:</span><input type="number" id="caesarShift" value="3" min="1" max="25" oninput="doCaesar()"><span>(1-25)</span></div>
-<textarea id="caesarInput" oninput="doCaesar()" placeholder="Enter text...">Hello, World!</textarea>
-<div class="btn-row"><button class="btn" onclick="doCaesar()">Encode</button><button class="btn" onclick="doCaesarDecode()">Decode</button><button class="btn-outline" onclick="copyOut('caesarOut')">Copy</button></div>
+<div class="shift-row"><span>Shift:</span><input type="number" id="caesarShift" value="3" min="1" max="25" oninput="doCaesar()" aria-label="Caesar cipher shift value"><span>(1-25)</span></div>
+<textarea id="caesarInput" oninput="doCaesar()" placeholder="Enter text..." aria-label="Input text for Caesar cipher">Hello, World!</textarea>
+<div class="btn-row"><button class="btn" onclick="doCaesar()" aria-label="Encode with Caesar cipher">Encode</button><button class="btn" onclick="doCaesarDecode()" aria-label="Decode Caesar cipher">Decode</button><button class="btn-outline" onclick="copyOut('caesarOut')" aria-label="Copy Caesar cipher output">Copy</button></div>
 <div class="output" id="caesarOut"></div>
 </div>
 <div id="morsePanel" class="hidden">
 <div class="label">Morse Code</div>
-<textarea id="morseInput" oninput="doMorse()" placeholder="Enter text or morse code...">SOS</textarea>
-<div class="btn-row"><button class="btn" onclick="doMorse()">Encode</button><button class="btn" onclick="doMorseDecode()">Decode</button><button class="btn-outline" onclick="copyOut('morseOut')">Copy</button></div>
+<textarea id="morseInput" oninput="doMorse()" placeholder="Enter text or morse code..." aria-label="Input text or Morse code">SOS</textarea>
+<div class="btn-row"><button class="btn" onclick="doMorse()" aria-label="Encode to Morse code">Encode</button><button class="btn" onclick="doMorseDecode()" aria-label="Decode Morse code">Decode</button><button class="btn-outline" onclick="copyOut('morseOut')" aria-label="Copy Morse code output">Copy</button></div>
 <div class="output" id="morseOut"></div>
 </div>
 <div id="binaryPanel" class="hidden">
 <div class="label">Binary Text Converter</div>
-<textarea id="binaryInput" oninput="doBinary()" placeholder="Enter text or binary...">Hello</textarea>
-<div class="btn-row"><button class="btn" onclick="doBinary()">Text → Binary</button><button class="btn" onclick="doBinaryDecode()">Binary → Text</button><button class="btn-outline" onclick="copyOut('binaryOut')">Copy</button></div>
+<textarea id="binaryInput" oninput="doBinary()" placeholder="Enter text or binary..." aria-label="Input text or binary data">Hello</textarea>
+<div class="btn-row"><button class="btn" onclick="doBinary()" aria-label="Convert text to binary">Text → Binary</button><button class="btn" onclick="doBinaryDecode()" aria-label="Convert binary to text">Binary → Text</button><button class="btn-outline" onclick="copyOut('binaryOut')" aria-label="Copy binary output">Copy</button></div>
 <div class="output" id="binaryOut"></div>
 </div>
 <div id="asciiPanel" class="hidden">
 <div class="label">ASCII Art Text (Figlet-style)</div>
-<textarea id="asciiInput" oninput="doASCII()" placeholder="Enter text...">HELLO</textarea>
-<div class="btn-row"><button class="btn" onclick="doASCII()">Generate</button><button class="btn-outline" onclick="copyOut('asciiOut')">Copy</button></div>
+<textarea id="asciiInput" oninput="doASCII()" placeholder="Enter text..." aria-label="Input text for ASCII art generation">HELLO</textarea>
+<div class="btn-row"><button class="btn" onclick="doASCII()" aria-label="Generate ASCII art">Generate</button><button class="btn-outline" onclick="copyOut('asciiOut')" aria-label="Copy ASCII art output">Copy</button></div>
 <div class="output" id="asciiOut" style="font-size:10px;line-height:1.1"></div>
 </div>
 <div id="atbashPanel" class="hidden">
 <div class="label">Atbash Cipher</div>
-<textarea id="atbashInput" oninput="doAtbash()" placeholder="Enter text...">Hello</textarea>
-<div class="btn-row"><button class="btn" onclick="doAtbash()">Encode/Decode</button><button class="btn-outline" onclick="copyOut('atbashOut')">Copy</button></div>
+<textarea id="atbashInput" oninput="doAtbash()" placeholder="Enter text..." aria-label="Input text for Atbash cipher">Hello</textarea>
+<div class="btn-row"><button class="btn" onclick="doAtbash()" aria-label="Encode/decode with Atbash cipher">Encode/Decode</button><button class="btn-outline" onclick="copyOut('atbashOut')" aria-label="Copy Atbash output">Copy</button></div>
 <div class="output" id="atbashOut"></div>
 </div>
 <div id="railPanel" class="hidden">
 <div class="label">Rail Fence Cipher</div>
-<div class="shift-row"><span>Rails:</span><input type="number" id="railCount" value="3" min="2" max="10" oninput="doRail()"></div>
-<textarea id="railInput" oninput="doRail()" placeholder="Enter text...">Hello World</textarea>
-<div class="btn-row"><button class="btn" onclick="doRail()">Encode</button><button class="btn" onclick="doRailDecode()">Decode</button><button class="btn-outline" onclick="copyOut('railOut')">Copy</button></div>
+<div class="shift-row"><span>Rails:</span><input type="number" id="railCount" value="3" min="2" max="10" oninput="doRail()" aria-label="Number of rails for Rail Fence cipher"></div>
+<textarea id="railInput" oninput="doRail()" placeholder="Enter text..." aria-label="Input text for Rail Fence cipher">Hello World</textarea>
+<div class="btn-row"><button class="btn" onclick="doRail()" aria-label="Encode with Rail Fence cipher">Encode</button><button class="btn" onclick="doRailDecode()" aria-label="Decode Rail Fence cipher">Decode</button><button class="btn-outline" onclick="copyOut('railOut')" aria-label="Copy Rail Fence output">Copy</button></div>
 <div class="output" id="railOut"></div>
 </div>
 <div id="reversePanel" class="hidden">
 <div class="label">Reverse Text / Words</div>
-<textarea id="reverseInput" oninput="doReverse()" placeholder="Enter text...">Hello World</textarea>
-<div class="btn-row"><button class="btn" onclick="doReverse()">Reverse Text</button><button class="btn" onclick="doReverseWords()">Reverse Words</button><button class="btn-outline" onclick="copyOut('reverseOut')">Copy</button></div>
+<textarea id="reverseInput" oninput="doReverse()" placeholder="Enter text..." aria-label="Input text to reverse">Hello World</textarea>
+<div class="btn-row"><button class="btn" onclick="doReverse()" aria-label="Reverse text">Reverse Text</button><button class="btn" onclick="doReverseWords()" aria-label="Reverse word order">Reverse Words</button><button class="btn-outline" onclick="copyOut('reverseOut')" aria-label="Copy reverse output">Copy</button></div>
 <div class="output" id="reverseOut"></div>
 </div>
 <div id="piglatinPanel" class="hidden">
 <div class="label">Pig Latin Converter</div>
-<textarea id="pigInput" oninput="doPigLatin()" placeholder="Enter text...">Hello World this is a test</textarea>
-<div class="btn-row"><button class="btn" onclick="doPigLatin()">Convert</button><button class="btn-outline" onclick="copyOut('pigOut')">Copy</button></div>
+<textarea id="pigInput" oninput="doPigLatin()" placeholder="Enter text..." aria-label="Input text for Pig Latin conversion">Hello World this is a test</textarea>
+<div class="btn-row"><button class="btn" onclick="doPigLatin()" aria-label="Convert to Pig Latin">Convert</button><button class="btn-outline" onclick="copyOut('pigOut')" aria-label="Copy Pig Latin output">Copy</button></div>
 <div class="output" id="pigOut"></div>
 </div>
 <div id="leetspeakPanel" class="hidden">
 <div class="label">Leet Speak Converter</div>
-<textarea id="leetInput" oninput="doLeet()" placeholder="Enter text...">Hello World</textarea>
-<div class="btn-row"><button class="btn" onclick="doLeet()">Convert</button><button class="btn-outline" onclick="copyOut('leetOut')">Copy</button></div>
+<textarea id="leetInput" oninput="doLeet()" placeholder="Enter text..." aria-label="Input text for Leet Speak conversion">Hello World</textarea>
+<div class="btn-row"><button class="btn" onclick="doLeet()" aria-label="Convert to Leet Speak">Convert</button><button class="btn-outline" onclick="copyOut('leetOut')" aria-label="Copy Leet Speak output">Copy</button></div>
 <div class="output" id="leetOut"></div>
 </div>
 </div>

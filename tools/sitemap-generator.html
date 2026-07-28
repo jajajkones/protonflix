@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sitemap.xml Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .header {
+            max-width: 900px;
+            margin: 0 auto 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #222;
+        }
+        .header h1 { font-size: 1.8rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .header a { color: #737373; text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+        .header a:hover { color: #fff; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .panel {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .panel h2 { font-size: 1.1rem; font-weight: 500; margin-bottom: 1rem; }
+        .form-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            align-items: end;
+        }
+        @media (max-width: 700px) {
+            .form-row { grid-template-columns: 1fr; }
+        }
+        .form-group { margin-bottom: 0; }
+        .form-group label { display: block; font-size: 0.75rem; color: #737373; margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 6px;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            outline: none;
+        }
+        .form-group input:focus, .form-group select:focus { border-color: #444; }
+        .form-group select option { background: #111; }
+        .entries-list { margin-top: 1rem; }
+        .entry-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #1a1a1a;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+        .entry-row span { color: #737373; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .entry-row .loc { color: #fff; }
+        .btn {
+            padding: 0.6rem 1rem;
+            border: 1px solid #222;
+            border-radius: 6px;
+            background: #111;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn:hover { background: #1a1a1a; border-color: #333; }
+        .btn-danger { border-color: #442222; color: #ff6666; }
+        .btn-danger:hover { background: #221111; }
+        .btn-primary { background: #fff; color: #0a0a0a; border-color: #fff; }
+        .btn-primary:hover { background: #e0e0e0; }
+        .btn-group { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+        pre {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            max-height: 400px;
+            overflow-y: auto;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            white-space: pre;
+        }
+        pre:hover { border-color: #444; }
+        .copy-toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #222;
+            color: #fff;
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .copy-toast.show { opacity: 1; transform: translateY(0); }
+        .validate-ok { color: #66bb6a; font-size: 0.8rem; margin-top: 0.5rem; }
+        .validate-err { color: #ef5350; font-size: 0.8rem; margin-top: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Sitemap.xml Generator</h1>
+        <a href="index.html">← Back to ProtonFlix Tools</a>
+    </div>
+
+    <div class="container">
+        <div class="panel">
+            <h2>Add URL</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Location (URL)</label>
+                    <input type="url" id="newLoc" placeholder="https://example.com/page">
+                </div>
+                <div class="form-group">
+                    <label>Last Modified</label>
+                    <input type="date" id="newLastmod">
+                </div>
+                <div class="form-group">
+                    <label>Change Freq</label>
+                    <select id="newChangefreq">
+                        <option value="daily">daily</option>
+                        <option value="weekly" selected>weekly</option>
+                        <option value="monthly">monthly</option>
+                        <option value="always">always</option>
+                        <option value="hourly">hourly</option>
+                        <option value="yearly">yearly</option>
+                        <option value="never">never</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Priority</label>
+                    <select id="newPriority">
+                        <option value="1.0">1.0</option>
+                        <option value="0.9">0.9</option>
+                        <option value="0.8">0.8</option>
+                        <option value="0.7">0.7</option>
+                        <option value="0.6">0.6</option>
+                        <option value="0.5" selected>0.5</option>
+                        <option value="0.4">0.4</option>
+                        <option value="0.3">0.3</option>
+                        <option value="0.2">0.2</option>
+                        <option value="0.1">0.1</option>
+                        <option value="0.0">0.0</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="addUrl()" style="height:38px;align-self:end;">+</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>URLs <span id="urlCount" style="color:#737373;font-weight:400;font-size:0.85rem;"></span></h2>
+            <div id="entries"></div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="copyOutput()">Copy XML</button>
+                <button class="btn" onclick="downloadOutput()">Download</button>
+                <button class="btn btn-danger" onclick="clearAll()">Clear All</button>
+            </div>
+            <div id="validation"></div>
+        </div>
+
+        <div class="panel">
+            <h2>Preview</h2>
+            <pre id="output" onclick="copyOutput()"></pre>
+        </div>
+    </div>
+
+    <div class="copy-toast" id="toast">Copied to clipboard!</div>
+
+    <script>
+        let urls = [];
+        let urlId = 0;
+
+        function addUrl() {
+            const loc = document.getElementById('newLoc').value.trim();
+            if (!loc) return;
+            const lastmod = document.getElementById('newLastmod').value;
+            const changefreq = document.getElementById('newChangefreq').value;
+            const priority = document.getElementById('newPriority').value;
+            urls.push({ id: urlId++, loc, lastmod, changefreq, priority });
+            document.getElementById('newLoc').value = '';
+            renderUrls();
+            generate();
+        }
+
+        function removeUrl(id) {
+            urls = urls.filter(u => u.id !== id);
+            renderUrls();
+            generate();
+        }
+
+        function renderUrls() {
+            const container = document.getElementById('entries');
+            document.getElementById('urlCount').textContent = `(${urls.length} URLs)`;
+            container.innerHTML = urls.map(u => `
+                <div class="entry-row">
+                    <span class="loc" title="${esc(u.loc)}">${esc(u.loc)}</span>
+                    <span>${u.lastmod || '—'}</span>
+                    <span>${u.changefreq}</span>
+                    <span>${u.priority}</span>
+                    <button class="btn btn-danger" onclick="removeUrl(${u.id})" style="padding:0.3rem 0.6rem;font-size:0.75rem;">×</button>
+                </div>
+            `).join('');
+        }
+
+        function generate() {
+            let lines = [];
+            lines.push('<?xml version="1.0" encoding="UTF-8"?>');
+            lines.push('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
+            urls.forEach(u => {
+                lines.push('  <url>');
+                lines.push(`    <loc>${esc(u.loc)}</loc>`);
+                if (u.lastmod) lines.push(`    <lastmod>${u.lastmod}</lastmod>`);
+                lines.push(`    <changefreq>${u.changefreq}</changefreq>`);
+                lines.push(`    <priority>${u.priority}</priority>`);
+                lines.push('  </url>');
+            });
+            lines.push('</urlset>');
+
+            const xml = lines.join('\n');
+            document.getElementById('output').textContent = xml;
+            validateXml(xml);
+        }
+
+        function validateXml(xml) {
+            const v = document.getElementById('validation');
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(xml, 'text/xml');
+                const err = doc.querySelector('parsererror');
+                if (err) {
+                    v.innerHTML = `<div class="validate-err">Invalid XML: ${esc(err.textContent.substring(0, 100))}</div>`;
+                } else {
+                    v.innerHTML = `<div class="validate-ok">Valid XML ✓</div>`;
+                }
+            } catch (e) {
+                v.innerHTML = `<div class="validate-err">Validation error</div>`;
+            }
+        }
+
+        function esc(s) {
+            return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function copyOutput() {
+            const text = document.getElementById('output').textContent;
+            navigator.clipboard.writeText(text).then(() => showToast());
+        }
+
+        function downloadOutput() {
+            const text = document.getElementById('output').textContent;
+            const blob = new Blob([text], { type: 'application/xml' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'sitemap.xml';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+
+        function clearAll() {
+            urls = [];
+            renderUrls();
+            generate();
+        }
+
+        function showToast() {
+            const t = document.getElementById('toast');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        document.getElementById('newLastmod').value = new Date().toISOString().split('T')[0];
+        generate();
+    </script>
+</body>
+</html>

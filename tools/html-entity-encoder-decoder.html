@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML Entity Encoder/Decoder</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh}
+.header{padding:20px 30px;border-bottom:1px solid #222;display:flex;align-items:center;gap:20px}
+.header h1{font-size:1.4rem;font-weight:600}
+.header a{color:#737373;text-decoration:none;font-size:.9rem;transition:color .2s}
+.header a:hover{color:#fff}
+.container{max-width:1200px;margin:0 auto;padding:30px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:768px){.grid{grid-template-columns:1fr}}
+.panel{background:#111;border:1px solid #222;border-radius:12px;padding:24px}
+.panel h2{font-size:1rem;font-weight:500;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.panel h2 span{font-size:.75rem;color:#737373;font-weight:300}
+textarea{width:100%;height:200px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:.9rem;padding:14px;resize:vertical;outline:none;transition:border-color .2s}
+textarea:focus{border-color:#555}
+textarea::placeholder{color:#555}
+.btn-row{display:flex;gap:10px;margin-top:14px}
+.btn{background:#1a1a1a;border:1px solid #333;color:#fff;padding:8px 18px;border-radius:8px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:.85rem;transition:all .2s}
+.btn:hover{background:#252525;border-color:#555}
+.btn.primary{background:#fff;color:#0a0a0a;border-color:#fff}
+.btn.primary:hover{background:#e0e0e0}
+.preview{margin-top:14px;padding:14px;background:#0a0a0a;border:1px solid #222;border-radius:8px;min-height:60px;font-size:.9rem;line-height:1.6;word-break:break-all}
+.preview-label{font-size:.75rem;color:#737373;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.copy-msg{font-size:.75rem;color:#4ade80;opacity:0;transition:opacity .3s;margin-left:auto}
+.copy-msg.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html">&larr; Back</a>
+<h1>HTML Entity Encoder / Decoder</h1>
+</div>
+<div class="container">
+<div class="grid">
+<div class="panel">
+<h2>Encoder <span>Text &rarr; Entities</span></h2>
+<textarea id="encodeInput" placeholder="Paste text to encode..." aria-label="Text to encode into HTML entities"></textarea>
+<div class="btn-row">
+<button class="btn primary" onclick="encodeEntities()" aria-label="Encode text to HTML entities">Encode</button>
+<button class="btn" onclick="copyText('encodeOutput','encodeMsg')" aria-label="Copy encoded result">Copy Result</button>
+<span class="copy-msg" id="encodeMsg">Copied!</span>
+</div>
+<div class="preview-label">Encoded Output</div>
+<div class="preview" id="encodeOutput"></div>
+</div>
+<div class="panel">
+<h2>Decoder <span>Entities &rarr; Text</span></h2>
+<textarea id="decodeInput" placeholder="Paste HTML entities to decode..." aria-label="HTML entities to decode into text"></textarea>
+<div class="btn-row">
+<button class="btn primary" onclick="decodeEntities()" aria-label="Decode HTML entities to text">Decode</button>
+<button class="btn" onclick="copyText('decodeOutput','decodeMsg')" aria-label="Copy decoded result">Copy Result</button>
+<span class="copy-msg" id="decodeMsg">Copied!</span>
+</div>
+<div class="preview-label">Decoded Output</div>
+<div class="preview" id="decodeOutput"></div>
+</div>
+</div>
+<div style="margin-top:24px">
+<div class="panel">
+<h2>Live Preview</h2>
+<textarea id="liveInput" placeholder="Type here for live encoding/decoding preview..." oninput="livePreview()" aria-label="Live preview input"></textarea>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px">
+<div>
+<div class="preview-label">Named Entities</div>
+<div class="preview" id="liveNamed"></div>
+</div>
+<div>
+<div class="preview-label">Numeric Entities</div>
+<div class="preview" id="liveNumeric"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+const namedEntities={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;',' ':'&nbsp;','¡':'&iexcl;','¢':'&cent;','£':'&pound;','¤':'&curren;','¥':'&yen;','¦':'&brvbar;','§':'&sect;','¨':'&uml;','©':'&copy;','ª':'&ordf;','«':'&laquo;','¬':'&not;','­':'&shy;','®':'&reg;','¯':'&macr;','°':'&deg;','±':'&plusmn;','²':'&sup2;','³':'&sup3;','´':'&acute;','µ':'&micro;','¶':'&para;','·':'&middot;','¸':'&cedil;','¹':'&sup1;','º':'&ordm;','»':'&raquo;','¼':'&frac14;','½':'&frac12;','¾':'&frac34;','¿':'&iquest;','À':'&Agrave;','Á':'&Aacute;','Â':'&Acirc;','Ã':'&Atilde;','Ä':'&Auml;','Å':'&Aring;','Æ':'&AElig;','Ç':'&Ccedil;','È':'&Egrave;','É':'&Eacute;','Ê':'&Ecirc;','Ë':'&Euml;','Ì':'&Igrave;','Í':'&Iacute;','Î':'&Icirc;','Ï':'&Iuml;','Ð':'&ETH;','Ñ':'&Ntilde;','Ò':'&Ograve;','Ó':'&Oacute;','Ô':'&Ocirc;','Õ':'&Otilde;','Ö':'&Ouml;','×':'&times;','Ø':'&Oslash;','Ù':'&Ugrave;','Ú':'&Uacute;','Û':'&Ucirc;','Ü':'&Uuml;','Ý':'&Yacute;','Þ':'&THORN;','ß':'&szlig;','à':'&agrave;','á':'&aacute;','â':'&acirc;','ã':'&atilde;','ä':'&auml;','å':'&aring;','æ':'&aelig;','ç':'&ccedil;','è':'&egrave;','é':'&eacute;','ê':'&ecirc;','ë':'&euml;','ì':'&igrave;','í':'&iacute;','î':'&icirc;','ï':'&iuml;','ð':'&eth;','ñ':'&ntilde;','ò':'&ograve;','ó':'&oacute;','ô':'&ocirc;','õ':'&otilde;','ö':'&ouml;','÷':'&divide;','ø':'&oslash;','ù':'&ugrave;','ú':'&uacute;','û':'&ucirc;','ü':'&uuml;','ý':'&yacute;','þ':'&thorn;','ÿ':'&yuml;','Œ':'&OElig;','œ':'&oelig;','Š':'&Scaron;','š':'&scaron;','Ÿ':'&Yuml;','ƒ':'&fnof;','ˆ':'&circ;','˜':'&tilde;','™':'&trade;','↔':'&harr;','←':'&larr;','↑':'&uarr;','→':'&rarr;','↓':'&darr;','★':'&#9733;','♥':'&#9829;','✔':'&#10004;','✘':'&#10008;'};
+function encodeText(text){
+let result='';for(let i=0;i<text.length;i++){const ch=text[i];result+=namedEntities[ch]!==undefined?namedEntities[ch]:'&#'+text.charCodeAt(i)+';';}return result;}
+function encodeNumeric(text){let result='';for(let i=0;i<text.length;i++){const code=text.charCodeAt(i);result+='&#'+code+';';}return result;}
+function decodeEntities(html){
+const txt=document.createElement('textarea');txt.innerHTML=html;return txt.value;}
+function encodeEntities(){const input=document.getElementById('encodeInput').value;document.getElementById('encodeOutput').textContent=encodeText(input);}
+function decodeEntities(){const input=document.getElementById('decodeInput').value;document.getElementById('decodeOutput').textContent=decodeEntities(input);}
+function copyText(elId,msgId){const text=document.getElementById(elId).textContent;if(!text)return;navigator.clipboard.writeText(text).then(()=>{const m=document.getElementById(msgId);m.classList.add('show');setTimeout(()=>m.classList.remove('show'),1500)});}
+function livePreview(){const input=document.getElementById('liveInput').value;document.getElementById('liveNamed').textContent=encodeText(input);document.getElementById('liveNumeric').textContent=encodeNumeric(input);}
+</script>
+</body>
+</html>

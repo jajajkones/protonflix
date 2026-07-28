@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS Clip Path Generator - ProtonFlix Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#fff;font-family:'Outfit',sans-serif;min-height:100vh;padding:20px}
+a{color:#fff;text-decoration:none}
+.container{max-width:1200px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:#111;border:1px solid #222;border-radius:12px;margin-bottom:24px}
+header h1{font-size:1.3rem;font-weight:600}
+header a{font-size:.9rem;color:#737373;transition:color .2s}
+header a:hover{color:#fff}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:768px){.grid{grid-template-columns:1fr}}
+.panel{background:#111;border:1px solid #222;border-radius:12px;padding:24px}
+.panel h2{font-size:1.1rem;font-weight:500;margin-bottom:20px;color:#737373}
+.preview-box{background:#000;border:1px solid #222;border-radius:12px;overflow:hidden;min-height:300px;display:flex;align-items:center;justify-content:center}
+.preview-shape{width:250px;height:250px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);transition:clip-path .3s}
+.shape-tabs{display:flex;gap:8px;margin-bottom:20px}
+.shape-tab{padding:8px 16px;background:#1a1a1a;border:1px solid #222;border-radius:6px;color:#737373;font-family:'Outfit',sans-serif;font-size:.85rem;cursor:pointer;transition:all .2s}
+.shape-tab:hover{color:#fff;border-color:#444}
+.shape-tab.active{color:#fff;background:#222;border-color:#fff}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.preset-btn{padding:8px 14px;background:#1a1a1a;border:1px solid #222;border-radius:6px;color:#fff;font-family:'Outfit',sans-serif;font-size:.8rem;cursor:pointer;transition:all .2s}
+.preset-btn:hover{background:#222;border-color:#444}
+.control-group{margin-bottom:16px}
+.control-group label{display:flex;justify-content:space-between;font-size:.85rem;color:#737373;margin-bottom:6px}
+.control-group label span{color:#fff;font-weight:500}
+.control-group input[type="range"]{width:100%;accent-color:#fff;height:4px;background:#222;border-radius:2px;outline:none;-webkit-appearance:none}
+.control-group input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:#fff;border-radius:50%;cursor:pointer}
+.grid-canvas{position:relative;width:300px;height:300px;background:#0a0a0a;border:1px solid #222;border-radius:8px;cursor:crosshair}
+.grid-canvas canvas{position:absolute;top:0;left:0}
+.point{position:absolute;width:12px;height:12px;background:#fff;border:2px solid #0a0a0a;border-radius:50%;transform:translate(-50%,-50%);cursor:grab;z-index:10}
+.point:hover{background:#667eea}
+.point.dragging{cursor:grabbing;background:#667eea}
+.add-point-btn{padding:8px 14px;background:#1a1a1a;border:1px dashed #333;border-radius:6px;color:#737373;font-family:'Outfit',sans-serif;font-size:.8rem;cursor:pointer;transition:all .2s;margin-top:8px}
+.add-point-btn:hover{background:#222;color:#fff;border-color:#555}
+.remove-point-btn{padding:8px 14px;background:#1a1a1a;border:1px dashed #333;border-radius:6px;color:#737373;font-family:'Outfit',sans-serif;font-size:.8rem;cursor:pointer;transition:all .2s;margin-top:8px;margin-left:8px}
+.remove-point-btn:hover{background:#222;color:#ff4444;border-color:#ff4444}
+.inset-controls{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.css-output{position:relative;background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:16px;font-family:'Courier New',monospace;font-size:.85rem;color:#a8ff60;white-space:pre-wrap;word-break:break-all;cursor:pointer;transition:border-color .2s}
+.css-output:hover{border-color:#444}
+.css-output .copy-hint{position:absolute;top:8px;right:12px;font-size:.7rem;color:#737373;font-family:'Outfit',sans-serif}
+.css-output.copied{border-color:#a8ff60}
+.css-output.copied .copy-hint{color:#a8ff60}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>CSS Clip Path Generator</h1>
+<a href="index.html">← Back to Tools</a>
+</header>
+<div class="grid">
+<div class="panel">
+<h2>Shape Type</h2>
+<div class="shape-tabs">
+<button class="shape-tab active" onclick="setShape('polygon')">Polygon</button>
+<button class="shape-tab" onclick="setShape('circle')">Circle</button>
+<button class="shape-tab" onclick="setShape('ellipse')">Ellipse</button>
+<button class="shape-tab" onclick="setShape('inset')">Inset</button>
+</div>
+<div id="polygon-controls">
+<div class="presets">
+<button class="preset-btn" onclick="applyPreset('triangle')">Triangle</button>
+<button class="preset-btn" onclick="applyPreset('star')">Star</button>
+<button class="preset-btn" onclick="applyPreset('hexagon')">Hexagon</button>
+<button class="preset-btn" onclick="applyPreset('diamond')">Diamond</button>
+<button class="preset-btn" onclick="applyPreset('pentagon')">Pentagon</button>
+<button class="preset-btn" onclick="applyPreset('arrow')">Arrow</button>
+<button class="preset-btn" onclick="applyPreset('cross')">Cross</button>
+<button class="preset-btn" onclick="applyPreset('heart')">Heart</button>
+</div>
+<h2 style="margin-bottom:12px">Drag Points on Grid</h2>
+<div class="grid-canvas" id="gridCanvas">
+<canvas id="gridBg" width="300" height="300"></canvas>
+</div>
+<div style="display:flex;margin-top:12px">
+<button class="add-point-btn" onclick="addPoint()">+ Add Point</button>
+<button class="remove-point-btn" onclick="removeLastPoint()">− Remove Point</button>
+</div>
+</div>
+<div id="circle-controls" class="hidden">
+<div class="control-group">
+<label>Radius <span id="circle-r-val">50%</span></label>
+<input type="range" min="0" max="100" value="50" id="circle-r" oninput="update()">
+</div>
+<div class="control-group">
+<label>Position X <span id="circle-x-val">50%</span></label>
+<input type="range" min="0" max="100" value="50" id="circle-x" oninput="update()">
+</div>
+<div class="control-group">
+<label>Position Y <span id="circle-y-val">50%</span></label>
+<input type="range" min="0" max="100" value="50" id="circle-y" oninput="update()">
+</div>
+</div>
+<div id="ellipse-controls" class="hidden">
+<div class="control-group">
+<label>Radius X <span id="ellipse-rx-val">50%</span></label>
+<input type="range" min="0" max="100" value="50" id="ellipse-rx" oninput="update()">
+</div>
+<div class="control-group">
+<label>Radius Y <span id="ellipse-ry-val">30%</span></label>
+<input type="range" min="0" max="100" value="30" id="ellipse-ry" oninput="update()">
+</div>
+<div class="control-group">
+<label>Position X <span id="ellipse-x-val">50%</span></label>
+<input type="range" min="0" max="100" value="50" id="ellipse-x" oninput="update()">
+</div>
+<div class="control-group">
+<label>Position Y <span id="ellipse-y-val">50%</span></label>
+<input type="range" min="0" max="100" value="50" id="ellipse-y" oninput="update()">
+</div>
+</div>
+<div id="inset-controls" class="hidden">
+<div class="inset-controls">
+<div class="control-group">
+<label>Top <span id="inset-t-val">10%</span></label>
+<input type="range" min="0" max="50" value="10" id="inset-t" oninput="update()">
+</div>
+<div class="control-group">
+<label>Right <span id="inset-r-val">10%</span></label>
+<input type="range" min="0" max="50" value="10" id="inset-r" oninput="update()">
+</div>
+<div class="control-group">
+<label>Bottom <span id="inset-b-val">10%</span></label>
+<input type="range" min="0" max="50" value="10" id="inset-b" oninput="update()">
+</div>
+<div class="control-group">
+<label>Left <span id="inset-l-val">10%</span></label>
+<input type="range" min="0" max="50" value="10" id="inset-l" oninput="update()">
+</div>
+</div>
+<div class="control-group">
+<label>Round <span id="inset-rd-val">0px</span></label>
+<input type="range" min="0" max="100" value="0" id="inset-rd" oninput="update()">
+</div>
+</div>
+</div>
+<div>
+<div class="panel" style="margin-bottom:24px">
+<h2>Live Preview</h2>
+<div class="preview-box">
+<div class="preview-shape" id="preview"></div>
+</div>
+</div>
+<div class="panel">
+<h2>CSS Output</h2>
+<div class="css-output" id="cssOutput" onclick="copyCSS()"><span class="copy-hint">Click to copy</span></div>
+</div>
+</div>
+</div>
+</div>
+<script>
+let shape='polygon';
+let points=[{x:50,y:5},{x:95,y:40},{x:80,y:90},{x:20,y:90},{x:5,y:40}];
+let dragging=null;
+const canvas=document.getElementById('gridCanvas');
+
+const presetShapes={
+triangle:[{x:50,y:5},{x:95,y:90},{x:5,y:90}],
+star:[{x:50,y:0},{x:61,y:35},{x:98,y:35},{x:68,y:57},{x:79,y:91},{x:50,y:70},{x:21,y:91},{x:32,y:57},{x:2,y:35},{x:39,y:35}],
+hexagon:[{x:50,y:0},{x:93,y:25},{x:93,y:75},{x:50,y:100},{x:7,y:75},{x:7,y:25}],
+diamond:[{x:50,y:0},{x:100,y:50},{x:50,y:100},{x:0,y:50}],
+pentagon:[{x:50,y:0},{x:97,y:34},{x:79,y:90},{x:21,y:90},{x:3,y:34}],
+arrow:[{x:50,y:0},{x:100,y:40},{x:70,y:40},{x:70,y:100},{x:30,y:100},{x:30,y:40},{x:0,y:40}],
+cross:[{x:35,y:0},{x:65,y:0},{x:65,y:35},{x:100,y:35},{x:100,y:65},{x:65,y:65},{x:65,y:100},{x:35,y:100},{x:35,y:65},{x:0,y:65},{x:0,y:35},{x:35,y:35}],
+heart:[{x:50,y:15},{x:60,y:0},{x:78,y:0},{x:95,y:15},{x:95,y:35},{x:95,y:50},{x:78,y:70},{x:50,y:95},{x:22,y:70},{x:5,y:50},{x:5,y:35},{x:5,y:15},{x:22,y:0},{x:40,y:0}]
+};
+
+function setShape(s){
+shape=s;
+document.querySelectorAll('.shape-tab').forEach(t=>t.classList.remove('active'));
+document.querySelector(`.shape-tab[onclick="setShape('${s}')"]`).classList.add('active');
+document.getElementById('polygon-controls').classList.toggle('hidden',s!=='polygon');
+document.getElementById('circle-controls').classList.toggle('hidden',s!=='circle');
+document.getElementById('ellipse-controls').classList.toggle('hidden',s!=='ellipse');
+document.getElementById('inset-controls').classList.toggle('hidden',s!=='inset');
+update();
+}
+
+function applyPreset(name){
+if(presetShapes[name]){
+points=[...presetShapes[name]];
+renderPoints();
+update();
+}
+}
+
+function drawGrid(){
+const ctx=document.getElementById('gridBg').getContext('2d');
+ctx.clearRect(0,0,300,300);
+ctx.strokeStyle='#222';
+ctx.lineWidth=1;
+for(let i=0;i<=10;i++){
+const p=i*30;
+ctx.beginPath();ctx.moveTo(p,0);ctx.lineTo(p,300);ctx.stroke();
+ctx.beginPath();ctx.moveTo(0,p);ctx.lineTo(300,p);ctx.stroke();
+}
+}
+
+function renderPoints(){
+canvas.querySelectorAll('.point').forEach(p=>p.remove());
+points.forEach((pt,i)=>{
+const el=document.createElement('div');
+el.className='point';
+el.style.left=pt.x/100*300+'px';
+el.style.top=pt.y/100*300+'px';
+el.addEventListener('mousedown',e=>{dragging={el,idx:i};el.classList.add('dragging');e.preventDefault()});
+el.addEventListener('touchstart',e=>{dragging={el,idx:i};el.classList.add('dragging');e.preventDefault()},{passive:false});
+canvas.appendChild(el);
+});
+}
+
+function addPoint(){
+points.push({x:50,y:50});
+renderPoints();
+update();
+}
+
+function removeLastPoint(){
+if(points.length>3){
+points.pop();
+renderPoints();
+update();
+}
+}
+
+document.addEventListener('mousemove',e=>{if(dragging)movePoint(e.clientX,e.clientY)});
+document.addEventListener('touchmove',e=>{if(dragging){e.preventDefault();movePoint(e.touches[0].clientX,e.touches[0].clientY)}},{passive:false});
+document.addEventListener('mouseup',endDrag);
+document.addEventListener('touchend',endDrag);
+
+function movePoint(cx,cy){
+const rect=canvas.getBoundingClientRect();
+const x=Math.round(Math.max(0,Math.min(100,(cx-rect.left)/300*100)));
+const y=Math.round(Math.max(0,Math.min(100,(cy-rect.top)/300*100)));
+points[dragging.idx]={x,y};
+dragging.el.style.left=x/100*300+'px';
+dragging.el.style.top=y/100*300+'px';
+update();
+}
+
+function endDrag(){
+if(dragging){dragging.el.classList.remove('dragging');dragging=null}
+}
+
+function buildCSS(){
+if(shape==='circle'){
+const r=document.getElementById('circle-r').value;
+const x=document.getElementById('circle-x').value;
+const y=document.getElementById('circle-y').value;
+return`circle(${r}% at ${x}% ${y}%)`;
+}
+if(shape==='ellipse'){
+const rx=document.getElementById('ellipse-rx').value;
+const ry=document.getElementById('ellipse-ry').value;
+const x=document.getElementById('ellipse-x').value;
+const y=document.getElementById('ellipse-y').value;
+return`ellipse(${rx}% ${ry}% at ${x}% ${y}%)`;
+}
+if(shape==='inset'){
+const t=document.getElementById('inset-t').value;
+const r=document.getElementById('inset-r').value;
+const b=document.getElementById('inset-b').value;
+const l=document.getElementById('inset-l').value;
+const rd=document.getElementById('inset-rd').value;
+let css=`inset(${t}% ${r}% ${b}% ${l}%`;
+if(rd>0)css+=` round ${rd}px`;
+return css+')';
+}
+const pts=points.map(p=>`${p.x}% ${p.y}%`).join(', ');
+return`polygon(${pts})`;
+}
+
+function update(){
+const css=buildCSS();
+document.getElementById('preview').style.clipPath=css;
+document.getElementById('cssOutput').innerHTML=`<span class="copy-hint">Click to copy</span>clip-path: ${css};`;
+['circle-r','circle-x','circle-y','ellipse-rx','ellipse-ry','ellipse-x','ellipse-y','inset-t','inset-r','inset-b','inset-l','inset-rd'].forEach(id=>{
+const el=document.getElementById(id);
+if(el){
+const unit=id==='inset-rd'?'px':'%';
+document.getElementById(id+'-val').textContent=el.value+unit;
+}
+});
+}
+
+drawGrid();
+renderPoints();
+update();
+</script>
+</body>
+</html>

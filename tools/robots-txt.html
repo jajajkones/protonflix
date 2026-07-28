@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robots.txt Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .header {
+            max-width: 900px;
+            margin: 0 auto 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #222;
+        }
+        .header h1 { font-size: 1.8rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .header a { color: #737373; text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+        .header a:hover { color: #fff; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .panel {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .panel h2 { font-size: 1.1rem; font-weight: 500; margin-bottom: 1rem; }
+        .presets {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+        .preset-btn {
+            padding: 0.5rem 1rem;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 6px;
+            color: #737373;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .preset-btn:hover { border-color: #444; color: #fff; }
+        .rule-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr auto;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            align-items: center;
+        }
+        @media (max-width: 600px) {
+            .rule-row { grid-template-columns: 1fr; }
+        }
+        .rule-row select, .rule-row input {
+            padding: 0.6rem 0.8rem;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 6px;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            outline: none;
+        }
+        .rule-row select:focus, .rule-row input:focus { border-color: #444; }
+        .rule-row select option { background: #111; }
+        .btn {
+            padding: 0.6rem 1rem;
+            border: 1px solid #222;
+            border-radius: 6px;
+            background: #111;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn:hover { background: #1a1a1a; border-color: #333; }
+        .btn-danger { border-color: #442222; color: #ff6666; }
+        .btn-danger:hover { background: #221111; }
+        .btn-primary { background: #fff; color: #0a0a0a; border-color: #fff; }
+        .btn-primary:hover { background: #e0e0e0; }
+        .btn-group { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.85rem; color: #737373; margin-bottom: 0.4rem; }
+        .form-group input {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 6px;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .form-group input:focus { border-color: #444; }
+        pre {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            white-space: pre-wrap;
+        }
+        pre:hover { border-color: #444; }
+        .copy-toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #222;
+            color: #fff;
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .copy-toast.show { opacity: 1; transform: translateY(0); }
+        .rules-header {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr auto;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+            color: #737373;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Robots.txt Generator</h1>
+        <a href="index.html">← Back to ProtonFlix Tools</a>
+    </div>
+
+    <div class="container">
+        <div class="panel">
+            <h2>Presets</h2>
+            <div class="presets">
+                <button class="preset-btn" onclick="applyPreset('allowAll')">Allow All</button>
+                <button class="preset-btn" onclick="applyPreset('blockAll')">Block All</button>
+                <button class="preset-btn" onclick="applyPreset('blockAdmin')">Block Admin</button>
+                <button class="preset-btn" onclick="applyPreset('blockPrivate')">Block Private</button>
+                <button class="preset-btn" onclick="applyPreset('seo')">SEO Friendly</button>
+            </div>
+
+            <h2>Sitemap</h2>
+            <div class="form-group">
+                <label>Sitemap URL</label>
+                <input type="url" id="sitemapUrl" placeholder="https://example.com/sitemap.xml" oninput="generate()">
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Rules</h2>
+            <div class="rules-header">
+                <span>User-agent</span>
+                <span>Path</span>
+                <span>Action</span>
+                <span></span>
+            </div>
+            <div id="rules"></div>
+            <div class="btn-group">
+                <button class="btn" onclick="addRule()">+ Add Rule</button>
+                <button class="btn btn-primary" onclick="copyOutput()">Copy robots.txt</button>
+                <button class="btn" onclick="downloadOutput()">Download</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Preview</h2>
+            <pre id="output" onclick="copyOutput()"></pre>
+        </div>
+    </div>
+
+    <div class="copy-toast" id="toast">Copied to clipboard!</div>
+
+    <script>
+        let rules = [];
+        let ruleId = 0;
+
+        function addRule(agent = '*', path = '', action = 'Disallow') {
+            rules.push({ id: ruleId++, agent, path, action });
+            renderRules();
+            generate();
+        }
+
+        function removeRule(id) {
+            rules = rules.filter(r => r.id !== id);
+            renderRules();
+            generate();
+        }
+
+        function renderRules() {
+            const container = document.getElementById('rules');
+            container.innerHTML = rules.map(r => `
+                <div class="rule-row">
+                    <input type="text" value="${esc(r.agent)}" onchange="updateRule(${r.id},'agent',this.value)" placeholder="*">
+                    <input type="text" value="${esc(r.path)}" onchange="updateRule(${r.id},'path',this.value)" placeholder="/path/">
+                    <select onchange="updateRule(${r.id},'action',this.value)">
+                        <option value="Disallow" ${r.action==='Disallow'?'selected':''}>Disallow</option>
+                        <option value="Allow" ${r.action==='Allow'?'selected':''}>Allow</option>
+                    </select>
+                    <button class="btn btn-danger" onclick="removeRule(${r.id})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function updateRule(id, field, value) {
+            const rule = rules.find(r => r.id === id);
+            if (rule) { rule[field] = value; generate(); }
+        }
+
+        function generate() {
+            const sitemap = document.getElementById('sitemapUrl').value;
+            let lines = [];
+            lines.push('# Robots.txt');
+            lines.push('# Generated by ProtonFlix Tools');
+            lines.push('');
+
+            const grouped = {};
+            rules.forEach(r => {
+                if (!r.path) return;
+                if (!grouped[r.agent]) grouped[r.agent] = [];
+                grouped[r.agent].push({ path: r.path, action: r.action });
+            });
+
+            Object.keys(grouped).forEach(agent => {
+                lines.push(`User-agent: ${agent}`);
+                grouped[agent].forEach(r => {
+                    lines.push(`${r.action}: ${r.path}`);
+                });
+                lines.push('');
+            });
+
+            if (!Object.keys(grouped).length) {
+                lines.push('User-agent: *');
+                lines.push('Disallow:');
+                lines.push('');
+            }
+
+            if (sitemap) {
+                lines.push(`Sitemap: ${sitemap}`);
+                lines.push('');
+            }
+
+            document.getElementById('output').textContent = lines.join('\n');
+        }
+
+        function esc(s) {
+            return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function copyOutput() {
+            const text = document.getElementById('output').textContent;
+            navigator.clipboard.writeText(text).then(() => showToast());
+        }
+
+        function downloadOutput() {
+            const text = document.getElementById('output').textContent;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'robots.txt';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+
+        function showToast() {
+            const t = document.getElementById('toast');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        function applyPreset(name) {
+            rules = [];
+            ruleId = 0;
+            if (name === 'allowAll') {
+                addRule('*', '', 'Disallow');
+            } else if (name === 'blockAll') {
+                addRule('*', '/', 'Disallow');
+            } else if (name === 'blockAdmin') {
+                addRule('*', '/admin/', 'Disallow');
+                addRule('*', '/wp-admin/', 'Disallow');
+                addRule('*', '/dashboard/', 'Disallow');
+                addRule('*', '/private/', 'Disallow');
+            } else if (name === 'blockPrivate') {
+                addRule('*', '/private/', 'Disallow');
+                addRule('*', '/secret/', 'Disallow');
+                addRule('*', '/confidential/', 'Disallow');
+                addRule('*', '/internal/', 'Disallow');
+            } else if (name === 'seo') {
+                addRule('*', '/admin/', 'Disallow');
+                addRule('*', '/api/', 'Disallow');
+                addRule('*', '/tmp/', 'Disallow');
+                addRule('*', '/cgi-bin/', 'Disallow');
+            }
+            renderRules();
+            generate();
+        }
+
+        addRule('*', '', 'Disallow');
+    </script>
+</body>
+</html>

@@ -13,7 +13,7 @@ header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;alig
 textarea{width:100%;height:100px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-family:var(--mono);font-size:14px;resize:vertical;outline:none}
 .btn-row{display:flex;gap:8px;margin:12px 0}
 .btn{background:var(--surface);color:var(--text);border:1px solid var(--border);padding:8px 16px;border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;transition:all .2s}
-.btn:hover{border-color:444}.btn.active{border-color:var(--accent);color:var(--accent)}
+.btn:hover{border-color:#444}.btn.active{border-color:var(--accent);color:var(--accent)}
 .output{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-family:var(--mono);font-size:16px;letter-spacing:2px;min-height:60px;white-space:pre-wrap;word-break:break-all;cursor:pointer}
 .output:hover{border-color:#444}
 .reference{margin-top:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
@@ -26,12 +26,12 @@ textarea{width:100%;height:100px;background:var(--surface);color:var(--text);bor
 <body>
 <header><h1>Morse Code Converter</h1><a href="index.html">← Back to Tools</a></header>
 <div class="content">
-<textarea id="input" placeholder="Enter text or morse code (use / for spaces)..." oninput="convert()">SOS</textarea>
+<textarea id="input" placeholder="Enter text or morse code (use / for spaces)..." oninput="convert()" aria-label="Input text or Morse code">SOS</textarea>
 <div class="btn-row">
-<button class="btn active" id="btnToMorse" onclick="dir='toMorse';convert()">Text → Morse</button>
-<button class="btn" id="btnFromMorse" onclick="dir='fromMorse';convert()">Morse → Text</button>
-<button class="btn" onclick="playMorse()">Play Sound</button>
-<button class="btn" onclick="navigator.clipboard.writeText(document.getElementById('output').textContent)">Copy</button>
+<button class="btn active" id="btnToMorse" onclick="dir='toMorse';convert()" aria-label="Convert text to Morse code">Text → Morse</button>
+<button class="btn" id="btnFromMorse" onclick="dir='fromMorse';convert()" aria-label="Convert Morse code to text">Morse → Text</button>
+<button class="btn" onclick="playMorse()" aria-label="Play Morse code sound">Play Sound</button>
+<button class="btn" onclick="navigator.clipboard.writeText(document.getElementById('output').textContent).then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)})" aria-label="Copy output to clipboard">Copy</button>
 </div>
 <div class="output" id="output"></div>
 <div class="reference">

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Font Pairing Tool - ProtonFlix Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh}
+header{background:#111;border-bottom:1px solid #222;padding:16px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+header h1{font-size:1.3rem;font-weight:600}
+header a{color:#737373;text-decoration:none;font-size:.9rem;transition:color .2s}
+header a:hover{color:#fff}
+.container{max-width:900px;margin:0 auto;padding:24px}
+.btn{padding:8px 16px;border:1px solid #222;background:#111;color:#fff;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.85rem;transition:all .2s}
+.btn:hover{background:#222}
+.btn-primary{background:#2563eb;border-color:#2563eb}
+.btn-primary:hover{background:#1d4ed8}
+.btn-success{border-color:#22c55e;color:#22c55e}
+.btn-success:hover{background:#22c55e20}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:20px;margin-bottom:12px}
+.card h2{font-size:1rem;margin-bottom:12px}
+.tabs{display:flex;gap:4px;margin-bottom:20px;flex-wrap:wrap}
+.tab{padding:8px 16px;background:#111;border:1px solid #222;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.85rem;color:#737373;transition:all .2s}
+.tab.active{background:#2563eb20;color:#60a5fa;border-color:#2563eb}
+.pair-card{background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:20px;margin-bottom:12px;transition:border-color .2s}
+.pair-card:hover{border-color:#333}
+.pair-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.font-tags{display:flex;gap:8px;flex-wrap:wrap}
+.font-tag{padding:4px 10px;background:#2563eb15;border:1px solid #2563eb40;border-radius:4px;font-size:.8rem;color:#60a5fa}
+.preview-section{margin-top:12px}
+.preview-heading{margin-bottom:8px;line-height:1.2}
+.preview-body{color:#a3a3a3;line-height:1.6}
+.preview-text{margin-top:12px;padding:12px;background:#111;border-radius:6px}
+.preview-text label{font-size:.75rem;color:#737373;display:block;margin-bottom:6px}
+.preview-text textarea{width:100%;background:transparent;border:1px solid #222;border-radius:4px;padding:8px;color:#fff;font-size:.85rem;resize:vertical;min-height:60px}
+.copy-box{margin-top:12px;background:#111;border:1px solid #222;border-radius:6px;padding:12px;position:relative}
+.copy-box pre{font-family:monospace;font-size:.8rem;white-space:pre-wrap;color:#a3a3a3}
+.copy-box .btn{position:absolute;top:8px;right:8px;padding:4px 10px;font-size:.75rem}
+.custom-fonts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.custom-fonts .form-group{margin-bottom:0}
+.custom-fonts label{display:block;font-size:.8rem;color:#737373;margin-bottom:4px}
+.custom-fonts input{width:100%;padding:8px 12px;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;font-family:inherit;font-size:.85rem}
+.custom-fonts input:focus{outline:none;border-color:#2563eb}
+.empty-state{text-align:center;padding:40px;color:#737373}
+.toast{position:fixed;bottom:24px;right:24px;background:#22c55e;color:#fff;padding:12px 20px;border-radius:8px;font-size:.85rem;z-index:300;animation:slideIn .3s ease}
+@keyframes slideIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+@media(max-width:768px){header{padding:20px 16px}header h1{font-size:16px}.content{padding:20px 16px}.container{padding:16px}}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html">← Back</a>
+  <h1>🔤 Font Pairing Tool</h1>
+</header>
+<div class="container">
+  <div class="card">
+    <h2>Custom Fonts</h2>
+    <div class="custom-fonts">
+      <div>
+        <label>Heading Font</label>
+        <input type="text" id="customHeading" placeholder="e.g. Playfair Display">
+      </div>
+      <div>
+        <label>Body Font</label>
+        <input type="text" id="customBody" placeholder="e.g. Inter">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="generateCustomPair()">Generate Pair</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchCategory('all')">All</button>
+    <button class="tab" onclick="switchCategory('serif-sans')">Serif + Sans</button>
+    <button class="tab" onclick="switchCategory('sans-serif')">Sans + Serif</button>
+    <button class="tab" onclick="switchCategory('display-body')">Display + Body</button>
+    <button class="tab" onclick="switchCategory('mono-sans')">Monospace + Sans</button>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+    <button class="btn btn-primary" onclick="randomize()">🎲 Randomize</button>
+  </div>
+
+  <div id="pairsList"></div>
+</div>
+
+<div class="toast" id="toast" style="display:none"></div>
+
+<script>
+const fontPairs = [
+  { heading: 'Playfair Display', body: 'Source Sans Pro', category: 'serif-sans' },
+  { heading: 'Montserrat', body: 'Merriweather', category: 'sans-serif' },
+  { heading: 'Oswald', body: 'Quattrocento', category: 'display-body' },
+  { heading: 'Space Mono', body: 'Inter', category: 'mono-sans' },
+  { heading: 'Poppins', body: 'Lora', category: 'sans-serif' },
+  { heading: 'Raleway', body: 'Roboto Slab', category: 'sans-serif' },
+  { heading: 'Abril Fatface', body: 'Poppins', category: 'display-body' },
+  { heading: 'DM Serif Display', body: 'DM Sans', category: 'serif-sans' },
+  { heading: 'Bebas Neue', body: 'Open Sans', category: 'display-body' },
+  { heading: 'Fira Code', body: 'Fira Sans', category: 'mono-sans' },
+  { heading: 'Cormorant Garamond', body: 'Futura', category: 'serif-sans' },
+  { heading: 'Libre Baskerville', body: 'Source Sans Pro', category: 'serif-sans' },
+  { heading: 'Josefin Sans', body: 'Libre Baskerville', category: 'sans-serif' },
+  { heading: 'Archivo Black', body: 'Roboto', category: 'display-body' },
+  { heading: 'JetBrains Mono', body: 'Inter', category: 'mono-sans' },
+  { heading: 'Lora', body: 'Raleway', category: 'serif-sans' },
+  { heading: 'Work Sans', body: 'Bitter', category: 'sans-serif' },
+  { heading: 'Nunito', body: 'Crimson Text', category: 'sans-serif' },
+  { heading: 'Caveat', body: 'Lato', category: 'display-body' },
+  { heading: 'IBM Plex Mono', body: 'IBM Plex Sans', category: 'mono-sans' },
+];
+
+let currentCategory = 'all';
+let loadedFonts = new Set();
+
+function loadFont(name) {
+  if (loadedFonts.has(name)) return;
+  loadedFonts.add(name);
+  const link = document.createElement('link');
+  link.href = `https://fonts.googleapis.com/css2?family=${name.replace(/ /g, '+')}:wght@400;700&display=swap`;
+  link.rel = 'stylesheet';
+  document.head.appendChild(link);
+}
+
+function getPairs() {
+  if (currentCategory === 'all') return fontPairs;
+  return fontPairs.filter(p => p.category === currentCategory);
+}
+
+function renderPairs(pairs) {
+  const container = document.getElementById('pairsList');
+  if (!pairs.length) {
+    container.innerHTML = '<div class="empty-state">No pairs in this category</div>';
+    return;
+  }
+  container.innerHTML = pairs.map((p, i) => {
+    loadFont(p.heading);
+    loadFont(p.body);
+    const catLabel = { 'serif-sans': 'Serif + Sans', 'sans-serif': 'Sans + Serif', 'display-body': 'Display + Body', 'mono-sans': 'Monospace + Sans' }[p.category];
+    return `<div class="pair-card">
+      <div class="pair-header">
+        <div class="font-tags">
+          <span class="font-tag">${p.heading} (Heading)</span>
+          <span class="font-tag">${p.body} (Body)</span>
+        </div>
+        <span style="font-size:.75rem;color:#737373">${catLabel}</span>
+      </div>
+      <div class="preview-section">
+        <div class="preview-heading" style="font-family:'${p.heading}',serif;font-size:2rem;font-weight:700">The Quick Brown Fox</div>
+        <div class="preview-body" style="font-family:'${p.body}',sans-serif;font-size:1rem">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
+        </div>
+        <div class="preview-text">
+          <label>Custom preview text:</label>
+          <textarea placeholder="Type here to preview..." oninput="updatePreview(this, '${p.heading}', '${p.body}')"></textarea>
+        </div>
+      </div>
+      <div class="copy-box">
+        <button class="btn" onclick="copyCSS('${p.heading}','${p.body}',this)">Copy CSS</button>
+        <pre>@import url('https://fonts.googleapis.com/css2?family=${p.heading.replace(/ /g, '+')}:wght@400;700&family=${p.body.replace(/ /g, '+')}:wght@400;700&display=swap');
+
+h1, h2, h3 {
+  font-family: '${p.heading}', serif;
+  font-weight: 700;
+}
+
+body, p {
+  font-family: '${p.body}', sans-serif;
+  font-weight: 400;
+}</pre>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updatePreview(el, heading, body) {
+  const card = el.closest('.pair-card');
+  const previewBody = card.querySelector('.preview-body');
+  if (el.value) previewBody.textContent = el.value;
+  else previewBody.textContent = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.';
+}
+
+function switchCategory(cat) {
+  currentCategory = cat;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  renderPairs(getPairs());
+}
+
+function randomize() {
+  const pairs = getPairs();
+  const shuffled = [...pairs].sort(() => Math.random() - 0.5);
+  renderPairs(shuffled);
+}
+
+function generateCustomPair() {
+  const h = document.getElementById('customHeading').value.trim();
+  const b = document.getElementById('customBody').value.trim();
+  if (!h || !b) return toast('Enter both heading and body fonts');
+  const custom = { heading: h, body: b, category: 'serif-sans' };
+  fontPairs.unshift(custom);
+  loadFont(h);
+  loadFont(b);
+  renderPairs(getPairs());
+  toast('Custom pair added');
+}
+
+function copyCSS(heading, body, btn) {
+  const css = `@import url('https://fonts.googleapis.com/css2?family=${heading.replace(/ /g, '+')}:wght@400;700&family=${body.replace(/ /g, '+')}:wght@400;700&display=swap');
+
+h1, h2, h3 {
+  font-family: '${heading}', serif;
+  font-weight: 700;
+}
+
+body, p {
+  font-family: '${body}', sans-serif;
+  font-weight: 400;
+}`;
+  navigator.clipboard.writeText(css);
+  toast('CSS copied');
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 2500);
+}
+
+renderPairs(fontPairs);
+</script>
+</body>
+</html>

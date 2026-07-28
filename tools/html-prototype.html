@@ -28,6 +28,8 @@ a{color:#fff;text-decoration:none}
 .preview{flex:1;display:flex;flex-direction:column;min-width:0}
 .preview-header{padding:6px 12px;background:#111;border-bottom:1px solid #222;font-size:.75rem;font-weight:600;color:#737373;text-transform:uppercase;letter-spacing:.5px;flex-shrink:0}
 .preview-frame{flex:1;background:#fff;border:none;width:100%;height:100%}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+@media(max-width:768px){.main{flex-direction:column}.editors{border-right:none;border-bottom:1px solid #222}}
 </style>
 </head>
 <body>
@@ -43,6 +45,7 @@ a{color:#fff;text-decoration:none}
 <div class="editors">
 <div class="editor-pane">
 <div class="pane-header">HTML<span>auto-run</span></div>
+<label class="sr-only" for="html">HTML code</label>
 <textarea id="html" oninput="runCode()" spellcheck="false">&lt;div class="container"&gt;
   &lt;h1&gt;Hello World&lt;/h1&gt;
   &lt;p&gt;Edit the HTML, CSS, and JS panels.&lt;/p&gt;
@@ -52,6 +55,7 @@ a{color:#fff;text-decoration:none}
 </div>
 <div class="editor-pane">
 <div class="pane-header">CSS<span>auto-run</span></div>
+<label class="sr-only" for="css">CSS code</label>
 <textarea id="css" oninput="runCode()" spellcheck="false">body {
   font-family: system-ui, sans-serif;
   display: flex;
@@ -89,6 +93,7 @@ button:hover { background: #764ba2; transform: scale(1.05); }
 </div>
 <div class="editor-pane">
 <div class="pane-header">JavaScript<span>auto-run</span></div>
+<label class="sr-only" for="js">JavaScript code</label>
 <textarea id="js" oninput="runCode()" spellcheck="false">let count = 0;
 document.getElementById('btn').addEventListener('click', () => {
   count++;

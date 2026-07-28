@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL Cheat Sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a0a; color: #fff; font-family: 'Outfit', sans-serif; line-height: 1.6; }
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+header { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #222; }
+h1 { font-size: 2rem; font-weight: 600; }
+.back-link { color: #737373; text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+.back-link:hover { color: #fff; }
+.search-container { margin-bottom: 30px; }
+.search-input { width: 100%; max-width: 400px; padding: 12px 20px; background: #111; border: 1px solid #222; border-radius: 8px; color: #fff; font-family: 'Outfit', sans-serif; font-size: 1rem; outline: none; transition: border-color 0.2s; }
+.search-input:focus { border-color: #444; }
+.search-input::placeholder { color: #737373; }
+.section { background: #111; border: 1px solid #222; border-radius: 12px; margin-bottom: 20px; overflow: hidden; }
+.section-header { padding: 16px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
+.section-header:hover { background: #1a1a1a; }
+.section-title { font-size: 1.1rem; font-weight: 500; }
+.section-toggle { color: #737373; font-size: 1.2rem; transition: transform 0.3s; }
+.section.collapsed .section-content { display: none; }
+.section.collapsed .section-toggle { transform: rotate(-90deg); }
+.section-content { padding: 0 20px 20px; }
+.command { background: #0a0a0a; border: 1px solid #222; border-radius: 6px; padding: 12px 16px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; position: relative; }
+.command:hover { border-color: #444; background: #151515; }
+.command-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.command-name { font-weight: 500; color: #fff; font-size: 0.95rem; }
+.command-syntax { font-family: 'Courier New', monospace; color: #a0a0a0; font-size: 0.85rem; word-break: break-all; }
+.copy-hint { position: absolute; top: 8px; right: 12px; color: #737373; font-size: 0.75rem; opacity: 0; transition: opacity 0.2s; }
+.command:hover .copy-hint { opacity: 1; }
+.copied { background: #1a2a1a !important; border-color: #2a4a2a !important; }
+.copied .command-name::after { content: ' ✓ Copied!'; color: #4ade80; font-size: 0.8rem; }
+.hidden { display: none !important; }
+.tag { display: inline-block; background: #222; color: #a0a0a0; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-left: 8px; }
+
+@media(max-width:768px){header{padding:20px 16px}header h1{font-size:16px}.content{padding:20px 16px}.container{padding:16px}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>SQL Cheat Sheet</h1>
+<a href="index.html" class="back-link">← Back to ProtonFlix</a>
+</header>
+
+<div class="search-container">
+<input type="text" class="search-input" placeholder="Search commands..." id="searchInput">
+</div>
+
+<div id="sections">
+
+<div class="section" data-category="ddl">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">DDL (Data Definition Language) <span class="tag">4 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="CREATE TABLE employees (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(255) UNIQUE,
+  salary DECIMAL(10,2),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);">
+<div class="command-header">
+<span class="command-name">CREATE TABLE</span>
+</div>
+<div class="command-syntax">CREATE TABLE table_name (column1 datatype constraints, ...);</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="ALTER TABLE employees ADD COLUMN department VARCHAR(50);
+ALTER TABLE employees DROP COLUMN department;
+ALTER TABLE employees MODIFY COLUMN name VARCHAR(200);
+ALTER TABLE employees RENAME TO staff;">
+<div class="command-header">
+<span class="command-name">ALTER TABLE</span>
+</div>
+<div class="command-syntax">ALTER TABLE table_name ADD|DROP|MODIFY|RENAME ...;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="DROP TABLE employees;
+DROP TABLE IF EXISTS employees;">
+<div class="command-header">
+<span class="command-name">DROP TABLE</span>
+</div>
+<div class="command-syntax">DROP TABLE [IF EXISTS] table_name;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="TRUNCATE TABLE employees;">
+<div class="command-header">
+<span class="command-name">TRUNCATE TABLE</span>
+</div>
+<div class="command-syntax">TRUNCATE TABLE table_name;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="dml">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">DML (Data Manipulation Language) <span class="tag">4 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="SELECT * FROM employees WHERE department = 'Engineering' ORDER BY name ASC LIMIT 10;">
+<div class="command-header">
+<span class="command-name">SELECT</span>
+</div>
+<div class="command-syntax">SELECT columns FROM table WHERE condition ORDER BY column LIMIT n;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="INSERT INTO employees (name, email, salary)
+VALUES ('John Doe', 'john@example.com', 75000);
+
+INSERT INTO employees (name, email, salary)
+VALUES 
+  ('Jane Smith', 'jane@example.com', 85000),
+  ('Bob Wilson', 'bob@example.com', 65000);</div>
+<div class="command-header">
+<span class="command-name">INSERT INTO</span>
+</div>
+<div class="command-syntax">INSERT INTO table (col1, col2) VALUES (val1, val2);</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="UPDATE employees 
+SET salary = salary * 1.1 
+WHERE department = 'Engineering';">
+<div class="command-header">
+<span class="command-name">UPDATE</span>
+</div>
+<div class="command-syntax">UPDATE table SET column = value WHERE condition;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="DELETE FROM employees WHERE id = 5;
+DELETE FROM employees WHERE salary < 40000;">
+<div class="command-header">
+<span class="command-name">DELETE</span>
+</div>
+<div class="command-syntax">DELETE FROM table WHERE condition;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="dcl">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">DCL (Data Control Language) <span class="tag">2 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="GRANT SELECT, INSERT ON employees TO user1;
+GRANT ALL PRIVILEGES ON employees TO user1;
+GRANT SELECT ON employees TO PUBLIC;">
+<div class="command-header">
+<span class="command-name">GRANT</span>
+</div>
+<div class="command-syntax">GRANT privileges ON object TO user;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="REVOKE SELECT ON employees FROM user1;
+REVOKE ALL PRIVILEGES ON employees FROM user1;">
+<div class="command-header">
+<span class="command-name">REVOKE</span>
+</div>
+<div class="command-syntax">REVOKE privileges ON object FROM user;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="tcl">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">TCL (Transaction Control Language) <span class="tag">2 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="BEGIN TRANSACTION;
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+UPDATE accounts SET balance = balance + 100 WHERE id = 2;
+COMMIT;">
+<div class="command-header">
+<span class="command-name">COMMIT</span>
+</div>
+<div class="command-syntax">BEGIN TRANSACTION; ... COMMIT;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="BEGIN TRANSACTION;
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+-- Something went wrong
+ROLLBACK;">
+<div class="command-header">
+<span class="command-name">ROLLBACK</span>
+</div>
+<div class="command-syntax">BEGIN TRANSACTION; ... ROLLBACK;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="joins">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Joins <span class="tag">5 types</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="SELECT e.name, d.department_name
+FROM employees e
+INNER JOIN departments d ON e.dept_id = d.id;">
+<div class="command-header">
+<span class="command-name">INNER JOIN</span>
+</div>
+<div class="command-syntax">SELECT ... FROM table1 INNER JOIN table2 ON condition;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="SELECT e.name, d.department_name
+FROM employees e
+LEFT JOIN departments d ON e.dept_id = d.id;">
+<div class="command-header">
+<span class="command-name">LEFT JOIN</span>
+</div>
+<div class="command-syntax">SELECT ... FROM table1 LEFT JOIN table2 ON condition;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="SELECT e.name, d.department_name
+FROM employees e
+RIGHT JOIN departments d ON e.dept_id = d.id;">
+<div class="command-header">
+<span class="command-name">RIGHT JOIN</span>
+</div>
+<div class="command-syntax">SELECT ... FROM table1 RIGHT JOIN table2 ON condition;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="SELECT e.name, d.department_name
+FROM employees e
+FULL OUTER JOIN departments d ON e.dept_id = d.id;">
+<div class="command-header">
+<span class="command-name">FULL OUTER JOIN</span>
+</div>
+<div class="command-syntax">SELECT ... FROM table1 FULL OUTER JOIN table2 ON condition;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="SELECT e.name, d.department_name
+FROM employees e
+CROSS JOIN departments d;">
+<div class="command-header">
+<span class="command-name">CROSS JOIN</span>
+</div>
+<div class="command-syntax">SELECT ... FROM table1 CROSS JOIN table2;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="aggregate">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Aggregate Functions <span class="tag">5 functions</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="SELECT COUNT(*) FROM employees;
+SELECT COUNT(DISTINCT department) FROM employees;">
+<div class="command-header">
+<span class="command-name">COUNT</span>
+</div>
+<div class="command-syntax">SELECT COUNT(*) FROM table;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="SELECT department, SUM(salary) as total_salary
+FROM employees
+GROUP BY department;">
+<div class="command-header">
+<span class="command-name">SUM</span>
+</div>
+<div class="command-syntax">SELECT SUM(column) FROM table;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="SELECT department, AVG(salary) as avg_salary
+FROM employees
+GROUP BY department;">
+<div class="command-header">
+<span class="command-name">AVG</span>
+</div>
+<div class="command-syntax">SELECT AVG(column) FROM table;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="SELECT MIN(salary) FROM employees;
+SELECT MAX(salary) FROM employees;">
+<div class="command-header">
+<span class="command-name">MIN / MAX</span>
+</div>
+<div class="command-syntax">SELECT MIN|MAX(column) FROM table;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="window">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Window Functions <span class="tag">5 functions</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="SELECT name, department, salary,
+  ROW_NUMBER() OVER (ORDER BY salary DESC) as row_num
+FROM employees;">
+<div class="command-header">
+<span class="command-name">ROW_NUMBER</span>
+</div>
+<div class="command-syntax">ROW_NUMBER() OVER (ORDER BY column)</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="SELECT name, department, salary,
+  RANK() OVER (ORDER BY salary DESC) as rank
+FROM employees;">
+<div class="command-header">
+<span class="command-name">RANK</span>
+</div>
+<div class="command-syntax">RANK() OVER (ORDER BY column)</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="SELECT name, department, salary,
+  DENSE_RANK() OVER (ORDER BY salary DESC) as dense_rank
+FROM employees;">
+<div class="command-header">
+<span class="command-name">DENSE_RANK</span>
+</div>
+<div class="command-syntax">DENSE_RANK() OVER (ORDER BY column)</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="SELECT name, salary,
+  LAG(salary, 1) OVER (ORDER BY id) as prev_salary,
+  LEAD(salary, 1) OVER (ORDER BY id) as next_salary
+FROM employees;">
+<div class="command-header">
+<span class="command-name">LAG / LEAD</span>
+</div>
+<div class="command-syntax">LAG|LEAD(column, offset) OVER (ORDER BY column)</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="indexes">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Indexes</span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="CREATE INDEX idx_name ON employees(name);
+CREATE UNIQUE INDEX idx_email ON employees(email);
+CREATE INDEX idx_dept_salary ON employees(department, salary);</div>
+<div class="command-header">
+<span class="command-name">CREATE INDEX</span>
+</div>
+<div class="command-syntax">CREATE [UNIQUE] INDEX index_name ON table(columns);</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="DROP INDEX idx_name ON employees;">
+<div class="command-header">
+<span class="command-name">DROP INDEX</span>
+</div>
+<div class="command-syntax">DROP INDEX index_name ON table;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="subqueries">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Subqueries</span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="SELECT name FROM employees
+WHERE salary > (SELECT AVG(salary) FROM employees);">
+<div class="command-header">
+<span class="command-name">Scalar Subquery</span>
+</div>
+<div class="command-syntax">SELECT ... WHERE column > (SELECT ...);</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="SELECT name FROM employees
+WHERE dept_id IN (SELECT id FROM departments WHERE location = 'NYC');">
+<div class="command-header">
+<span class="command-name">IN Subquery</span>
+</div>
+<div class="command-syntax">SELECT ... WHERE column IN (SELECT ...);</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="SELECT name, salary,
+  (SELECT AVG(salary) FROM employees) as avg_salary
+FROM employees;">
+<div class="command-header">
+<span class="command-name">Correlated Subquery</span>
+</div>
+<div class="command-syntax">SELECT ..., (SELECT AVG(column) FROM table) ...</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="common">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Common Patterns</span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="SELECT department, COUNT(*) as emp_count
+FROM employees
+GROUP BY department
+HAVING COUNT(*) > 5
+ORDER BY emp_count DESC;">
+<div class="command-header">
+<span class="command-name">GROUP BY with HAVING</span>
+</div>
+<div class="command-syntax">SELECT ... FROM ... GROUP BY column HAVING condition;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="SELECT * FROM employees
+WHERE name LIKE 'J%';
+SELECT * FROM employees
+WHERE name LIKE '%son';">
+<div class="command-header">
+<span class="command-name">LIKE Pattern</span>
+</div>
+<div class="command-syntax">WHERE column LIKE 'pattern%' | '%pattern' | '%pattern%';</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="SELECT * FROM employees
+WHERE created_at BETWEEN '2024-01-01' AND '2024-12-31';">
+<div class="command-header">
+<span class="command-name">BETWEEN</span>
+</div>
+<div class="command-syntax">WHERE column BETWEEN value1 AND value2;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="SELECT * FROM employees
+WHERE department IN ('Engineering', 'Marketing', 'Sales');">
+<div class="command-header">
+<span class="command-name">IN Operator</span>
+</div>
+<div class="command-syntax">WHERE column IN (value1, value2, ...);</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="SELECT * FROM employees
+WHERE name IS NULL;
+SELECT * FROM employees
+WHERE name IS NOT NULL;">
+<div class="command-header">
+<span class="command-name">NULL Check</span>
+</div>
+<div class="command-syntax">WHERE column IS NULL | IS NOT NULL;</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="SELECT COALESCE(name, 'Unknown') FROM employees;
+SELECT NULLIF(salary, 0) FROM employees;">
+<div class="command-header">
+<span class="command-name">COALESCE / NULLIF</span>
+</div>
+<div class="command-syntax">COALESCE(val1, val2, ...) | NULLIF(val1, val2)</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<script>
+function toggleSection(header) {
+    header.parentElement.classList.toggle('collapsed');
+}
+
+function copyCommand(commandEl) {
+    const cmd = commandEl.getAttribute('data-command');
+    navigator.clipboard.writeText(cmd).then(() => {
+        commandEl.classList.add('copied');
+        setTimeout(() => commandEl.classList.remove('copied'), 1500);
+    });
+}
+
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    const query = e.target.value.toLowerCase();
+    document.querySelectorAll('.command').forEach(cmd => {
+        const text = cmd.textContent.toLowerCase();
+        const syntax = cmd.querySelector('.command-syntax').textContent.toLowerCase();
+        const name = cmd.querySelector('.command-name').textContent.toLowerCase();
+        if (text.includes(query) || syntax.includes(query) || name.includes(query)) {
+            cmd.classList.remove('hidden');
+        } else {
+            cmd.classList.add('hidden');
+        }
+    });
+    
+    document.querySelectorAll('.section').forEach(section => {
+        const visibleCommands = section.querySelectorAll('.command:not(.hidden)');
+        if (visibleCommands.length === 0 && query) {
+            section.classList.add('hidden');
+        } else {
+            section.classList.remove('hidden');
+        }
+    });
+});
+</script>
+</body>
+</html>

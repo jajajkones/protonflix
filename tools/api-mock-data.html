@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mock Data Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;padding:20px}
+.container{max-width:960px;margin:0 auto}
+header{display:flex;align-items:center;gap:16px;margin-bottom:32px;padding-bottom:16px;border-bottom:1px solid #222}
+h1{font-size:1.8rem;font-weight:600}
+.back{color:#737373;text-decoration:none;font-size:0.9rem;transition:color .2s}
+.back:hover{color:#fff}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:24px;margin-bottom:20px}
+label{display:block;font-weight:500;margin-bottom:8px;color:#e0e0e0;font-size:0.9rem}
+select,input[type=text],input[type=number]{background:#0a0a0a;border:1px solid #222;color:#fff;font-family:'Outfit',sans-serif;padding:10px 12px;border-radius:8px;font-size:0.9rem}
+select{height:42px;cursor:pointer}
+input[type=number]{height:42px;width:80px}
+textarea{width:100%;background:#0a0a0a;border:1px solid #222;color:#fff;font-family:'Courier New',monospace;padding:12px;border-radius:8px;font-size:0.85rem;min-height:300px;resize:vertical}
+.btn{background:#2563eb;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-family:'Outfit',sans-serif;font-weight:500;font-size:0.9rem;cursor:pointer;transition:background .2s}
+.btn:hover{background:#1d4ed8}
+.btn-sm{padding:8px 14px;font-size:0.8rem}
+.btn-outline{background:transparent;border:1px solid #222;color:#fff}
+.btn-outline:hover{background:#222}
+.btn-danger{background:#dc2626}
+.btn-danger:hover{background:#b91c1c}
+.btn-row{display:flex;gap:12px;margin:16px 0;flex-wrap:wrap}
+.field-config{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px}
+.field-config select,.field-config input{width:100%}
+.field-chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.field-chip{background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:6px 12px;border-radius:20px;font-size:0.82rem;display:flex;align-items:center;gap:6px}
+.field-chip .remove{cursor:pointer;color:#f87171;font-weight:700}
+.output-tabs{display:flex;gap:4px;margin-bottom:12px}
+.tab-btn{background:#0a0a0a;border:1px solid #222;color:#737373;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:0.85rem;transition:all .2s}
+.tab-btn.active{background:#2563eb;border-color:#2563eb;color:#fff}
+.count-row{display:flex;gap:12px;align-items:center;margin:12px 0}
+
+@media(max-width:768px){header{padding:20px 16px}header h1{font-size:16px}.content{padding:20px 16px}.container{padding:16px}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<a href="index.html" class="back">← Back</a>
+<h1>Mock Data Generator</h1>
+</header>
+
+<div class="card">
+<label>Add Field</label>
+<div class="field-config">
+<select id="fieldType">
+<option value="firstName">First Name</option>
+<option value="lastName">Last Name</option>
+<option value="fullName">Full Name</option>
+<option value="email">Email</option>
+<option value="phone">Phone</option>
+<option value="address">Address</option>
+<option value="city">City</option>
+<option value="state">State</option>
+<option value="zip">Zip Code</option>
+<option value="country">Country</option>
+<option value="company">Company</option>
+<option value="jobTitle">Job Title</option>
+<option value="sentence">Sentence</option>
+<option value="paragraph">Paragraph</option>
+<option value="number">Number</option>
+<option value="float">Float</option>
+<option value="date">Date</option>
+<option value="boolean">Boolean</option>
+<option value="uuid">UUID</option>
+<option value="avatarUrl">Avatar URL</option>
+<option value="color">Color</option>
+<option value="loremIpsum">Lorem Ipsum</option>
+</select>
+<input type="text" id="fieldName" placeholder="Field name (optional)">
+<button class="btn btn-sm" onclick="addField()">Add</button>
+</div>
+<div class="field-chips" id="fieldChips"></div>
+</div>
+
+<div class="card">
+<div class="count-row">
+<label style="margin:0">Records:</label>
+<select id="count" style="width:100px">
+<option value="1">1</option>
+<option value="5" selected>5</option>
+<option value="10">10</option>
+<option value="25">25</option>
+<option value="50">50</option>
+<option value="100">100</option>
+<option value="500">500</option>
+<option value="1000">1000</option>
+</select>
+<button class="btn" onclick="generate()">Generate Data</button>
+</div>
+<div class="btn-row">
+<button class="btn btn-outline btn-sm" onclick="copyOutput()">Copy</button>
+<button class="btn btn-outline btn-sm" onclick="downloadOutput()">Download</button>
+<button class="btn btn-danger btn-sm" onclick="clearAll()">Clear All</button>
+</div>
+<div class="output-tabs">
+<button class="tab-btn active" onclick="setTab('json',this)">JSON</button>
+<button class="tab-btn" onclick="setTab('csv',this)">CSV</button>
+</div>
+<textarea id="output" readonly placeholder="Click Generate to create mock data..."></textarea>
+</div>
+</div>
+
+<script>
+let fields=[];
+let currentTab='json';
+
+const data={
+firstNames:['James','Mary','John','Patricia','Robert','Jennifer','Michael','Linda','William','Elizabeth','David','Barbara','Richard','Susan','Joseph','Jessica','Thomas','Sarah','Christopher','Karen','Charles','Lisa','Daniel','Nancy','Matthew','Betty','Anthony','Margaret','Mark','Sandra','Donald','Ashley','Steven','Kimberly','Paul','Emily','Andrew','Donna','Joshua','Michelle','Kenneth','Dorothy','Kevin','Carol','Brian','Amanda','George','Melissa','Timothy','Deborah'],
+lastNames:['Smith','Johnson','Williams','Brown','Jones','Garcia','Miller','Davis','Rodriguez','Martinez','Hernandez','Lopez','Gonzalez','Wilson','Anderson','Thomas','Taylor','Moore','Jackson','Martin','Lee','Perez','Thompson','White','Harris','Sanchez','Clark','Ramirez','Lewis','Robinson','Walker','Young','Allen','King','Wright','Scott','Torres','Nguyen','Hill','Flores','Green','Adams','Nelson','Baker','Hall','Rivera','Campbell','Mitchell','Carter','Roberts'],
+cities:['New York','Los Angeles','Chicago','Houston','Phoenix','Philadelphia','San Antonio','San Diego','Dallas','San Jose','Austin','Jacksonville','Fort Worth','Columbus','Charlotte','Indianapolis','San Francisco','Seattle','Denver','Washington','Nashville','Oklahoma City','El Paso','Boston','Portland','Las Vegas','Memphis','Louisville','Baltimore','Milwaukee','Albuquerque','Tucson','Fresno','Sacramento','Mesa','Atlanta','Kansas City','Colorado Springs','Omaha','Raleigh','Long Beach','Virginia Beach','Miami','Oakland','Minneapolis','Tulsa','Tampa','Arlington','New Orleans','Wichita'],
+states:['Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan','Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico','New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island','South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming'],
+countries:['United States','Canada','United Kingdom','Australia','Germany','France','Japan','Brazil','India','Mexico','Italy','Spain','Netherlands','Sweden','Switzerland','Norway','Denmark','Finland','Ireland','New Zealand','Singapore','South Korea','China','Argentina','Colombia','Chile','Peru','Poland','Portugal','Czech Republic','Austria','Belgium','Greece','Hungary','Romania','Thailand','Vietnam','Philippines','Indonesia','Malaysia','Egypt','South Africa','Nigeria','Kenya','Morocco','Israel','Turkey','Russia','Ukraine','Saudi Arabia'],
+companies:['Acme Corp','TechVibe','Quantum Labs','Nexus Systems','Pulse Digital','Vortex Inc','Zenith Solutions','Cipher Analytics','Nova Enterprises','Aether Technologies','Prism Networks','Vertex Data','Echo Innovations','Flux Industries','Orbit Software','Spark Global','Terra Systems','Apex Digital','Catalyst Corp','Forge Labs'],
+jobTitles:['Software Engineer','Product Manager','Data Scientist','UX Designer','DevOps Engineer','Marketing Manager','Sales Representative','Business Analyst','Project Manager','CEO','CTO','COO','VP of Engineering','Frontend Developer','Backend Developer','Full Stack Developer','Database Administrator','System Administrator','Security Analyst','Cloud Architect'],
+colors:['#FF5733','#33FF57','#3357FF','#F333FF','#FF33A8','#33FFF5','#FFC300','#C70039','#900C3F','#58181F','#1ABC9C','#2ECC71','#3498DB','#9B59B6','#34495E','#E74C3C','#F39C12','#1ABC9C','#D35400','#8E44AD']
+};
+
+function addField(){
+const type=document.getElementById('fieldType').value;
+const name=document.getElementById('fieldName').value.trim()||type;
+fields.push({type,name});
+document.getElementById('fieldName').value='';
+renderFields();
+}
+
+function removeField(i){
+fields.splice(i,1);
+renderFields();
+}
+
+function renderFields(){
+document.getElementById('fieldChips').innerHTML=fields.map((f,i)=>'<span class="field-chip">'+f.name+'<span class="remove" onclick="removeField('+i+')">&times;</span></span>').join('');
+}
+
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function randFloat(a,b){return(Math.random()*(b-a)+a).toFixed(2)}
+function uuid(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:r&0x3|0x8).toString(16)})}
+
+function generateValue(type){
+switch(type){
+case'firstName':return pick(data.firstNames);
+case'lastName':return pick(data.lastNames);
+case'fullName':return pick(data.firstNames)+' '+pick(data.lastNames);
+case'email':return pick(data.firstNames).toLowerCase()+'.'+pick(data.lastNames).toLowerCase()+'@'+pick(['gmail.com','yahoo.com','outlook.com','hotmail.com','protonmail.com']);
+case'phone':'('+randInt(200,999)+') '+randInt(200,999)+'-'+randInt(1000,9999);
+case'address':return randInt(100,9999)+' '+pick(['Main','Oak','Maple','Cedar','Elm','Pine','Waldr','Park','First','Second'])+' '+pick(['St','Ave','Blvd','Dr','Rd','Ln','Ct','Pl']);
+case'city':return pick(data.cities);
+case'state':return pick(data.states);
+case'zip':return String(randInt(10000,99999));
+case'country':return pick(data.countries);
+case'company':return pick(data.companies);
+case'jobTitle':return pick(data.jobTitles);
+case'sentence':return pick(['The quick brown fox jumps over the lazy dog.','Pack my box with five dozen liquor jugs.','How vexingly quick daft zebras jump!','The five boxing wizards jump quickly.','Amazingly few discotheques provide jukeboxes.']);
+case'paragraph':return pick(['Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.','Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.','Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.']);
+case'number':return randInt(1,10000);
+case'float':return parseFloat(randFloat(0,100));
+case'date':return new Date(Date.now()-randInt(0,365*24*60*60*1000)).toISOString().split('T')[0];
+case'boolean':return Math.random()>0.5;
+case'uuid':return uuid();
+case'avatarUrl':return 'https://i.pravatar.cc/150?u='+uuid();
+case'color':return pick(data.colors);
+case'loremIpsum':return 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum vestibulum. Cras vehicula diam vitae est commodo, at fermentum nunc pretium.';
+default:return'';
+}
+}
+
+function generate(){
+if(fields.length===0){alert('Add at least one field');return}
+const count=parseInt(document.getElementById('count').value);
+const records=[];
+for(let i=0;i<count;i++){
+const obj={};
+fields.forEach(f=>{obj[f.name]=generateValue(f.type)});
+records.push(obj);
+}
+renderOutput(records);
+}
+
+function renderOutput(records){
+if(currentTab==='json'){
+document.getElementById('output').value=JSON.stringify(records,null,2);
+}else{
+if(records.length===0){document.getElementById('output').value='';return}
+const headers=fields.map(f=>f.name);
+let csv=headers.join(',')+'\n';
+records.forEach(r=>{
+csv+=headers.map(h=>{const v=String(r[h]);return v.includes(',')||v.includes('"')?'"'+v.replace(/"/g,'""')+'"':v}).join(',')+'\n';
+});
+document.getElementById('output').value=csv;
+}
+}
+
+function setTab(tab,btn){
+currentTab=tab;
+document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+btn.classList.add('active');
+const val=document.getElementById('output').value;
+if(val){try{renderOutput(JSON.parse(val))}catch(e){}}
+}
+
+function copyOutput(){navigator.clipboard.writeText(document.getElementById('output').value)}
+function downloadOutput(){
+const ext=currentTab==='json'?'.json':'.csv';
+const mime=currentTab==='json'?'application/json':'text/csv';
+const blob=new Blob([document.getElementById('output').value],{type:mime});
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mock-data'+ext;a.click();
+}
+function clearAll(){fields=[];renderFields();document.getElementById('output').value=''}
+</script>
+</body>
+</html>

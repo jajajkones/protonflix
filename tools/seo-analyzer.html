@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEO Analyzer</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;padding:20px}
+.container{max-width:1000px;margin:0 auto}
+header{display:flex;align-items:center;gap:16px;margin-bottom:32px;padding-bottom:16px;border-bottom:1px solid #222}
+h1{font-size:1.8rem;font-weight:600}
+.back{color:#737373;text-decoration:none;font-size:0.9rem;transition:color .2s}
+.back:hover{color:#fff}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:24px;margin-bottom:20px}
+textarea,input[type=text]{width:100%;background:#0a0a0a;border:1px solid #222;color:#fff;font-family:'Outfit',sans-serif;padding:12px;border-radius:8px;font-size:0.95rem;resize:vertical}
+textarea{min-height:180px}
+input[type=text]{height:44px}
+label{display:block;font-weight:500;margin-bottom:8px;color:#e0e0e0}
+button{background:#2563eb;color:#fff;border:none;padding:12px 28px;border-radius:8px;font-family:'Outfit',sans-serif;font-weight:500;font-size:0.95rem;cursor:pointer;transition:background .2s}
+button:hover{background:#1d4ed8}
+.btn-row{display:flex;gap:12px;margin:16px 0}
+.score-ring{width:140px;height:140px;margin:0 auto 20px}
+.score-ring svg{transform:rotate(-90deg)}
+.score-ring circle{fill:none;stroke-width:10}
+.score-ring .bg{stroke:#222}
+.score-ring .fg{stroke:#2563eb;stroke-linecap:round;transition:stroke-dashoffset .6s}
+.score-val{font-size:2.4rem;font-weight:700;text-align:center;margin-top:-90px;margin-bottom:40px}
+.results{display:grid;gap:12px}
+.result-item{background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:16px}
+.result-item h3{font-size:1rem;font-weight:500;margin-bottom:6px}
+.result-item p{color:#737373;font-size:0.88rem}
+.tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:500;margin:2px}
+.tag.pass{background:#052e16;color:#34d399}
+.tag.warn{background:#422006;color:#fbbf24}
+.tag.fail{background:#450a0a;color:#f87171}
+.hidden{display:none}
+.progress-bar{height:6px;background:#222;border-radius:3px;overflow:hidden;margin-top:8px}
+.progress-bar .fill{height:100%;background:#2563eb;border-radius:3px;transition:width .4s}
+
+@media(max-width:768px){header{padding:20px 16px}header h1{font-size:16px}.content{padding:20px 16px}.container{padding:16px}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<a href="index.html" class="back">← Back</a>
+<h1>SEO Analyzer</h1>
+</header>
+<div class="card">
+<label for="htmlInput">Paste HTML code</label>
+<textarea id="htmlInput" placeholder="Paste your HTML here..."></textarea>
+<div class="btn-row">
+<button onclick="analyze()">Analyze SEO</button>
+<button onclick="clearAll()" style="background:#333">Clear</button>
+</div>
+</div>
+<div id="output" class="hidden">
+<div class="card" style="text-align:center">
+<div class="score-ring">
+<svg width="140" height="140"><circle class="bg" cx="70" cy="70" r="60"/><circle class="fg" id="scoreCircle" cx="70" cy="70" r="60" stroke-dasharray="377" stroke-dashoffset="377"/></svg>
+<div class="score-val" id="scoreVal">0</div>
+<p style="color:#737373">SEO Score</p>
+</div>
+</div>
+<div class="results" id="results"></div>
+</div>
+</div>
+<script>
+function analyze(){
+const html=document.getElementById('htmlInput').value.trim();
+if(!html){alert('Please paste HTML to analyze');return}
+document.getElementById('output').classList.remove('hidden');
+const parser=new DOMParser();
+const doc=parser.parseFromString(html,'text/html');
+let score=0;const issues=[];const passed=[];
+const docLower=html.toLowerCase();
+
+// Title tag
+const title=doc.querySelector('title');
+const titleText=title?title.textContent.trim():'';
+if(titleText){
+score+=12;
+if(titleText.length>=30&&titleText.length<=60){score+=3;passed.push('Title length optimal ('+titleText.length+' chars)')}
+else{issues.push({title:'Title Tag Length',msg:'Title is '+titleText.length+' chars. Ideal: 30-60 characters.',tag:titleText.length<30?'warn':'fail'})}
+}else{issues.push({title:'Missing Title Tag',msg:'Add a <title> tag (30-60 chars) with relevant keywords.',tag:'fail'})}
+
+// Meta description
+const metaDesc=doc.querySelector('meta[name="description"]');
+const descText=metaDesc?metaDesc.getAttribute('content'):'';
+if(descText){
+score+=10;
+if(descText.length>=120&&descText.length<=160){score+=3;passed.push('Meta description length optimal ('+descText.length+' chars)')}
+else{issues.push({title:'Meta Description Length',msg:'Description is '+descText.length+' chars. Ideal: 120-160 characters.',tag:'warn'})}
+}else{issues.push({title:'Missing Meta Description',msg:'Add <meta name="description" content="..."> (120-160 chars).',tag:'fail'})}
+
+// Headings
+const headings=[];
+for(let i=1;i<=6;i++){const count=doc.querySelectorAll('h'+i).length;headings.push({level:i,count})}
+const h1Count=headings[0].count;
+if(h1Count===1){score+=8;passed.push('Single H1 tag found')}
+else if(h1Count===0){issues.push({title:'Missing H1 Tag',msg:'Every page should have exactly one H1 tag.',tag:'fail'})}
+else{issues.push({title:'Multiple H1 Tags',msg:'Found '+h1Count+' H1 tags. Use exactly one.',tag:'warn'})}
+const totalHeadings=headings.reduce((a,h)=>a+h.count,0);
+if(totalHeadings>1)score+=3;
+if(headings[0].count>0){let proper=true;for(let i=1;i<headings.length;i++){if(headings[i].count>0&&headings[i-1].count===0){proper=false;break}}
+if(proper)score+=3;else issues.push({title:'Heading Hierarchy',msg:'Headings skip levels. Use sequential hierarchy (H1→H2→H3).',tag:'warn'})}
+passed.push('Found '+totalHeadings+' heading(s): '+headings.map(h=>'H'+h.level+':'+h.count).join(', '));
+
+// Images
+const images=doc.querySelectorAll('img');
+const imgTotal=images.length;
+let imgAlt=0;
+images.forEach(img=>{if(img.getAttribute('alt')&&img.getAttribute('alt').trim())imgAlt++});
+if(imgTotal>0){
+const altPct=Math.round(imgAlt/imgTotal*100);
+if(altPct===100){score+=8;passed.push('All images have alt text')}
+else{score+=Math.round(8*altPct/100);issues.push({title:'Image Alt Text',msg:altPct+'% of images have alt text ('+imgAlt+'/'+imgTotal+'). Add descriptive alt to all images.',tag:'warn'})}
+}else{score+=8;passed.push('No images (N/A)')}
+
+// Links
+const links=doc.querySelectorAll('a[href]');
+let internal=0,external=0;
+links.forEach(a=>{const href=a.getAttribute('href');if(!href)return;if(href.startsWith('#')||href.startsWith('/')||href.includes(location.hostname))internal++;else if(href.startsWith('http'))external++});
+score+=3;passed.push('Links: '+internal+' internal, '+external+' external');
+
+// Keyword density
+const bodyText=doc.body?doc.body.textContent.replace(/\s+/g,' '):'';
+const words=bodyText.split(/\s+/).filter(w=>w.length>0);
+const wordCount=words.length;
+if(wordCount>300)score+=5;
+else if(wordCount>100)score+=3;
+else issues.push({title:'Low Word Count',msg:'Only '+wordCount+' words. Aim for 300+ words for good SEO.',tag:'warn'});
+const readingTime=Math.max(1,Math.ceil(wordCount/200));
+passed.push(wordCount+' words, ~'+readingTime+' min read');
+
+// Social meta tags
+const ogTitle=doc.querySelector('meta[property="og:title"]');
+const ogDesc=doc.querySelector('meta[property="og:description"]');
+const ogImage=doc.querySelector('meta[property="og:image"]');
+const twitterCard=doc.querySelector('meta[name="twitter:card"]');
+let socialScore=0;
+if(ogTitle)socialScore++;if(ogDesc)socialScore++;if(ogImage)socialScore++;if(twitterCard)socialScore++;
+score+=Math.round(5*socialScore/4);
+if(socialScore<4)issues.push({title:'Social Meta Tags',msg:'Found '+socialScore+'/4 OG/Twitter tags. Add og:title, og:description, og:image, twitter:card.',tag:'warn'});
+else passed.push('All social meta tags present');
+
+// Canonical
+const canonical=doc.querySelector('link[rel="canonical"]');
+if(canonical){score+=3;passed.push('Canonical tag present')}else{issues.push({title:'Missing Canonical',msg:'Add <link rel="canonical"> to prevent duplicate content issues.',tag:'warn'})}
+
+// Robots
+const robots=doc.querySelector('meta[name="robots"]');
+if(robots){score+=2;passed.push('Robots meta: '+robots.getAttribute('content'))}else{issues.push({title:'Missing Robots Meta',msg:'Add <meta name="robots" content="index,follow"> explicitly.',tag:'warn'})}
+
+// Structured data
+const jsonLd=doc.querySelectorAll('script[type="application/ld+json"]');
+if(jsonLd.length>0){score+=5;passed.push('Structured data (JSON-LD) found: '+jsonLd.length+' block(s)')}
+else{issues.push({title:'No Structured Data',msg:'Add JSON-LD schema markup for rich search results.',tag:'warn'})}
+
+// Score cap
+score=Math.min(100,score);
+
+// Render
+document.getElementById('scoreVal').textContent=score;
+const circle=document.getElementById('scoreCircle');
+const circumference=2*Math.PI*60;
+circle.style.strokeDasharray=circumference;
+circle.style.strokeDashoffset=circumference-(score/100)*circumference;
+circle.style.stroke=score>=80?'#34d399':score>=50?'#fbbf24':'#f87171';
+
+const resultsEl=document.getElementById('results');
+let html2='';
+passed.forEach(p=>{html2+='<div class="result-item"><h3>✓ <span class="tag pass">Pass</span></h3><p>'+p+'</p></div>'});
+issues.sort((a,b)=>{const order={fail:0,warn:1};return(order[a.tag]||2)-(order[b.tag]||2)});
+issues.forEach(i=>{html2+='<div class="result-item"><h3>'+i.title+' <span class="tag '+i.tag+'">'+i.tag.toUpperCase()+'</span></h3><p>'+i.msg+'</p></div>'});
+resultsEl.innerHTML=html2;
+}
+function clearAll(){document.getElementById('htmlInput').value='';document.getElementById('output').classList.add('hidden')}
+</script>
+</body>
+</html>

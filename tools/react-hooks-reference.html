@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>React Hooks Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#fff;font-family:'Outfit',sans-serif;min-height:100vh;padding:20px}
+.header{display:flex;align-items:center;gap:20px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #222}
+.header h1{font-size:1.8rem;font-weight:600}
+.header a{color:#737373;text-decoration:none;font-size:0.9rem;transition:color .2s}
+.header a:hover{color:#fff}
+.search{width:100%;padding:12px 16px;background:#111;border:1px solid #222;border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:1rem;outline:none;transition:border-color .2s;margin-bottom:20px}
+.search:focus{border-color:#555}
+.search::placeholder{color:#737373}
+.stats{color:#737373;font-size:0.85rem;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px}
+.card{background:#111;border:1px solid #222;border-radius:10px;padding:20px;transition:all .2s;cursor:pointer}
+.card:hover{border-color:#555;background:#151515}
+.card.copied{border-color:#4ade80;box-shadow:0 0 16px rgba(74,222,128,0.12)}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.card-name{font-weight:700;font-size:1.15rem;color:#4ade80}
+.card-badge{font-size:0.7rem;padding:3px 8px;border-radius:4px;background:#1e3a5f;color:#60a5fa;font-weight:500}
+.card-badge.core{background:#1f3b2a;color:#4ade80}
+.card-badge.react18{background:#3b1f4e;color:#c084fc}
+.field{margin-bottom:12px}
+.field-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;color:#737373;margin-bottom:4px;font-weight:500}
+.field-value{color:#e5e5e5;font-size:0.9rem;line-height:1.5}
+.syntax{font-family:'Courier New',monospace;background:#0a0a0a;border:1px solid #222;padding:10px 12px;border-radius:6px;font-size:0.82rem;color:#a5a5a5;white-space:pre-wrap;word-break:break-all;margin-top:4px;line-height:1.6}
+.example-code{font-family:'Courier New',monospace;background:#0a0a0a;border:1px solid #222;padding:10px 12px;border-radius:6px;font-size:0.78rem;color:#737373;white-space:pre-wrap;word-break:break-all;margin-top:4px;line-height:1.5}
+.when{font-size:0.85rem;color:#a5a5a5;line-height:1.5}
+.copied-toast{position:fixed;bottom:24px;right:24px;background:#222;color:#4ade80;padding:10px 18px;border-radius:8px;font-size:0.85rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.copied-toast.show{opacity:1}
+@media(max-width:500px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html">← Back</a>
+<h1>React Hooks Reference</h1>
+</div>
+<input type="text" class="search" placeholder="Search hooks by name, description, or usage..." id="searchInput" aria-label="Search React hooks">
+<div class="stats" id="stats"></div>
+<div class="grid" id="grid"></div>
+<div class="copied-toast" id="toast">Copied!</div>
+<script>
+const hooks=[
+{name:"useState",badge:"core",syntax:"const [state, setState] = useState(initialValue);",desc:"Manages local component state. Returns the current state value and a setter function.",example:"const [count, setCount] = useState(0);\nconst [user, setUser] = useState({ name: '' });\n\nsetCount(prev => prev + 1);\nsetUser({ ...user, name: 'John' });",when:"Use when your component needs to store and manage its own state that changes over time. Ideal for form inputs, toggles, counters, and any data that triggers re-renders."},
+{name:"useEffect",badge:"core",syntax:"useEffect(() => { /* effect */ }, [dependencies]);",desc:"Performs side effects in function components. Runs after render. Can return a cleanup function.",example:"useEffect(() => {\n  document.title = `Count: ${count}`;\n  return () => document.title = 'App';\n}, [count]);\n\nuseEffect(() => {\n  const sub = api.subscribe(id);\n  return () => sub.unsubscribe();\n}, [id]);",when:"Use for data fetching, subscriptions, manual DOM mutations, timers, and any operation that needs to synchronize with external systems. Dependencies control when it re-runs."},
+{name:"useContext",badge:"core",syntax:"const value = useContext(MyContext);",desc:"Subscribes to a React Context. Returns the current context value for the nearest matching Provider above.",example:"const theme = useContext(ThemeContext);\nconst user = useContext(AuthContext);\n\nreturn <div style={{ color: theme.primary }} />;",when:"Use to access shared data (theme, auth, locale, etc.) without prop drilling through intermediate components. Pair with createContext and a Provider."},
+{name:"useReducer",badge:"core",syntax:"const [state, dispatch] = useReducer(reducer, initialArg, init?);",desc:"Manages complex state logic with a reducer function. Alternative to useState for complex state transitions.",example:"function reducer(state, action) {\n  switch (action.type) {\n    case 'increment': return { count: state.count + 1 };\n    case 'decrement': return { count: state.count - 1 };\n  }\n}\nconst [state, dispatch] = useReducer(reducer, { count: 0 });\ndispatch({ type: 'increment' });",when:"Use when state logic is complex, involves multiple sub-values, or when the next state depends on the previous one. Good for form state machines and Redux-like patterns."},
+{name:"useMemo",badge:"core",syntax:"const memoizedValue = useMemo(() => compute(a, b), [a, b]);",desc:"Returns a memoized value. Only recomputes when dependencies change. Optimizes expensive calculations.",example:"const sorted = useMemo(() => {\n  return items.sort((a, b) => a.name.localeCompare(b.name));\n}, [items]);\n\nconst expensive = useMemo(() => {\n  return heavyCalculation(data);\n}, [data]);",when:"Use to avoid expensive recalculations on every render. Useful for sorting, filtering, and complex computations. Don't use for cheap operations as memoization has overhead."},
+{name:"useCallback",badge:"core",syntax:"const memoizedFn = useCallback(fn, [dependencies]);",desc:"Returns a memoized callback function. Only recreates when dependencies change.",example:"const handleSubmit = useCallback((data) => {\n  api.submit(data);\n}, [api]);\n\nconst onClick = useCallback(() => {\n  setCount(c => c + 1);\n}, []);",when:"Use when passing callbacks to optimized child components (React.memo) or as dependencies to other hooks. Helps prevent unnecessary re-renders of children."},
+{name:"useRef",badge:"core",syntax:"const ref = useRef(initialValue);",desc:"Returns a mutable ref object whose .current property persists across renders. Does not trigger re-renders.",example:"const inputRef = useRef(null);\nconst countRef = useRef(0);\n\nuseEffect(() => {\n  inputRef.current.focus();\n}, []);\n\ncountRef.current += 1; // No re-render",when:"Use to access DOM elements directly, store mutable values that don't trigger re-renders, and keep previous values. Common for focus management, timers, and subscriptions."},
+{name:"useImperativeHandle",badge:"core",syntax:"useImperativeHandle(ref, () => ({ method1, method2 }), [deps]);",desc:"Customizes the instance value exposed by a ref. Works with forwardRef to expose specific methods.",example:"const MyInput = forwardRef((props, ref) => {\n  const inputRef = useRef();\n  useImperativeHandle(ref, () => ({\n    focus: () => inputRef.current.focus(),\n    clear: () => inputRef.current.value = ''\n  }));\n  return <input ref={inputRef} />;\n});",when:"Use when you need to expose specific methods of a child component to its parent via ref. Common for custom input components with focus/clear/validate methods."},
+{name:"useLayoutEffect",badge:"core",syntax:"useLayoutEffect(() => { /* effect */ }, [dependencies]);",desc:"Fires synchronously after all DOM mutations but before the browser paints. Use for DOM measurements.",example:"useLayoutEffect(() => {\n  const { height } = ref.current.getBoundingClientRect();\n  setHeight(height);\n}, [dependency]);",when:"Use when you need to read and update layout synchronously before the browser paints (e.g., measuring element dimensions to prevent visual flicker). For most side effects, prefer useEffect."},
+{name:"useDebugValue",badge:"core",syntax:"useDebugValue(value, formatFn?);",desc:"Adds a label to a custom hook in React DevTools. Helps with debugging.",example:"function useOnlineStatus() {\n  const [isOnline, setIsOnline] = useState(true);\n  useDebugValue(isOnline ? 'Online' : 'Offline');\n  return isOnline;\n}",when:"Use in custom hooks to provide helpful labels in React DevTools. The optional format function can defer expensive formatting. Only useful for custom hooks shared across components."},
+{name:"useDeferredValue",badge:"react18",syntax:"const deferredValue = useDeferredValue(value);",desc:"Defers updating a part of the UI. Keeps the UI responsive during expensive updates.",example:"const [query, setQuery] = useState('');\nconst deferredQuery = useDeferredValue(query);\n\nreturn <SearchResults query={deferredQuery} />;",when:"Use to keep the UI responsive when rendering expensive subtrees. The deferred value 'lags behind' the actual value, allowing urgent updates (typing) to process first."},
+{name:"useTransition",badge:"react18",syntax:"const [isPending, startTransition] = useTransition();",desc:"Marks state updates as non-urgent transitions. Allows React to interrupt rendering for urgent updates.",example:"const [isPending, startTransition] = useTransition();\nconst [query, setQuery] = useState('');\n\nfunction handleChange(e) {\n  setQuery(e.target.value); // urgent\n  startTransition(() => {\n    setFilteredResults(filter(items, e.target.value)); // transition\n  });\n}",when:"Use when you have urgent and non-urgent state updates. The urgent update (input) responds immediately while the non-urgent update (filtering large list) can be deferred."},
+{name:"useId",badge:"react18",syntax:"const id = useId();",desc:"Generates a unique, stable ID that works with SSR and avoids hydration mismatches.",example:"const id = useId();\n\nreturn (\n  <>\n    <label htmlFor={id}>Name</label>\n    <input id={id} type=\"text\" />\n  </>\n);",when:"Use to generate unique IDs for form elements and accessibility attributes. Especially useful in SSR contexts where IDs must be consistent between server and client."},
+{name:"useSyncExternalStore",badge:"react18",syntax:"const snapshot = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot?);",desc:"Subscribes to an external store with synchronous rendering guarantees. Thread-safe.",example:"const count = useSyncExternalStore(\n  store.subscribe,\n  () => store.getState().count,\n  () => 0 // server snapshot\n);",when:"Use when integrating external stores (Redux, Zustand, custom stores) with React. Ensures tearing doesn't occur with concurrent rendering features."},
+{name:"useInsertionEffect",badge:"react18",syntax:"useInsertionEffect(() => { /* effect */ }, [dependencies]);",desc:"Fires synchronously before DOM mutations. Designed for CSS-in-JS libraries to inject styles.",example:"useInsertionEffect(() => {\n  const style = document.createElement('style');\n  style.textContent = getCSS(rule);\n  document.head.appendChild(style);\n  return () => style.remove();\n}, [rule]);",when:"Use only for CSS-in-JS libraries that need to inject styles before layout effects read dimensions. Most React developers will never need this hook directly."}
+];
+const grid=document.getElementById('grid');
+const searchInput=document.getElementById('searchInput');
+const stats=document.getElementById('stats');
+const toast=document.getElementById('toast');
+let toastTimer;
+function showToast(msg){toast.textContent=msg;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('show'),1500)}
+function copyText(text){navigator.clipboard.writeText(text).then(()=>showToast('Copied!'))}
+function render(filter=''){
+const f=filter.toLowerCase();
+const filtered=hooks.filter(h=>!f||h.name.toLowerCase().includes(f)||h.desc.toLowerCase().includes(f)||h.when.toLowerCase().includes(f)||h.syntax.toLowerCase().includes(f));
+stats.textContent=filtered.length+' of '+hooks.length+' hooks';
+grid.innerHTML='';
+filtered.forEach(h=>{
+const card=document.createElement('div');
+card.className='card';
+card.innerHTML=`
+<div class="card-header"><span class="card-name">${h.name}</span><span class="card-badge ${h.badge}">${h.badge}</span></div>
+<div class="field"><div class="field-label">Syntax</div><div class="syntax">${h.syntax}</div></div>
+<div class="field"><div class="field-label">Description</div><div class="field-value">${h.desc}</div></div>
+<div class="field"><div class="field-label">Example</div><div class="example-code">${h.example}</div></div>
+<div class="field"><div class="field-label">When to Use</div><div class="when">${h.when}</div></div>`;
+card.addEventListener('click',()=>{copyText(h.syntax);card.classList.add('copied');setTimeout(()=>card.classList.remove('copied'),600)});
+grid.appendChild(card);
+});
+}
+searchInput.addEventListener('input',e=>render(e.target.value));
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accessibility Checker - ProtonFlix Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh}
+header{background:#111;border-bottom:1px solid #222;padding:16px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+header h1{font-size:1.3rem;font-weight:600}
+header a{color:#737373;text-decoration:none;font-size:.9rem;transition:color .2s}
+header a:hover{color:#fff}
+.container{max-width:960px;margin:0 auto;padding:24px}
+.btn{padding:8px 16px;border:1px solid #222;background:#111;color:#fff;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.85rem;transition:all .2s}
+.btn:hover{background:#222}
+.btn-primary{background:#2563eb;border-color:#2563eb}
+.btn-primary:hover{background:#1d4ed8}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:16px;margin-bottom:12px}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.card-actions{display:flex;gap:6px;flex-wrap:wrap}
+textarea{width:100%;min-height:200px;padding:12px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#fff;font-family:monospace;font-size:.85rem;resize:vertical;line-height:1.5}
+textarea:focus{outline:none;border-color:#2563eb}
+.stats{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.stat{background:#111;border:1px solid #222;border-radius:8px;padding:12px 16px;flex:1;min-width:100px;text-align:center}
+.stat-value{font-size:1.5rem;font-weight:600}
+.stat-label{font-size:.7rem;color:#737373;margin-top:2px}
+.errors .stat-value{color:#ff4444}
+.warnings .stat-value{color:#f59e0b}
+.infos .stat-value{color:#60a5fa}
+.passed .stat-value{color:#22c55e}
+.issue-list{display:flex;flex-direction:column;gap:8px}
+.issue{background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:12px 14px;border-left:3px solid #737373}
+.issue.error{border-left-color:#ff4444}
+.issue.warning{border-left-color:#f59e0b}
+.issue.info{border-left-color:#60a5fa}
+.issue.passed{border-left-color:#22c55e}
+.issue-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.issue-severity{padding:2px 8px;border-radius:4px;font-size:.7rem;font-weight:600;text-transform:uppercase}
+.issue.error .issue-severity{background:#ff444420;color:#ff4444}
+.issue.warning .issue-severity{background:#f59e0b20;color:#f59e0b}
+.issue.info .issue-severity{background:#60a5fa20;color:#60a5fa}
+.issue.passed .issue-severity{background:#22c55e20;color:#22c55e}
+.issue-title{font-size:.9rem;font-weight:500}
+.issue-desc{font-size:.8rem;color:#a3a3a3;margin-bottom:6px}
+.issue-fix{font-size:.8rem;padding:6px 10px;background:#111;border-radius:4px;color:#737373}
+.issue-fix strong{color:#a3a3a3}
+.issue-code{font-family:monospace;font-size:.75rem;color:#f59e0b;background:#111;padding:4px 8px;border-radius:4px;display:inline-block;margin-top:4px}
+.empty-state{text-align:center;padding:40px;color:#737373}
+.toast{position:fixed;bottom:24px;right:24px;background:#22c55e;color:#fff;padding:12px 20px;border-radius:8px;font-size:.85rem;z-index:300;animation:slideIn .3s ease}
+@keyframes slideIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.filter-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.filter-btn{padding:6px 12px;background:#111;border:1px solid #222;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.8rem;color:#737373;transition:all .2s}
+.filter-btn.active{color:#fff;border-color:#2563eb}
+.filter-btn.error.active{color:#ff4444;border-color:#ff4444}
+.filter-btn.warning.active{color:#f59e0b;border-color:#f59e0b}
+.filter-btn.info.active{color:#60a5fa;border-color:#60a5fa}
+.filter-btn.passed.active{color:#22c55e;border-color:#22c55e}
+
+@media(max-width:768px){header{padding:20px 16px}header h1{font-size:16px}.content{padding:20px 16px}.container{padding:16px}}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html">← Back</a>
+  <h1>♿ Accessibility Checker</h1>
+</header>
+<div class="container">
+  <div class="card">
+    <div class="card-header">
+      <h2 style="font-size:1rem">Paste HTML Code</h2>
+      <div class="card-actions">
+        <button class="btn" onclick="loadSample()">Load Sample</button>
+        <button class="btn btn-primary" onclick="runChecks()">▶ Run Checks</button>
+      </div>
+    </div>
+    <textarea id="htmlInput" placeholder="Paste your HTML code here..."></textarea>
+  </div>
+
+  <div class="stats" id="statsBar" style="display:none">
+    <div class="stat errors"><div class="stat-value" id="errorCount">0</div><div class="stat-label">Errors</div></div>
+    <div class="stat warnings"><div class="stat-value" id="warningCount">0</div><div class="stat-label">Warnings</div></div>
+    <div class="stat infos"><div class="stat-value" id="infoCount">0</div><div class="stat-label">Info</div></div>
+    <div class="stat passed"><div class="stat-value" id="passedCount">0</div><div class="stat-label">Passed</div></div>
+  </div>
+
+  <div class="card" id="resultsCard" style="display:none">
+    <div class="card-header">
+      <h2 style="font-size:1rem">Results</h2>
+    </div>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterIssues('all',this)">All</button>
+      <button class="filter-btn error" onclick="filterIssues('error',this)">Errors</button>
+      <button class="filter-btn warning" onclick="filterIssues('warning',this)">Warnings</button>
+      <button class="filter-btn info" onclick="filterIssues('info',this)">Info</button>
+      <button class="filter-btn passed" onclick="filterIssues('passed',this)">Passed</button>
+    </div>
+    <div class="issue-list" id="issueList"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" style="display:none"></div>
+
+<script>
+let allIssues = [];
+let currentFilter = 'all';
+
+function loadSample() {
+  document.getElementById('htmlInput').value = `<!DOCTYPE html>
+<html>
+<head><title>My Page</title></head>
+<body>
+  <div class="nav">
+    <a href="/"></a>
+    <a href="/about">About</a>
+  </div>
+  <img src="photo.jpg">
+  <img src="banner.png" alt="">
+  <h1>Welcome</h1>
+  <h3>Subtitle</h3>
+  <form>
+    <input type="text" placeholder="Email">
+    <input type="password">
+    <button>Submit</button>
+  </form>
+  <p style="color: #aaa; background: #fff;">Light gray on white text</p>
+  <div role="button">Click me</div>
+  <a href="/link"></a>
+  <p><img src="icon.png"></p>
+  <table><tr><td>Data</td></tr></table>
+</body>
+</html>`;
+  toast('Sample loaded');
+}
+
+function runChecks() {
+  const html = document.getElementById('htmlInput').value;
+  if (!html.trim()) return toast('Paste some HTML first');
+
+  allIssues = [];
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  checkMissingLang(doc);
+  checkMissingTitle(doc);
+  checkImages(doc);
+  checkFormLabels(doc);
+  checkHeadingHierarchy(doc);
+  checkEmptyLinks(doc);
+  checkAriaRoles(doc);
+  checkSkipNav(doc);
+  checkEmptyButtons(doc);
+  checkTableHeaders(doc);
+  checkColorContrast(html);
+  checkTabindex(doc);
+  checkAutoplay(doc);
+
+  renderResults();
+}
+
+function addIssue(severity, title, desc, fix, code) {
+  allIssues.push({ severity, title, desc, fix, code });
+}
+
+function checkMissingLang(doc) {
+  const html = doc.querySelector('html');
+  if (!html || !html.getAttribute('lang')) {
+    addIssue('error', 'Missing lang attribute', 'The <html> element should have a lang attribute for screen readers.', 'Add lang="en" to the <html> tag.', '<html lang="en">');
+  } else {
+    addIssue('passed', 'Lang attribute present', 'The <html> element has a lang attribute.', '', '');
+  }
+}
+
+function checkMissingTitle(doc) {
+  const title = doc.querySelector('title');
+  if (!title || !title.textContent.trim()) {
+    addIssue('error', 'Missing or empty <title>', 'Every page should have a descriptive <title> element.', 'Add a <title> element inside <head>.', '<title>Page Title</title>');
+  } else {
+    addIssue('passed', 'Title present', `Title found: "${title.textContent.trim()}"`, '', '');
+  }
+}
+
+function checkImages(doc) {
+  const imgs = doc.querySelectorAll('img');
+  let missing = 0, empty = 0;
+  imgs.forEach(img => {
+    if (!img.hasAttribute('alt')) missing++;
+    else if (img.getAttribute('alt') === '') empty++;
+  });
+  if (missing) addIssue('error', 'Images missing alt attribute', `${missing} image(s) have no alt attribute.`, 'Add descriptive alt text to all images.', '<img src="..." alt="Description">');
+  if (empty) addIssue('info', 'Images with empty alt', `${empty} image(s) have alt="" (decorative). Ensure these are truly decorative.`, 'Use alt="" only for decorative images.', '<img src="..." alt="">');
+  if (!missing && imgs.length) addIssue('passed', 'All images have alt attributes', 'All images have alt attributes defined.', '', '');
+  if (!imgs.length) addIssue('info', 'No images found', '', '', '');
+}
+
+function checkFormLabels(doc) {
+  const inputs = doc.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"]), textarea, select');
+  let unlabeled = 0;
+  inputs.forEach(input => {
+    const id = input.id;
+    const hasLabel = id && doc.querySelector(`label[for="${id}"]`);
+    const hasAria = input.getAttribute('aria-label') || input.getAttribute('aria-labelledby');
+    const wrapped = input.closest('label');
+    if (!hasLabel && !hasAria && !wrapped) unlabeled++;
+  });
+  if (unlabeled) addIssue('error', 'Form inputs missing labels', `${unlabeled} input(s) have no associated label.`, 'Add a <label for="id"> or aria-label attribute.', '<label for="email">Email</label><input id="email">');
+  else if (inputs.length) addIssue('passed', 'All form inputs have labels', 'All form inputs are properly labeled.', '', '');
+}
+
+function checkHeadingHierarchy(doc) {
+  const headings = doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
+  if (!headings.length) {
+    addIssue('warning', 'No headings found', 'Page has no heading elements.', 'Add at least one <h1> element.', '<h1>Page Title</h1>');
+    return;
+  }
+  let issues = [];
+  let prevLevel = 0;
+  headings.forEach(h => {
+    const level = parseInt(h.tagName[1]);
+    if (level - prevLevel > 1 && prevLevel > 0) {
+      issues.push(`Jump from <h${prevLevel}> to <h${level}>`);
+    }
+    prevLevel = level;
+  });
+  if (issues.length) addIssue('warning', 'Heading hierarchy issues', issues.join('; '), 'Ensure headings follow a sequential order (h1 → h2 → h3).', '');
+  else addIssue('passed', 'Heading hierarchy is correct', 'Headings follow a logical sequence.', '', '');
+}
+
+function checkEmptyLinks(doc) {
+  const links = doc.querySelectorAll('a');
+  let empty = 0;
+  links.forEach(a => {
+    const text = a.textContent.trim();
+    const hasImg = a.querySelector('img[alt]');
+    const ariaLabel = a.getAttribute('aria-label');
+    if (!text && !hasImg && !ariaLabel) empty++;
+  });
+  if (empty) addIssue('error', 'Empty links', `${empty} link(s) have no accessible text.`, 'Add text content, an aria-label, or an img with alt inside the link.', '<a href="/about" aria-label="About us">...</a>');
+  else if (links.length) addIssue('passed', 'All links have accessible text', '', '', '');
+}
+
+function checkEmptyButtons(doc) {
+  const buttons = doc.querySelectorAll('button, [role="button"]');
+  let empty = 0;
+  buttons.forEach(b => {
+    const text = b.textContent.trim();
+    const ariaLabel = b.getAttribute('aria-label');
+    if (!text && !ariaLabel) empty++;
+  });
+  if (empty) addIssue('error', 'Empty buttons', `${empty} button(s) have no accessible text.`, 'Add text content or aria-label.', '<button aria-label="Close">X</button>');
+  else if (buttons.length) addIssue('passed', 'All buttons have accessible text', '', '', '');
+}
+
+function checkAriaRoles(doc) {
+  const divBtns = doc.querySelectorAll('div[role="button"], span[role="button"]');
+  if (divBtns.length) addIssue('info', 'Using ARIA roles on non-semantic elements', `${divBtns.length} element(s) use role="button". Prefer native <button> when possible.`, 'Replace with <button> elements for built-in keyboard support.', '<button>Click me</button>');
+  const divs = doc.querySelectorAll('[role]');
+  let missingRequired = false;
+  divs.forEach(d => {
+    const role = d.getAttribute('role');
+    if (role === 'button' && !d.hasAttribute('tabindex')) missingRequired = true;
+  });
+  if (missingRequired) addIssue('warning', 'ARIA role missing required attributes', 'Elements with role="button" should have tabindex="0" for keyboard accessibility.', 'Add tabindex="0" to interactive ARIA elements.', '<div role="button" tabindex="0">...');
+}
+
+function checkSkipNav(doc) {
+  const body = doc.querySelector('body');
+  if (!body) return;
+  const firstLink = body.querySelector('a');
+  const hasSkip = body.innerHTML.toLowerCase().includes('skip') && body.innerHTML.toLowerCase().includes('nav');
+  if (!hasSkip && doc.querySelectorAll('nav, [role="navigation"]').length) {
+    addIssue('info', 'Missing skip navigation link', 'Page has navigation but no skip link for keyboard users.', 'Add a skip-to-content link at the top of <body>.', '<a href="#main" class="skip-link">Skip to content</a>');
+  }
+}
+
+function checkTableHeaders(doc) {
+  const tables = doc.querySelectorAll('table');
+  tables.forEach((t, i) => {
+    const ths = t.querySelectorAll('th');
+    if (!ths.length) addIssue('warning', `Table ${i + 1} missing <th> headers`, 'Tables should use <th> elements for headers.', 'Add <th> elements for column/row headers.', '<th>Name</th><th>Email</th>');
+  });
+  if (!tables.length) addIssue('passed', 'No tables to check', '', '', '');
+}
+
+function checkColorContrast(html) {
+  const colorRegex = /color\s*:\s*#([0-9a-fA-F]{3,8})/g;
+  const bgRegex = /background(?:-color)?\s*:\s*#([0-9a-fA-F]{3,8})/g;
+  let match;
+  const colors = [];
+  while ((match = colorRegex.exec(html)) !== null) colors.push(match[1]);
+  if (colors.length) {
+    addIssue('info', 'Inline colors detected', 'Consider using a contrast checker tool for precise WCAG AA/AAA compliance verification.', 'Test color combinations with tools like WebAIM Contrast Checker.', '');
+  }
+}
+
+function checkTabindex(doc) {
+  const badTabindex = doc.querySelectorAll('[tabindex]');
+  let issues = 0;
+  badTabindex.forEach(el => {
+    const val = parseInt(el.getAttribute('tabindex'));
+    if (val > 0) issues++;
+  });
+  if (issues) addIssue('warning', 'Positive tabindex values found', `${issues} element(s) have tabindex > 0, which disrupts natural tab order.`, 'Use tabindex="0" or tabindex="-1" instead.', '');
+}
+
+function checkAutoplay(doc) {
+  const media = doc.querySelectorAll('video[autoplay], audio[autoplay]');
+  if (media.length) addIssue('warning', 'Autoplaying media detected', 'Autoplaying audio/video can be disorienting for users.', 'Remove autoplay or provide controls to pause.', '<video controls>');
+  else addIssue('passed', 'No autoplaying media', '', '', '');
+}
+
+function renderResults() {
+  document.getElementById('statsBar').style.display = 'flex';
+  document.getElementById('resultsCard').style.display = 'block';
+  document.getElementById('errorCount').textContent = allIssues.filter(i => i.severity === 'error').length;
+  document.getElementById('warningCount').textContent = allIssues.filter(i => i.severity === 'warning').length;
+  document.getElementById('infoCount').textContent = allIssues.filter(i => i.severity === 'info').length;
+  document.getElementById('passedCount').textContent = allIssues.filter(i => i.severity === 'passed').length;
+  filterIssues(currentFilter);
+}
+
+function filterIssues(type, btn) {
+  currentFilter = type;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const filtered = type === 'all' ? allIssues : allIssues.filter(i => i.severity === type);
+  const container = document.getElementById('issueList');
+  if (!filtered.length) {
+    container.innerHTML = '<div class="empty-state">No issues in this category</div>';
+    return;
+  }
+  container.innerHTML = filtered.map(i => `
+    <div class="issue ${i.severity}">
+      <div class="issue-header">
+        <span class="issue-severity">${i.severity}</span>
+        <span class="issue-title">${i.title}</span>
+      </div>
+      ${i.desc ? `<div class="issue-desc">${i.desc}</div>` : ''}
+      ${i.fix ? `<div class="issue-fix"><strong>Fix:</strong> ${i.fix}</div>` : ''}
+      ${i.code ? `<div class="issue-code">${i.code}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 2500);
+}
+</script>
+</body>
+</html>

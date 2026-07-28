@@ -16,7 +16,8 @@ header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;alig
 .input-group input:focus{border-color:var(--accent)}
 .result{text-align:center;padding:30px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-top:20px}
 .age-display{font-size:48px;font-weight:300;font-family:var(--mono);margin-bottom:16px}
-.age-details{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.age-details{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;text-align:center}
+@media(min-width:500px){.age-details{grid-template-columns:repeat(4,1fr)}}
 .age-details .unit{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-top:4px}
 .age-details .val{font-size:24px;font-family:var(--mono)}
 .facts{margin-top:20px;text-align:left}
@@ -37,7 +38,7 @@ header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;alig
 function calc(){
 const dob=new Date(document.getElementById('dob').value);
 const ref=document.getElementById('refDate').value?new Date(document.getElementById('refDate').value):new Date();
-if(isNaN(dob))return;
+if(isNaN(dob)){document.getElementById('result').innerHTML='<div class="age-display" style="font-size:16px;color:var(--muted)">Please enter a valid date</div>';document.getElementById('facts').innerHTML='';return;}
 let years=ref.getFullYear()-dob.getFullYear();let months=ref.getMonth()-dob.getMonth();let days=ref.getDate()-dob.getDate();
 if(days<0){months--;const prevMonth=new Date(ref.getFullYear(),ref.getMonth(),0);days+=prevMonth.getDate()}
 if(months<0){years--;months+=12}

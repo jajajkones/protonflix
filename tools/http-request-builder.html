@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTTP Request Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;padding:20px}
+.header{display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #222}
+.header h1{font-size:1.5rem;font-weight:600}
+.header a{color:#737373;text-decoration:none;font-size:.875rem;transition:color .2s}
+.header a:hover{color:#fff}
+.container{max-width:900px;margin:0 auto}
+.surface{background:#111;border:1px solid #222;border-radius:8px;padding:16px;margin-bottom:16px}
+label{display:block;font-size:.75rem;color:#737373;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+select,input,textarea{width:100%;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;padding:10px 12px;font-family:'Outfit',sans-serif;font-size:.875rem;outline:none;transition:border-color .2s}
+select:focus,input:focus,textarea:focus{border-color:#444}
+select{cursor:pointer}
+textarea{resize:vertical;min-height:100px}
+.btn{background:#fff;color:#0a0a0a;border:none;border-radius:6px;padding:10px 20px;font-family:'Outfit',sans-serif;font-size:.875rem;font-weight:500;cursor:pointer;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.btn-secondary{background:transparent;color:#fff;border:1px solid #222}
+.btn-secondary:hover{border-color:#444}
+.btn-danger{background:#ff4444;color:#fff}
+.row{display:flex;gap:12px;align-items:flex-end}
+.row>*{flex:1}
+.kv-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+.kv-row input{flex:1}
+.kv-row .btn{padding:8px 12px;font-size:.75rem;flex-shrink:0}
+.tabs{display:flex;gap:4px;margin-bottom:12px}
+.tab{padding:8px 16px;border-radius:6px 6px 0 0;background:#0a0a0a;border:1px solid #222;border-bottom:none;color:#737373;cursor:pointer;font-size:.8rem;font-family:'Outfit',sans-serif;transition:all .2s}
+.tab.active{background:#111;color:#fff;border-color:#444}
+.body-section{display:none}
+.body-section.active{display:block}
+.response-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.status{padding:4px 10px;border-radius:4px;font-size:.8rem;font-weight:500}
+.status.ok{background:#0d3320;color:#34d399}
+.status.err{background:#3b1111;color:#f87171}
+.response-body{background:#0a0a0a;border:1px solid #222;border-radius:6px;padding:12px;font-family:monospace;font-size:.8rem;white-space:pre-wrap;max-height:400px;overflow:auto;color:#ccc}
+.resp-headers{font-size:.75rem;color:#737373;margin-bottom:8px}
+.loading{opacity:.5;pointer-events:none}
+#curlOutput{display:none;background:#0a0a0a;border:1px solid #222;border-radius:6px;padding:12px;font-family:monospace;font-size:.8rem;white-space:pre-wrap;word-break:break-all;margin-top:8px;color:#ccc}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html">&larr; Back</a>
+<h1>HTTP Request Builder</h1>
+</div>
+
+<div class="surface">
+<div class="row" style="margin-bottom:12px">
+<div style="flex:0 0 140px">
+<label>Method</label>
+<select id="method">
+<option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>HEAD</option><option>OPTIONS</option>
+</select>
+</div>
+<div>
+<label>URL</label>
+<input type="text" id="url" placeholder="https://api.example.com/endpoint" aria-label="Request URL">
+</div>
+</div>
+<button class="btn" onclick="sendRequest()" id="sendBtn">Send Request</button>
+</div>
+
+<div class="surface">
+<label>Headers</label>
+<div id="headers"></div>
+<button class="btn-secondary btn" style="margin-top:8px" onclick="addHeader()">+ Add Header</button>
+</div>
+
+<div class="surface">
+<div class="tabs">
+<div class="tab active" onclick="switchTab(this,'jsonBody')">JSON</div>
+<div class="tab" onclick="switchTab(this,'formBody')">Form Data</div>
+<div class="tab" onclick="switchTab(this,'rawBody')">Raw</div>
+</div>
+<div id="jsonBody" class="body-section active">
+<textarea id="jsonData" placeholder='{"key": "value"}'></textarea>
+</div>
+<div id="formBody" class="body-section">
+<div id="formData"></div>
+<button class="btn-secondary btn" style="margin-top:8px" onclick="addFormField()">+ Add Field</button>
+</div>
+<div id="rawBody" class="body-section">
+<textarea id="rawData" placeholder="Raw body content"></textarea>
+</div>
+</div>
+
+<div id="responseSection" class="surface" style="display:none">
+<div class="response-header">
+<label style="margin:0">Response</label>
+<div>
+<span class="status" id="statusBadge"></span>
+<button class="btn-secondary btn" style="margin-left:8px;font-size:.75rem" onclick="copyCurl()">Copy as cURL</button>
+</div>
+</div>
+<div class="resp-headers" id="respHeaders"></div>
+<div class="response-body" id="respBody"></div>
+<div id="curlOutput"></div>
+</div>
+</div>
+
+<script>
+function addHeader(k='',v=''){
+const d=document.createElement('div');d.className='kv-row';
+d.innerHTML=`<input placeholder="Key" value="${k}"><input placeholder="Value" value="${v}"><button class="btn btn-danger" onclick="this.parentElement.remove()">✕</button>`;
+document.getElementById('headers').appendChild(d);
+}
+addHeader('Content-Type','application/json');
+
+function addFormField(k='',v=''){
+const d=document.createElement('div');d.className='kv-row';
+d.innerHTML=`<input placeholder="Key" value="${k}"><input placeholder="Value" value="${v}"><button class="btn btn-danger" onclick="this.parentElement.remove()">✕</button>`;
+document.getElementById('formData').appendChild(d);
+}
+addFormField();
+
+function switchTab(el,id){
+document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+el.classList.add('active');
+document.querySelectorAll('.body-section').forEach(s=>s.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+}
+
+function getHeaders(){
+const h={};
+document.querySelectorAll('#headers .kv-row').forEach(r=>{
+const inputs=r.querySelectorAll('input');
+if(inputs[0].value.trim())h[inputs[0].value.trim()]=inputs[1].value;
+});
+return h;
+}
+
+function getBody(){
+const active=document.querySelector('.tab.active').textContent;
+if(active==='JSON'){
+const t=document.getElementById('jsonData').value.trim();
+return t||null;
+}else if(active==='Form Data'){
+const fd=new URLSearchParams();
+document.querySelectorAll('#formData .kv-row').forEach(r=>{
+const inputs=r.querySelectorAll('input');
+if(inputs[0].value)fd.append(inputs[0].value,inputs[1].value);
+});
+return fd.toString()||null;
+}else{
+return document.getElementById('rawData').value||null;
+}
+}
+
+function generateCurl(method,url,headers,body){
+let c=`curl -X ${method} '${url}'`;
+Object.entries(headers).forEach(([k,v])=>{c+=` \\\n  -H '${k}: ${v}'`});
+if(body)c+=` \\\n  -d '${body.replace(/'/g,"'\\''")}'`;
+return c;
+}
+
+let lastCurl='';
+async function sendRequest(){
+const method=document.getElementById('method').value;
+const url=document.getElementById('url').value.trim();
+if(!url){alert('Please enter a URL');return;}
+const headers=getHeaders();
+const body=getBody();
+const btn=document.getElementById('sendBtn');
+btn.classList.add('loading');btn.textContent='Sending...';
+
+lastCurl=generateCurl(method,url,headers,body);
+
+try{
+const opts={method,headers};
+if(body&&!['GET','HEAD'].includes(method))opts.body=body;
+const resp=await fetch(url,opts);
+const sec=document.getElementById('responseSection');sec.style.display='block';
+const badge=document.getElementById('statusBadge');
+badge.textContent=`${resp.status} ${resp.statusText}`;
+badge.className='status '+(resp.ok?'ok':'err');
+let rh='';resp.headers.forEach((v,k)=>{rh+=`${k}: ${v}\n`});
+document.getElementById('respHeaders').textContent=rh;
+const text=await resp.text();
+try{document.getElementById('respBody').textContent=JSON.stringify(JSON.parse(text),null,2)}
+catch{document.getElementById('respBody').textContent=text}
+}catch(e){
+const sec=document.getElementById('responseSection');sec.style.display='block';
+document.getElementById('statusBadge').textContent='Error';document.getElementById('statusBadge').className='status err';
+document.getElementById('respHeaders').textContent='';
+document.getElementById('respBody').textContent=e.message;
+}finally{btn.classList.remove('loading');btn.textContent='Send Request'}
+}
+
+function copyCurl(){
+navigator.clipboard.writeText(lastCurl);
+const o=document.getElementById('curlOutput');o.style.display='block';o.textContent=lastCurl;
+setTimeout(()=>o.style.display='none',3000);
+}
+</script>
+</body>
+</html>

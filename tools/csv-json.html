@@ -30,16 +30,16 @@ textarea{flex:1;background:var(--bg);color:var(--text);border:none;padding:20px;
 <body>
 <header><h1>CSV to JSON Converter</h1><a href="index.html">← Back to Tools</a></header>
 <div class="toolbar">
-<button class="btn primary" onclick="csvToJson()">CSV → JSON</button>
-<button class="btn primary" onclick="jsonToCsv()">JSON → CSV</button>
-<button class="btn" onclick="copyOutput()">Copy</button>
-<button class="btn" onclick="downloadOutput()">Download</button>
-<button class="btn" onclick="clearAll()">Clear</button>
+<button class="btn primary" onclick="csvToJson()" aria-label="Convert CSV to JSON">CSV → JSON</button>
+<button class="btn primary" onclick="jsonToCsv()" aria-label="Convert JSON to CSV">JSON → CSV</button>
+<button class="btn" onclick="copyOutput()" aria-label="Copy output to clipboard">Copy</button>
+<button class="btn" onclick="downloadOutput()" aria-label="Download output as file">Download</button>
+<button class="btn" onclick="clearAll()" aria-label="Clear input and output">Clear</button>
 </div>
 <div class="container">
 <div class="pane">
 <div class="pane-header">Input</div>
-<textarea id="input" placeholder="Paste CSV or JSON here..." spellcheck="false"></textarea>
+<textarea id="input" placeholder="Paste CSV or JSON here..." spellcheck="false" aria-label="Input CSV or JSON text"></textarea>
 </div>
 <div class="pane">
 <div class="pane-header">Output</div>
@@ -81,7 +81,7 @@ document.getElementById('status').textContent=`Converted ${data.length} rows to 
 }catch(e){document.getElementById('output').textContent='Error: '+e.message}
 }
 function parseCSVLine(line){const result=[];let current='';let inQuotes=false;for(let i=0;i<line.length;i++){const c=line[i];if(inQuotes){if(c==='"'){if(line[i+1]==='"'){current+='"';i++}else{inQuotes=false}}else{current+=c}}else{if(c==='"'){inQuotes=true}else if(c===','){result.push(current);current=''}else{current+=c}}}result.push(current);return result}
-function copyOutput(){navigator.clipboard.writeText(document.getElementById('output').textContent)}
+function copyOutput(){navigator.clipboard.writeText(document.getElementById('output').textContent).then(()=>{const b=document.querySelector('[onclick="copyOutput()"]');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500)})}
 function downloadOutput(){const b=new Blob([document.getElementById('output').textContent],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='output.txt';a.click()}
 function clearAll(){document.getElementById('input').value='';document.getElementById('output').textContent='';document.getElementById('status').textContent='Ready'}
 </script>

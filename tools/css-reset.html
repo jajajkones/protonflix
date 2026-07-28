@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Reset / Normalize Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .header {
+            max-width: 900px;
+            margin: 0 auto 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #222;
+        }
+        .header h1 { font-size: 1.8rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .header a { color: #737373; text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+        .header a:hover { color: #fff; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .panel {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .panel h2 { font-size: 1.1rem; font-weight: 500; margin-bottom: 1.2rem; }
+        .panel h3 { font-size: 0.95rem; font-weight: 400; margin-bottom: 0.8rem; color: #737373; }
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+        .preset-card {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .preset-card:hover { border-color: #444; }
+        .preset-card.active { border-color: #fff; background: #1a1a1a; }
+        .preset-card h4 { font-size: 0.9rem; font-weight: 500; margin-bottom: 0.3rem; }
+        .preset-card p { font-size: 0.75rem; color: #737373; line-height: 1.4; }
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        .toggle-group:last-child { border-bottom: none; }
+        .toggle-group .label {
+            font-size: 0.85rem;
+            color: #737373;
+        }
+        .toggle-group .label small {
+            display: block;
+            font-size: 0.75rem;
+            color: #555;
+            margin-top: 0.2rem;
+        }
+        .toggle {
+            position: relative;
+            width: 40px;
+            height: 22px;
+            cursor: pointer;
+        }
+        .toggle input { display: none; }
+        .toggle .slider {
+            position: absolute;
+            inset: 0;
+            background: #222;
+            border-radius: 11px;
+            transition: background 0.2s;
+        }
+        .toggle .slider::before {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            left: 3px;
+            top: 3px;
+            background: #737373;
+            border-radius: 50%;
+            transition: transform 0.2s, background 0.2s;
+        }
+        .toggle input:checked + .slider { background: #333; }
+        .toggle input:checked + .slider::before { transform: translateX(18px); background: #fff; }
+        .btn {
+            padding: 0.7rem 1.2rem;
+            border: 1px solid #222;
+            border-radius: 6px;
+            background: #111;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn:hover { background: #1a1a1a; border-color: #333; }
+        .btn-primary { background: #fff; color: #0a0a0a; border-color: #fff; }
+        .btn-primary:hover { background: #e0e0e0; }
+        .btn-group { display: flex; gap: 0.5rem; margin-top: 1.5rem; }
+        .size-info {
+            font-size: 0.8rem;
+            color: #737373;
+            margin-top: 1rem;
+        }
+        pre {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            max-height: 500px;
+            overflow-y: auto;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        pre:hover { border-color: #444; }
+        .copy-toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #222;
+            color: #fff;
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .copy-toast.show { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>CSS Reset / Normalize Generator</h1>
+        <a href="index.html">← Back to ProtonFlix Tools</a>
+    </div>
+
+    <div class="container">
+        <div class="panel">
+            <h2>Quick Presets</h2>
+            <div class="preset-grid">
+                <div class="preset-card active" onclick="selectPreset('modern')">
+                    <h4>Modern Normalize</h4>
+                    <p>Lightweight modern browser normalization</p>
+                </div>
+                <div class="preset-card" onclick="selectPreset('meyer')">
+                    <h4>Meyer Reset</h4>
+                    <p>Classic comprehensive CSS reset</p>
+                </div>
+                <div class="preset-card" onclick="selectPreset('sanitize')">
+                    <h4>Sanitize.css</h4>
+                    <p>Opinionated normalize with sensible defaults</p>
+                </div>
+                <div class="preset-card" onclick="selectPreset('minimal')">
+                    <h4>Minimal</h4>
+                    <p>Only box-sizing and margin/padding reset</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Include Sections</h2>
+            <div class="toggle-group">
+                <div class="label">
+                    Box-sizing
+                    <small>border-box on all elements</small>
+                </div>
+                <label class="toggle"><input type="checkbox" id="boxSizing" checked onchange="generate()"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-group">
+                <div class="label">
+                    Margin & Padding Reset
+                    <small>Remove default browser spacing</small>
+                </div>
+                <label class="toggle"><input type="checkbox" id="marginReset" checked onchange="generate()"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-group">
+                <div class="label">
+                    Typography Baseline
+                    <small>Font sizes, line heights, smooth rendering</small>
+                </div>
+                <label class="toggle"><input type="checkbox" id="typography" checked onchange="generate()"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-group">
+                <div class="label">
+                    Form Elements
+                    <small>Remove defaults, inherit fonts</small>
+                </div>
+                <label class="toggle"><input type="checkbox" id="forms" checked onchange="generate()"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-group">
+                <div class="label">
+                    Images & Media
+                    <small>Responsive defaults, remove gaps</small>
+                </div>
+                <label class="toggle"><input type="checkbox" id="media" checked onchange="generate()"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-group">
+                <div class="label">
+                    Lists
+                    <small>Remove list styles</small>
+                </div>
+                <label class="toggle"><input type="checkbox" id="lists" checked onchange="generate()"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-group">
+                <div class="label">
+                    Tables
+                    <small>Collapse borders, normalize spacing</small>
+                </div>
+                <label class="toggle"><input type="checkbox" id="tables" checked onchange="generate()"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-group">
+                <div class="label">
+                    Accessibility
+                    <small>Focus styles, reduced motion, sr-only</small>
+                </div>
+                <label class="toggle"><input type="checkbox" id="a11y" checked onchange="generate()"><span class="slider"></span></label>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="copyOutput()">Copy CSS</button>
+                <button class="btn" onclick="downloadOutput()">Download</button>
+            </div>
+            <div class="size-info" id="sizeInfo"></div>
+        </div>
+
+        <div class="panel">
+            <h2>Output</h2>
+            <pre id="output" onclick="copyOutput()"></pre>
+        </div>
+    </div>
+
+    <div class="copy-toast" id="toast">Copied to clipboard!</div>
+
+    <script>
+        let currentPreset = 'modern';
+
+        function selectPreset(name) {
+            currentPreset = name;
+            document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            if (name === 'minimal') {
+                document.getElementById('boxSizing').checked = true;
+                document.getElementById('marginReset').checked = true;
+                document.getElementById('typography').checked = false;
+                document.getElementById('forms').checked = false;
+                document.getElementById('media').checked = false;
+                document.getElementById('lists').checked = false;
+                document.getElementById('tables').checked = false;
+                document.getElementById('a11y').checked = false;
+            } else {
+                document.getElementById('boxSizing').checked = true;
+                document.getElementById('marginReset').checked = true;
+                document.getElementById('typography').checked = true;
+                document.getElementById('forms').checked = true;
+                document.getElementById('media').checked = true;
+                document.getElementById('lists').checked = true;
+                document.getElementById('tables').checked = true;
+                document.getElementById('a11y').checked = true;
+            }
+            generate();
+        }
+
+        function generate() {
+            const sections = [];
+            const css = [];
+
+            css.push('/* =============================================');
+            css.push('   CSS Reset - Generated by ProtonFlix Tools');
+            css.push('   Preset: ' + currentPreset);
+            css.push('   ============================================= */');
+            css.push('');
+
+            if (document.getElementById('boxSizing').checked) {
+                css.push('/* Box-sizing */');
+                css.push('*,');
+                css.push('*::before,');
+                css.push('*::after {');
+                css.push('  box-sizing: border-box;');
+                css.push('}');
+                css.push('');
+            }
+
+            if (document.getElementById('marginReset').checked) {
+                css.push('/* Margin & Padding Reset */');
+                css.push('* {');
+                css.push('  margin: 0;');
+                css.push('  padding: 0;');
+                css.push('}');
+                css.push('');
+                css.push('html, body {');
+                css.push('  height: 100%;');
+                css.push('}');
+                css.push('');
+            }
+
+            if (document.getElementById('typography').checked) {
+                css.push('/* Typography Baseline */');
+                css.push('html {');
+                css.push('  -moz-text-size-adjust: none;');
+                css.push('  -webkit-text-size-adjust: none;');
+                css.push('  text-size-adjust: none;');
+                css.push('}');
+                css.push('');
+                css.push('body {');
+                css.push('  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;');
+                css.push('  line-height: 1.5;');
+                css.push('  -webkit-font-smoothing: antialiased;');
+                css.push('  -moz-osx-font-smoothing: grayscale;');
+                css.push('}');
+                css.push('');
+                css.push('h1, h2, h3, h4, h5, h6 {');
+                css.push('  overflow-wrap: break-word;');
+                css.push('  font-weight: inherit;');
+                css.push('  font-size: inherit;');
+                css.push('}');
+                css.push('');
+                css.push('p {');
+                css.push('  overflow-wrap: break-word;');
+                css.push('}');
+                css.push('');
+            }
+
+            if (document.getElementById('media').checked) {
+                css.push('/* Images & Media */');
+                css.push('img,');
+                css.push('picture,');
+                css.push('video,');
+                css.push('canvas,');
+                css.push('svg {');
+                css.push('  display: block;');
+                css.push('  max-width: 100%;');
+                css.push('}');
+                css.push('');
+                css.push('img {');
+                css.push('  height: auto;');
+                css.push('}');
+                css.push('');
+            }
+
+            if (document.getElementById('forms').checked) {
+                css.push('/* Form Elements */');
+                css.push('input,');
+                css.push('button,');
+                css.push('textarea,');
+                css.push('select {');
+                css.push('  font: inherit;');
+                css.push('  color: inherit;');
+                css.push('}');
+                css.push('');
+                css.push('button {');
+                css.push('  cursor: pointer;');
+                css.push('}');
+                css.push('');
+                css.push('textarea {');
+                css.push('  resize: vertical;');
+                css.push('}');
+                css.push('');
+                css.push('[type="submit"],');
+                css.push('[type="reset"] {');
+                css.push('  cursor: pointer;');
+                css.push('}');
+                css.push('');
+            }
+
+            if (document.getElementById('lists').checked) {
+                css.push('/* Lists */');
+                css.push('ul,');
+                css.push('ol {');
+                css.push('  list-style: none;');
+                css.push('}');
+                css.push('');
+            }
+
+            if (document.getElementById('tables').checked) {
+                css.push('/* Tables */');
+                css.push('table {');
+                css.push('  border-collapse: collapse;');
+                css.push('  border-spacing: 0;');
+                css.push('}');
+                css.push('');
+            }
+
+            if (document.getElementById('a11y').checked) {
+                css.push('/* Accessibility */');
+                css.push('a {');
+                css.push('  color: inherit;');
+                css.push('  text-decoration: none;');
+                css.push('}');
+                css.push('');
+                css.push('a:not([class]) {');
+                css.push('  text-decoration-skip-ink: auto;');
+                css.push('}');
+                css.push('');
+                css.push('[hidden] {');
+                css.push('  display: none !important;');
+                css.push('}');
+                css.push('');
+                css.push('/* Focus visible */');
+                css.push(':focus-visible {');
+                css.push('  outline: 2px solid currentColor;');
+                css.push('  outline-offset: 2px;');
+                css.push('}');
+                css.push('');
+                css.push('/* Reduced motion */');
+                css.push('@media (prefers-reduced-motion: reduce) {');
+                css.push('  *,');
+                css.push('  *::before,');
+                css.push('  *::after {');
+                css.push('    animation-duration: 0.01ms !important;');
+                css.push('    animation-iteration-count: 1 !important;');
+                css.push('    transition-duration: 0.01ms !important;');
+                css.push('    scroll-behavior: auto !important;');
+                css.push('  }');
+                css.push('}');
+                css.push('');
+            }
+
+            if (currentPreset === 'meyer') {
+                css.push('/* Additional Meyer Reset */');
+                css.push('html {');
+                css.push('  scroll-behavior: smooth;');
+                css.push('}');
+                css.push('');
+                css.push('strong, b {');
+                css.push('  font-weight: bold;');
+                css.push('}');
+                css.push('');
+                css.push('sub, sup {');
+                css.push('  font-size: 75%;');
+                css.push('  line-height: 0;');
+                css.push('  position: relative;');
+                css.push('  vertical-align: baseline;');
+                css.push('}');
+                css.push('');
+                css.push('sup {');
+                css.push('  top: -0.5em;');
+                css.push('}');
+                css.push('');
+                css.push('sub {');
+                css.push('  bottom: -0.25em;');
+                css.push('}');
+                css.push('');
+            }
+
+            const output = css.join('\n');
+            document.getElementById('output').textContent = output;
+
+            const bytes = new Blob([output]).size;
+            document.getElementById('sizeInfo').textContent = `${(bytes / 1024).toFixed(1)} KB · ${css.length} lines`;
+        }
+
+        function copyOutput() {
+            const text = document.getElementById('output').textContent;
+            navigator.clipboard.writeText(text).then(() => showToast());
+        }
+
+        function downloadOutput() {
+            const text = document.getElementById('output').textContent;
+            const blob = new Blob([text], { type: 'text/css' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'reset.css';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+
+        function showToast() {
+            const t = document.getElementById('toast');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        generate();
+    </script>
+</body>
+</html>

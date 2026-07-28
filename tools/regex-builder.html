@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regex Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;padding:20px}
+.container{max-width:960px;margin:0 auto}
+header{display:flex;align-items:center;gap:16px;margin-bottom:32px;padding-bottom:16px;border-bottom:1px solid #222}
+h1{font-size:1.8rem;font-weight:600}
+.back{color:#737373;text-decoration:none;font-size:0.9rem;transition:color .2s}
+.back:hover{color:#fff}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:24px;margin-bottom:20px}
+label{display:block;font-weight:500;margin-bottom:8px;color:#e0e0e0;font-size:0.9rem}
+textarea,input[type=text]{width:100%;background:#0a0a0a;border:1px solid #222;color:#fff;font-family:'Outfit',sans-serif;padding:12px;border-radius:8px;font-size:0.95rem;resize:vertical}
+textarea{min-height:120px}
+input[type=text]{height:42px}
+select{background:#0a0a0a;border:1px solid #222;color:#fff;font-family:'Outfit',sans-serif;padding:10px 12px;border-radius:8px;font-size:0.9rem;height:42px}
+.flag-row{display:flex;gap:12px;align-items:center;margin:12px 0}
+.flag-btn{background:#0a0a0a;border:1px solid #222;color:#737373;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:500;font-size:0.85rem;transition:all .2s}
+.flag-btn.active{background:#2563eb;border-color:#2563eb;color:#fff}
+.regex-output{background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:16px;font-family:'Courier New',monospace;font-size:1.1rem;color:#34d399;word-break:break-all;margin:12px 0}
+.component-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.comp-chip{background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:6px 12px;border-radius:20px;font-size:0.82rem;display:flex;align-items:center;gap:6px}
+.comp-chip .remove{cursor:pointer;color:#f87171;font-weight:700}
+.add-row{display:flex;gap:8px;margin:12px 0}
+.add-row select{flex:1}
+.add-row input{flex:1}
+.btn{background:#2563eb;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-family:'Outfit',sans-serif;font-weight:500;font-size:0.9rem;cursor:pointer;transition:background .2s}
+.btn:hover{background:#1d4ed8}
+.btn-sm{padding:8px 14px;font-size:0.8rem}
+.btn-danger{background:#dc2626}
+.btn-danger:hover{background:#b91c1c}
+.btn-outline{background:transparent;border:1px solid #222;color:#fff}
+.btn-outline:hover{background:#222}
+.match-highlight{background:#2563eb33;border:1px solid #2563eb;border-radius:4px;padding:0 2px}
+.test-area{font-family:'Courier New',monospace;line-height:1.8;white-space:pre-wrap}
+.copy-block{background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:12px;font-family:'Courier New',monospace;font-size:0.85rem;color:#a0a0a0;position:relative;margin:8px 0}
+.copy-block code{display:block;white-space:pre;overflow-x:auto}
+.copy-block .copy-btn{position:absolute;top:8px;right:8px;background:#333;border:none;color:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:0.75rem}
+
+@media(max-width:768px){header{padding:20px 16px}header h1{font-size:16px}.content{padding:20px 16px}.container{padding:16px}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<a href="index.html" class="back">← Back</a>
+<h1>Regex Builder</h1>
+</header>
+
+<div class="card">
+<label>Regex Flags</label>
+<div class="flag-row">
+<button class="flag-btn active" data-flag="g" onclick="toggleFlag(this)">g (global)</button>
+<button class="flag-btn" data-flag="i" onclick="toggleFlag(this)">i (case-insensitive)</button>
+<button class="flag-btn" data-flag="m" onclick="toggleFlag(this)">m (multiline)</button>
+<button class="flag-btn" data-flag="s" onclick="toggleFlag(this)">s (dotAll)</button>
+<button class="flag-btn" data-flag="u" onclick="toggleFlag(this)">u (unicode)</button>
+</div>
+</div>
+
+<div class="card">
+<label>Add Components</label>
+<div class="add-row">
+<select id="compType">
+<option value="literal">Literal Text</option>
+<option value="digit">\d - Digit</option>
+<option value="word">\w - Word char</option>
+<option value="space">\s - Whitespace</option>
+<option value="any">. - Any char</option>
+<option value="custom">Custom class [...]</option>
+<option value="oneormore">+ - One or more</option>
+<option value="zeroormore">* - Zero or more</option>
+<option value="optional">? - Optional</option>
+<option value="exact">{n} - Exact count</option>
+<option value="range">{n,m} - Range count</option>
+<option value="group">(...) - Group</option>
+<option value="lookahead">(?:...) - Non-capturing group</option>
+<option value="poslookahead">(?=...) - Positive lookahead</option>
+<option value="neglookahead">(?!...) - Negative lookahead</option>
+<option value="poslookbehind">(?&lt;=...) - Positive lookbehind</option>
+<option value="neglookbehind">(?&lt;!...) - Negative lookbehind</option>
+<option value="anchorstart">^ - Start anchor</option>
+<option value="anchorend">$ - End anchor</option>
+<option value="wordboundary">\b - Word boundary</option>
+<option value="or">| - Alternation</option>
+</select>
+<input type="text" id="compValue" placeholder="Value (if needed)">
+<button class="btn btn-sm" onclick="addComponent()">Add</button>
+</div>
+<div class="component-list" id="compList"></div>
+<button class="btn btn-outline btn-sm" onclick="clearComponents()" style="margin-top:8px">Clear All</button>
+</div>
+
+<div class="card">
+<label>Generated Regex</label>
+<div class="regex-output" id="regexOutput">/(?:)/g</div>
+<div style="display:flex;gap:8px">
+<button class="btn btn-sm" onclick="copyRegex()">Copy Regex</button>
+<button class="btn btn-sm btn-outline" onclick="copyTestCode()">Copy Test Code</button>
+</div>
+</div>
+
+<div class="card">
+<label>Test String</label>
+<textarea id="testString" placeholder="Enter a test string to match against...">Hello World 123, test@example.com</textarea>
+<div style="margin-top:12px">
+<label>Matches</label>
+<div id="matchResult" class="test-area"></div>
+</div>
+</div>
+</div>
+
+<script>
+let components=[];
+let flags={g:true,i:false,m:false,s:false,u:false};
+
+function toggleFlag(btn){
+const f=btn.dataset.flag;
+flags[f]=!flags[f];
+btn.classList.toggle('active');
+buildRegex();
+}
+
+function addComponent(){
+const type=document.getElementById('compType').value;
+const val=document.getElementById('compValue').value;
+components.push({type,value:val});
+document.getElementById('compValue').value='';
+renderComponents();
+buildRegex();
+}
+
+function removeComponent(i){
+components.splice(i,1);
+renderComponents();
+buildRegex();
+}
+
+function clearComponents(){
+components=[];
+renderComponents();
+buildRegex();
+}
+
+function renderComponents(){
+const list=document.getElementById('compList');
+list.innerHTML=components.map((c,i)=>{
+let label=c.type;
+const vals={literal:'"'+c.value+'"',custom:'['+c.value+']',exact:'{'+c.value+'}',range:'{'+c.value+'}'};
+if(vals[c.type])label+=' '+vals[c.type];
+return'<span class="comp-chip">'+label+'<span class="remove" onclick="removeComponent('+i+')">&times;</span></span>';
+}).join('');
+}
+
+function buildRegex(){
+let pattern='';
+components.forEach(c=>{
+switch(c.type){
+case'literal':pattern+=escapeRegex(c.value);break;
+case'digit':pattern+='\\d';break;
+case'word':pattern+='\\w';break;
+case'space':pattern+='\\s';break;
+case'any':pattern+='.';break;
+case'custom':pattern+='['+c.value+']';break;
+case'oneormore':pattern+='+';break;
+case'zeroormore':pattern+='*';break;
+case'optional':pattern+='?';break;
+case'exact':pattern+='{'+c.value+'}';break;
+case'range':pattern+='{'+c.value+'}';break;
+case'group':pattern='('+pattern+')';break;
+case'lookahead':pattern+='(?:'+c.value+')';break;
+case'poslookahead':pattern+='(?='+c.value+')';break;
+case'neglookahead':pattern+='(?!'+c.value+')';break;
+case'poslookbehind':pattern+='(?<='+c.value+')';break;
+case'neglookbehind':pattern+='(?!'+c.value+')';break;
+case'anchorstart':pattern+='^';break;
+case'anchorend':pattern+='$';break;
+case'wordboundary':pattern+='\\b';break;
+case'or':pattern+='|'+c.value;break;
+}
+});
+const flagStr=Object.entries(flags).filter(([k,v])=>v).map(([k])=>k).join('');
+const regexStr='/(?:'+(pattern||'.+')+')/'+flagStr;
+document.getElementById('regexOutput').textContent=regexStr;
+testRegex(pattern,flagStr);
+}
+
+function escapeRegex(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}
+
+function testRegex(pattern,flagStr){
+const testStr=document.getElementById('testString').value;
+const result=document.getElementById('matchResult');
+if(!pattern){result.innerHTML='<span style="color:#737373">Add components to see matches</span>';return}
+try{
+const re=new RegExp(pattern,flagStr);
+const matches=[];
+let m;
+if(flagStr.includes('g')){while((m=re.exec(testStr))!==null){matches.push({val:m[0],index:m.index});if(!m[0])break}}
+else{m=re.exec(testStr);if(m)matches.push({val:m[0],index:m.index})}
+if(matches.length===0){result.innerHTML='<span style="color:#737373">No matches</span>';return}
+let highlighted=testStr;
+let offset=0;
+matches.sort((a,b)=>a.index-b.index);
+let html='';
+let lastIdx=0;
+matches.forEach(m=>{
+html+=escapeHtml(testStr.slice(lastIdx,m.index));
+html+='<span class="match-highlight">'+escapeHtml(m.val)+'</span>';
+lastIdx=m.index+m.val.length;
+});
+html+=escapeHtml(testStr.slice(lastIdx));
+result.innerHTML=html+'<br><br><span style="color:#737373">'+matches.length+' match(es) found</span>';
+}catch(e){result.innerHTML='<span style="color:#f87171">'+e.message+'</span>'}
+}
+
+function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function copyRegex(){
+const text=document.getElementById('regexOutput').textContent;
+navigator.clipboard.writeText(text);
+}
+
+function copyTestCode(){
+const pattern=document.getElementById('regexOutput').textContent;
+const code=`const regex = ${pattern};\nconst testStr = "${document.getElementById('testString').value.replace(/"/g,'\\"')}";\nconst matches = testStr.match(regex);\nconsole.log(matches);`;
+navigator.clipboard.writeText(code);
+}
+
+document.getElementById('testString').addEventListener('input',()=>buildRegex());
+buildRegex();
+</script>
+</body>
+</html>

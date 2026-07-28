@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTTP Status Codes Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;padding:20px}
+.header{text-align:center;padding:30px 0;border-bottom:1px solid #222;margin-bottom:30px}
+.header h1{font-size:2rem;font-weight:600;margin-bottom:10px}
+.header a{color:#737373;text-decoration:none;font-size:0.9rem;transition:color .2s}
+.header a:hover{color:#fff}
+.search-wrap{max-width:600px;margin:0 auto 30px}
+.search{width:100%;padding:12px 16px;border-radius:8px;border:1px solid #222;background:#111;color:#fff;font-family:'Outfit',sans-serif;font-size:1rem;outline:none;transition:border .2s}
+.search:focus{border-color:#444}
+.category{margin-bottom:40px}
+.cat-title{font-size:1.2rem;font-weight:600;padding:10px 16px;background:#111;border:1px solid #222;border-radius:8px 8px 0 0;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.cat-title:hover{background:#1a1a1a}
+.cat-title span{font-size:0.8rem;color:#737373}
+.codes-grid{display:grid;gap:1px;background:#222;border:1px solid #222;border-top:none;border-radius:0 0 8px 8px;overflow:hidden}
+.code-item{background:#111;padding:12px 16px;cursor:pointer;transition:background .2s}
+.code-item:hover{background:#1a1a1a}
+.code-item.copied{background:#1a3a1a}
+.code-num{font-weight:600;font-size:1.1rem;margin-right:10px}
+.code-name{font-size:0.9rem;color:#fff}
+.code-desc{font-size:0.8rem;color:#737373;margin-top:4px}
+.toast{position:fixed;bottom:20px;right:20px;background:#222;color:#fff;padding:12px 20px;border-radius:8px;font-size:0.9rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:1000}
+.toast.show{opacity:1}
+.info .code-num{color:#4fc3f7}
+.success .code-num{color:#81c784}
+.redirection .code-num{color:#ffb74d}
+.client .code-num{color:#e57373}
+.server .code-num{color:#ce93d8}
+@media(max-width:600px){.codes-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>HTTP Status Codes Reference</h1>
+<a href="index.html">← Back</a>
+</div>
+<div class="search-wrap">
+<input type="text" class="search" placeholder="Search codes..." id="search" aria-label="Search HTTP status codes">
+</div>
+<div id="container"></div>
+<div class="toast" id="toast"></div>
+<script>
+const data=[
+{cat:"1xx Informational",cls:"info",codes:[
+{code:100,name:"Continue",desc:"Server received request headers; client should proceed.",use:"Large POST requests"},
+{code:101,name:"Switching Protocols",desc:"Server is switching protocols as requested.",use:"WebSocket upgrade"},
+{code:102,name:"Processing",desc:"Server is processing the request (WebDAV).",use:"Long-running WebDAV operations"},
+{code:103,name:"Early Hints",desc:"Preload resources while server prepares response.",use:"Preload hints"}
+]},
+{cat:"2xx Success",cls:"success",codes:[
+{code:200,name:"OK",desc:"Request succeeded.",use:"GET, PUT, DELETE success"},
+{code:201,name:"Created",desc:"Resource successfully created.",use:"POST creating new resource"},
+{code:202,name:"Accepted",desc:"Request accepted for processing.",use:"Async operations"},
+{code:204,name:"No Content",desc:"Success with no response body.",use:"DELETE, PUT without return"},
+{code:206,name:"Partial Content",desc:"Partial resource returned.",use:"Range requests, streaming"},
+{code:207,name:"Multi-Status",desc:"Multiple status codes (WebDAV).",use:"Batch WebDAV operations"}
+]},
+{cat:"3xx Redirection",cls:"redirection",codes:[
+{code:301,name:"Moved Permanently",desc:"Resource permanently moved to new URL.",use:"URL change, SEO redirect"},
+{code:302,name:"Found",desc:"Resource temporarily at different URL.",use:"Temporary redirect"},
+{code:303,name:"See Other",desc:"Response at different URI (GET).",use:"Redirect after POST"},
+{code:304,name:"Not Modified",desc:"Cached version is still valid.",use:"Browser caching"},
+{code:307,name:"Temporary Redirect",desc:"Temporary redirect, method preserved.",use:"Temporary URL change"},
+{code:308,name:"Permanent Redirect",desc:"Permanent redirect, method preserved.",use:"Permanent URL change"}
+]},
+{cat:"4xx Client Error",cls:"client",codes:[
+{code:400,name:"Bad Request",desc:"Malformed syntax or invalid data.",use:"Validation errors"},
+{code:401,name:"Unauthorized",desc:"Authentication required.",use:"Login required"},
+{code:403,name:"Forbidden",desc:"Server refuses to authorize.",use:"Insufficient permissions"},
+{code:404,name:"Not Found",desc:"Resource does not exist.",use:"Invalid URL or deleted resource"},
+{code:405,name:"Method Not Allowed",desc:"HTTP method not supported.",use:"Wrong method on endpoint"},
+{code:408,name:"Request Timeout",desc:"Client took too long.",use:"Slow client"},
+{code:409,name:"Conflict",desc:"Conflict with current state.",use:"Duplicate resource, version conflict"},
+{code:410,name:"Gone",desc:"Resource permanently removed.",use:"Intentionally deleted"},
+{code:411,name:"Length Required",desc:"Content-Length header needed.",use:"Missing content length"},
+{code:413,name:"Payload Too Large",desc:"Request body too large.",use:"File upload limits"},
+{code:415,name:"Unsupported Media Type",desc:"Content-Type not supported.",use:"Wrong file format"},
+{code:422,name:"Unprocessable Entity",desc:"Syntactically correct but semantically invalid.",use:"Validation errors"},
+{code:429,name:"Too Many Requests",desc:"Rate limit exceeded.",use:"API throttling"}
+]},
+{cat:"5xx Server Error",cls:"server",codes:[
+{code:500,name:"Internal Server Error",desc:"Generic server error.",use:"Unexpected failures"},
+{code:501,name:"Not Implemented",desc:"Server doesn't support feature.",use:"Unsupported functionality"},
+{code:502,name:"Bad Gateway",desc:"Invalid response from upstream.",use:"Gateway/proxy issues"},
+{code:503,name:"Service Unavailable",desc:"Server temporarily overloaded.",use:"Maintenance, overload"},
+{code:504,name:"Gateway Timeout",desc:"Upstream server timed out.",use:"Slow backend"},
+{code:507,name:"Insufficient Storage",desc:"Server storage full (WebDAV).",use:"Disk full"}
+]}
+];
+function render(filter=''){
+const c=document.getElementById('container');c.innerHTML='';
+data.forEach(g=>{
+const f=g.codes.filter(c=>!filter||c.code.toString().includes(filter)||c.name.toLowerCase().includes(filter.toLowerCase())||c.desc.toLowerCase().includes(filter.toLowerCase())||c.use.toLowerCase().includes(filter.toLowerCase()));
+if(!f.length)return;
+const sec=document.createElement('div');sec.className='category';
+sec.innerHTML=`<div class="cat-title">${g.cat}<span>${f.length} codes</span></div><div class="codes-grid" id="grid-${g.cls}"></div>`;
+c.appendChild(sec);
+const grid=sec.querySelector('.codes-grid');
+f.forEach(c=>{
+const el=document.createElement('div');el.className=`code-item ${g.cls}`;
+el.innerHTML=`<div><span class="code-num">${c.code}</span><span class="code-name">${c.name}</span></div><div class="code-desc">${c.desc}</div><div class="code-desc"><em>When to use:</em> ${c.use}</div>`;
+el.onclick=()=>{navigator.clipboard.writeText(String(c.code));el.classList.add('copied');showToast('Copied '+c.code);setTimeout(()=>el.classList.remove('copied'),500)};
+grid.appendChild(el);
+});
+});
+}
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+document.getElementById('search').oninput=e=>render(e.target.value);
+render();
+</script>
+</body>
+</html>

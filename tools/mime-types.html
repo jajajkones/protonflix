@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIME Types Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;padding:20px}
+.header{text-align:center;padding:30px 0;border-bottom:1px solid #222;margin-bottom:30px}
+.header h1{font-size:2rem;font-weight:600;margin-bottom:10px}
+.header a{color:#737373;text-decoration:none;font-size:0.9rem;transition:color .2s}
+.header a:hover{color:#fff}
+.search-wrap{max-width:600px;margin:0 auto 30px}
+.search{width:100%;padding:12px 16px;border-radius:8px;border:1px solid #222;background:#111;color:#fff;font-family:'Outfit',sans-serif;font-size:1rem;outline:none;transition:border .2s}
+.search:focus{border-color:#444}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:20px}
+.tab{padding:8px 16px;border-radius:6px;border:1px solid #222;background:#111;color:#737373;cursor:pointer;font-family:'Outfit',sans-serif;font-size:0.85rem;transition:all .2s}
+.tab.active,.tab:hover{background:#222;color:#fff;border-color:#444}
+.cat{margin-bottom:40px}
+.cat-title{font-size:1.2rem;font-weight:600;padding:10px 16px;background:#111;border:1px solid #222;border-radius:8px 8px 0 0;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.cat-title:hover{background:#1a1a1a}
+.cat-title span{font-size:0.8rem;color:#737373}
+.table-wrap{border:1px solid #222;border-top:none;border-radius:0 0 8px 8px;overflow:hidden}
+.mime{display:grid;grid-template-columns:2fr 1fr 1fr;background:#111;padding:10px 16px;border-bottom:1px solid #222;cursor:pointer;transition:background .2s;font-size:0.85rem}
+.mime:last-child{border-bottom:none}
+.mime:hover{background:#1a1a1a}
+.mime.copied{background:#1a3a1a}
+.mime-type{color:#fff;font-weight:500}
+.mime-ext{color:#737373}
+.mime-cat{color:#4fc3f7}
+.toast{position:fixed;bottom:20px;right:20px;background:#222;color:#fff;padding:12px 20px;border-radius:8px;font-size:0.9rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:1000}
+.toast.show{opacity:1}
+@media(max-width:600px){.mime{grid-template-columns:1fr}.mime-ext,.mime-cat{font-size:0.75rem}}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>MIME Types Reference</h1>
+<a href="index.html">← Back</a>
+</div>
+<div class="search-wrap">
+<input type="text" class="search" placeholder="Search MIME types..." id="search" aria-label="Search MIME types">
+</div>
+<div class="tabs" id="tabs"></div>
+<div id="container"></div>
+<div class="toast" id="toast"></div>
+<script>
+const data=[
+{cat:"Text",prefix:"text/",items:[
+{type:"text/plain",ext:".txt",desc:"Plain text"},
+{type:"text/html",ext:".html, .htm",desc:"HTML documents"},
+{type:"text/css",ext:".css",desc:"Cascading Style Sheets"},
+{type:"text/javascript",ext:".js, .mjs",desc:"JavaScript"},
+{type:"text/json",ext:".json",desc:"JSON data"},
+{type:"text/xml",ext:".xml",desc:"XML documents"},
+{type:"text/csv",ext:".csv",desc:"Comma-separated values"},
+{type:"text/markdown",ext:".md",desc:"Markdown text"},
+{type:"text/yaml",ext:".yaml, .yml",desc:"YAML data"},
+{type:"text/toml",ext:".toml",desc:"TOML config"},
+{type:"text/php",ext:".php",desc:"PHP source"},
+{type:"text/typescript",ext:".ts",desc:"TypeScript source"},
+{type:"text/jsx",ext:".jsx",desc:"React JSX"},
+{type:"text/tsx",ext:".tsx",desc:"React TSX"},
+{type:"text/rtf",ext:".rtf",desc:"Rich Text Format"},
+{type:"text/richtext",ext:".rtf",desc:"Rich Text Format"},
+{type:"text/uri-list",ext:"",desc:"List of URIs"},
+{type:"text/x-python",ext:".py",desc:"Python source"},
+{type:"text/x-java-source",ext:".java",desc:"Java source"},
+{type:"text/x-c",ext:".c",desc:"C source"},
+{type:"text/x-c++",ext:".cpp, .cc",desc:"C++ source"},
+{type:"text/x-shellscript",ext:".sh",desc:"Shell scripts"},
+{type:"text/x-sql",ext:".sql",desc:"SQL scripts"}
+]},
+{cat:"Application",prefix:"application/",items:[
+{type:"application/json",ext:".json",desc:"JSON data"},
+{type:"application/xml",ext:".xml",desc:"XML documents"},
+{type:"application/javascript",ext:".js",desc:"JavaScript"},
+{type:"application/x-javascript",ext:".js",desc:"JavaScript"},
+{type:"application/typescript",ext:".ts",desc:"TypeScript"},
+{type:"application/pdf",ext:".pdf",desc:"Adobe PDF"},
+{type:"application/zip",ext:".zip",desc:"ZIP archive"},
+{type:"application/gzip",ext:".gz",desc:"Gzip compressed"},
+{type:"application/x-tar",ext:".tar",desc:"Tar archive"},
+{type:"application/x-bzip2",ext:".bz2",desc:"Bzip2 compressed"},
+{type:"application/x-7z-compressed",ext:".7z",desc:"7-Zip archive"},
+{type:"application/x-rar",ext:".rar",desc:"RAR archive"},
+{type:"application/x-www-form-urlencoded",ext:"",desc:"Form data (URL encoded)"},
+{type:"multipart/form-data",ext:"",desc:"Form data (file upload)"},
+{type:"application/octet-stream",ext:".*",desc:"Binary data (generic)"},
+{type:"application/vnd.ms-excel",ext:".xls",desc:"Excel 97-2003"},
+{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",ext:".xlsx",desc:"Excel 2007+"},
+{type:"application/vnd.ms-powerpoint",ext:".ppt",desc:"PowerPoint 97-2003"},
+{type:"application/vnd.openxmlformats-officedocument.presentationml.presentation",ext:".pptx",desc:"PowerPoint 2007+"},
+{type:"application/msword",ext:".doc",desc:"Word 97-2003"},
+{type:"application/vnd.openxmlformats-officedocument.wordprocessingml.document",ext:".docx",desc:"Word 2007+"},
+{type:"application/epub+zip",ext:".epub",desc:"EPUB e-book"},
+{type:"application/wasm",ext:".wasm",desc:"WebAssembly"},
+{type:"application/toml",ext:".toml",desc:"TOML config"},
+{type:"application/graphql",ext:".graphql",desc:"GraphQL"},
+{type:"application/ld+json",ext:".jsonld",desc:"Linked Data JSON"},
+{type:"application/manifest+json",ext:".webmanifest",desc:"Web App Manifest"},
+{type:"application/x-pem-file",ext:".pem",desc:"PEM certificate"},
+{type:"application/x-pkcs12",ext:".p12",desc:"PKCS#12 certificate"},
+{type:"application/x-bittorrent",ext:".torrent",desc:"Torrent file"}
+]},
+{cat:"Image",prefix:"image/",items:[
+{type:"image/jpeg",ext:".jpg, .jpeg",desc:"JPEG image"},
+{type:"image/png",ext:".png",desc:"PNG image"},
+{type:"image/gif",ext:".gif",desc:"GIF image"},
+{type:"image/webp",ext:".webp",desc:"WebP image"},
+{type:"image/svg+xml",ext:".svg",desc:"SVG vector image"},
+{type:"image/avif",ext:".avif",desc:"AVIF image"},
+{type:"image/apng",ext:".apng",desc:"Animated PNG"},
+{type:"image/bmp",ext:".bmp",desc:"Bitmap image"},
+{type:"image/x-icon",ext:".ico",desc:"Icon"},
+{type:"image/vnd.microsoft.icon",ext:".ico",desc:"Icon"},
+{type:"image/tiff",ext:".tif, .tiff",desc:"TIFF image"},
+{type:"image/x-xbitmap",ext:".xbm",desc:"X Bitmap"},
+{type:"image/x-xpixmap",ext:".xpm",desc:"X Pixmap"},
+{type:"image/x-portable-pixmap",ext:".ppm",desc:"Portable Pixmap"},
+{type:"image/x-portable-bitmap",ext:".pbm",desc:"Portable Bitmap"},
+{type:"image/x-portable-graymap",ext:".pgm",desc:"Portable Graymap"},
+{type:"image/x-portable-anymap",ext:".pnm",desc:"Portable Anymap"},
+{type:"image/x-cmu-raster",ext:".ras",desc:"CMU Raster"},
+{type:"image/x-ms-bmp",ext:".bmp",desc:"Windows Bitmap"},
+{type:"image/heic",ext:".heic",desc:"HEIC image"},
+{type:"image/heif",ext:".heif",desc:"HEIF image"}
+]},
+{cat:"Audio",prefix:"audio/",items:[
+{type:"audio/mpeg",ext:".mp3",desc:"MP3 audio"},
+{type:"audio/wav",ext:".wav",desc:"WAV audio"},
+{type:"audio/ogg",ext:".ogg",desc:"OGG audio"},
+{type:"audio/webm",ext:".webm",desc:"WebM audio"},
+{type:"audio/flac",ext:".flac",desc:"FLAC lossless audio"},
+{type:"audio/aac",ext:".aac",desc:"AAC audio"},
+{type:"audio/x-m4a",ext:".m4a",desc:"M4A audio"},
+{type:"audio/mp4",ext:".m4a",desc:"MP4 audio"},
+{type:"audio/midi",ext:".midi, .mid",desc:"MIDI audio"},
+{type:"audio/x-midi",ext:".midi, .mid",desc:"MIDI audio"},
+{type:"audio/x-wav",ext:".wav",desc:"WAV audio"},
+{type:"audio/x-flac",ext:".flac",desc:"FLAC audio"},
+{type:"audio/opus",ext:".opus",desc:"Opus audio"},
+{type:"audio/x-aiff",ext:".aiff",desc:"AIFF audio"},
+{type:"audio/x-matroska",ext:".mka",desc:"Matroska audio"}
+]},
+{cat:"Video",prefix:"video/",items:[
+{type:"video/mp4",ext:".mp4",desc:"MP4 video"},
+{type:"video/webm",ext:".webm",desc:"WebM video"},
+{type:"video/ogg",ext:".ogv",desc:"OGG video"},
+{type:"video/mpeg",ext:".mpeg, .mpg",desc:"MPEG video"},
+{type:"video/quicktime",ext:".mov",desc:"QuickTime video"},
+{type:"video/x-msvideo",ext:".avi",desc:"AVI video"},
+{type:"video/x-ms-wmv",ext:".wmv",desc:"Windows Media Video"},
+{type:"video/x-flv",ext:".flv",desc:"Flash video"},
+{type:"video/x-matroska",ext:".mkv",desc:"Matroska video"},
+{type:"video/x-m4v",ext:".m4v",desc:"M4V video"},
+{type:"video/3gpp",ext:".3gp",desc:"3GPP mobile video"},
+{type:"video/3gpp2",ext:".3g2",desc:"3GPP2 mobile video"},
+{type:"video/MP2T",ext:".ts",desc:"MPEG Transport Stream"},
+{type:"video/avi",ext:".avi",desc:"AVI video"},
+{type:"video/x-theora+ogg",ext:".ogv",desc:"Theora/OGG video"}
+]},
+{cat:"Font",prefix:"font/",items:[
+{type:"font/otf",ext:".otf",desc:"OpenType Font"},
+{type:"font/ttf",ext:".ttf",desc:"TrueType Font"},
+{type:"font/woff",ext:".woff",desc:"Web Open Font Format"},
+{type:"font/woff2",ext:".woff2",desc:"WOFF2 Font"},
+{type:"font/eot",ext:".eot",desc:"Embedded OpenType"},
+{type:"application/font-sfnt",ext:".ttf, .otf",desc:"SFNT font"},
+{type:"application/font-woff",ext:".woff",desc:"WOFF font"},
+{type:"application/font-woff2",ext:".woff2",desc:"WOFF2 font"},
+{type:"application/vnd.ms-fontobject",ext:".eot",desc:"EOT font"}
+]},
+{cat:"Multipart",prefix:"multipart/",items:[
+{type:"multipart/form-data",ext:"",desc:"Form submission with files"},
+{type:"multipart/byteranges",ext:"",desc:"Byte ranges (HTTP)"},
+{type:"multipart/mixed",ext:"",desc:"Multiple body parts"},
+{type:"multipart/alternative",ext:"",desc:"Same content, different formats"},
+{type:"multipart/digest",ext:"",desc:"Digest messages"},
+{type:"multipart/parallel",ext:"",desc:"Parallel parts"},
+{type:"multipart/related",ext:"",desc:"Related resources"}
+]}
+];
+let activeTab='all';
+function renderTabs(){
+const t=document.getElementById('tabs');
+t.innerHTML='';
+const all=document.createElement('button');all.className=`tab ${activeTab==='all'?'active':''}`;all.textContent='All';all.onclick=()=>{activeTab='all';renderTabs();render()};
+t.appendChild(all);
+data.forEach(g=>{const b=document.createElement('button');b.className=`tab ${activeTab===g.cat?'active':''}`;b.textContent=g.cat;b.onclick=()=>{activeTab=g.cat;renderTabs();render()};t.appendChild(b)});
+}
+function render(filter=''){
+const c=document.getElementById('container');c.innerHTML='';
+const cats=activeTab==='all'?data:data.filter(g=>g.cat===activeTab);
+cats.forEach(g=>{
+const f=g.items.filter(i=>!filter||i.type.toLowerCase().includes(filter.toLowerCase())||i.ext.toLowerCase().includes(filter.toLowerCase())||i.desc.toLowerCase().includes(filter.toLowerCase()));
+if(!f.length)return;
+const sec=document.createElement('div');sec.className='cat';
+sec.innerHTML=`<div class="cat-title">${g.cat}<span>${f.length} types</span></div><div class="table-wrap"><div class="mime" style="background:#151515;font-weight:600;cursor:default"><span class="mime-type">MIME Type</span><span class="mime-ext">Extensions</span><span class="mime-cat">Description</span></div></div>`;
+c.appendChild(sec);
+const wrap=sec.querySelector('.table-wrap');
+f.forEach(i=>{
+const el=document.createElement('div');el.className='mime';
+el.innerHTML=`<span class="mime-type">${i.type}</span><span class="mime-ext">${i.ext||'—'}</span><span class="mime-cat">${i.desc}</span>`;
+el.onclick=()=>{navigator.clipboard.writeText(i.type);el.classList.add('copied');showToast('Copied '+i.type);setTimeout(()=>el.classList.remove('copied'),500)};
+wrap.appendChild(el);
+});
+});
+}
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+document.getElementById('search').oninput=e=>render(e.target.value);
+renderTabs();render();
+</script>
+</body>
+</html>

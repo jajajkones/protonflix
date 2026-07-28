@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Cheat Sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a0a; color: #fff; font-family: 'Outfit', sans-serif; line-height: 1.6; }
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+header { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #222; }
+h1 { font-size: 2rem; font-weight: 600; }
+.back-link { color: #737373; text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+.back-link:hover { color: #fff; }
+.search-container { margin-bottom: 30px; }
+.search-input { width: 100%; max-width: 400px; padding: 12px 20px; background: #111; border: 1px solid #222; border-radius: 8px; color: #fff; font-family: 'Outfit', sans-serif; font-size: 1rem; outline: none; transition: border-color 0.2s; }
+.search-input:focus { border-color: #444; }
+.search-input::placeholder { color: #737373; }
+.section { background: #111; border: 1px solid #222; border-radius: 12px; margin-bottom: 20px; overflow: hidden; }
+.section-header { padding: 16px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
+.section-header:hover { background: #1a1a1a; }
+.section-title { font-size: 1.1rem; font-weight: 500; }
+.section-toggle { color: #737373; font-size: 1.2rem; transition: transform 0.3s; }
+.section.collapsed .section-content { display: none; }
+.section.collapsed .section-toggle { transform: rotate(-90deg); }
+.section-content { padding: 0 20px 20px; }
+.command { background: #0a0a0a; border: 1px solid #222; border-radius: 6px; padding: 12px 16px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; position: relative; }
+.command:hover { border-color: #444; background: #151515; }
+.command-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.command-name { font-weight: 500; color: #fff; font-size: 0.95rem; }
+.command-syntax { font-family: 'Courier New', monospace; color: #a0a0a0; font-size: 0.85rem; word-break: break-all; }
+.copy-hint { position: absolute; top: 8px; right: 12px; color: #737373; font-size: 0.75rem; opacity: 0; transition: opacity 0.2s; }
+.command:hover .copy-hint { opacity: 1; }
+.copied { background: #1a2a1a !important; border-color: #2a4a2a !important; }
+.copied .command-name::after { content: ' ✓ Copied!'; color: #4ade80; font-size: 0.8rem; }
+.hidden { display: none !important; }
+.tag { display: inline-block; background: #222; color: #a0a0a0; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-left: 8px; }
+
+@media(max-width:768px){header{padding:20px 16px}header h1{font-size:16px}.content{padding:20px 16px}.container{padding:16px}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>Python Cheat Sheet</h1>
+<a href="index.html" class="back-link">← Back to ProtonFlix</a>
+</header>
+
+<div class="search-container">
+<input type="text" class="search-input" placeholder="Search commands..." id="searchInput">
+</div>
+
+<div id="sections">
+
+<div class="section" data-category="variables">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Variables & Data Types <span class="tag">8 types</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="name = 'Alice'
+age = 25
+height = 5.9
+is_active = True
+items = [1, 2, 3]
+info = {'key': 'value'}
+coords = (10, 20)
+unique = {1, 2, 3}
+">
+<div class="command-header">
+<span class="command-name">Basic Types</span>
+</div>
+<div class="command-syntax">str, int, float, bool, list, dict, tuple, set</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="x: int = 10
+name: str = 'Alice'
+prices: list[float] = [1.99, 2.99]
+data: dict[str, int] = {'a': 1}
+">
+<div class="command-header">
+<span class="command-name">Type Hints</span>
+</div>
+<div class="command-syntax">variable: type = value</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="x = 10
+print(type(x))  # <class 'int'>
+print(isinstance(x, int))  # True
+">
+<div class="command-header">
+<span class="command-name">Type Checking</span>
+</div>
+<div class="command-syntax">type(obj) | isinstance(obj, type)</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="lists">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Lists <span class="tag">8 methods</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="fruits = ['apple', 'banana', 'cherry']
+numbers = list(range(10))
+empty = []
+">
+<div class="command-header">
+<span class="command-name">List Creation</span>
+</div>
+<div class="command-syntax">list = [item1, item2, ...] | list(iterable)</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="fruits.append('date')
+fruits.insert(1, 'blueberry')
+fruits.extend(['elderberry', 'fig'])
+fruits += ['grape']
+">
+<div class="command-header">
+<span class="command-name">Adding Items</span>
+</div>
+<div class="command-syntax">append() | insert() | extend() | +=</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="fruits.remove('banana')
+popped = fruits.pop()
+del fruits[0]
+fruits.clear()
+">
+<div class="command-header">
+<span class="command-name">Removing Items</span>
+</div>
+<div class="command-syntax">remove() | pop() | del | clear()</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="fruits.sort()
+fruits.sort(reverse=True)
+sorted_fruits = sorted(fruits)
+fruits.reverse()
+">
+<div class="command-header">
+<span class="command-name">Sorting</span>
+</div>
+<div class="command-syntax">sort() | sorted() | reverse()</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="first = fruits[0]
+last = fruits[-1]
+middle = fruits[1:3]
+copy = fruits[:]
+">
+<div class="command-header">
+<span class="command-name">Slicing</span>
+</div>
+<div class="command-syntax">list[start:stop:step] | list[::-1] for reverse</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="dicts">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Dictionaries <span class="tag">6 methods</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="person = {'name': 'Alice', 'age': 25}
+person = dict(name='Alice', age=25)
+person = dict([('name', 'Alice'), ('age', 25)])
+">
+<div class="command-header">
+<span class="command-name">Dict Creation</span>
+</div>
+<div class="command-syntax">dict = {key: value} | dict(key=value)</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="person['name']  # 'Alice'
+person.get('name', 'Unknown')
+person.keys()
+person.values()
+person.items()
+">
+<div class="command-header">
+<span class="command-name">Accessing</span>
+</div>
+<div class="command-syntax">dict[key] | get() | keys() | values() | items()</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="person['email'] = 'alice@example.com'
+person.update({'age': 26, 'city': 'NYC'})
+person.setdefault('country', 'USA')
+">
+<div class="command-header">
+<span class="command-name">Updating</span>
+</div>
+<div class="command-syntax">dict[key] = val | update() | setdefault()</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="del person['email']
+removed = person.pop('age')
+person.clear()
+">
+<div class="command-header">
+<span class="command-name">Removing</span>
+</div>
+<div class="command-syntax">del dict[key] | pop() | clear()</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="control">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Control Flow <span class="tag">5 patterns</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="if condition:
+    pass
+elif other_condition:
+    pass
+else:
+    pass
+">
+<div class="command-header">
+<span class="command-name">if/elif/else</span>
+</div>
+<div class="command-syntax">if condition: ... elif condition: ... else: ...</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="for item in iterable:
+    print(item)
+
+for i in range(10):
+    print(i)
+
+for i, val in enumerate(items):
+    print(i, val)
+">
+<div class="command-header">
+<span class="command-name">for Loops</span>
+</div>
+<div class="command-syntax">for item in iterable: | range() | enumerate()</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="while condition:
+    break
+    continue
+    pass
+">
+<div class="command-header">
+<span class="command-name">while Loops</span>
+</div>
+<div class="command-syntax">while condition: ... break | continue | pass</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="match command:
+    case 'start':
+        print('Starting')
+    case 'stop':
+        print('Stopping')
+    case _:
+        print('Unknown')
+">
+<div class="command-header">
+<span class="command-name">Pattern Matching (3.10+)</span>
+</div>
+<div class="command-syntax">match value: case pattern: ... case _: ...</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="result = 'yes' if condition else 'no'
+">
+<div class="command-header">
+<span class="command-name">Ternary Operator</span>
+</div>
+<div class="command-syntax">value_if_true if condition else value_if_false</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="functions">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Functions <span class="tag">5 patterns</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="def greet(name, greeting='Hello'):
+    return f'{greeting}, {name}!'
+
+greet('Alice')
+greet('Alice', greeting='Hi')
+">
+<div class="command-header">
+<span class="command-name">Basic Function</span>
+</div>
+<div class="command-syntax">def func(arg, default=val): return value</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="def func(*args, **kwargs):
+    print(args)   # tuple
+    print(kwargs)  # dict
+
+func(1, 2, 3, key='value')
+">
+<div class="command-header">
+<span class="command-name">*args, **kwargs</span>
+</div>
+<div class="command-syntax">*args (positional) | **kwargs (keyword)</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="def power(base, exp=2):
+    return base ** exp
+
+square = lambda x: x ** 2
+">
+<div class="command-header">
+<span class="command-name">Lambda</span>
+</div>
+<div class="command-syntax">lambda args: expression</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="def func(*, key1, key2):
+    pass
+
+func(key1='a', key2='b')
+">
+<div class="command-header">
+<span class="command-name">Keyword-Only Args</span>
+</div>
+<div class="command-syntax">def func(*, keyword_arg): ...</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="from functools import lru_cache
+
+@lru_cache(maxsize=128)
+def fibonacci(n):
+    if n < 2:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)
+">
+<div class="command-header">
+<span class="command-name">Caching</span>
+</div>
+<div class="command-syntax">@lru_cache | @cache (Python 3.9+)</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="classes">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Classes <span class="tag">4 patterns</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="class Person:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+    
+    def greet(self):
+        return f'Hi, I am {self.name}'
+">
+<div class="command-header">
+<span class="command-name">Basic Class</span>
+</div>
+<div class="command-syntax">class ClassName: def __init__(self): ...</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="class Employee(Person):
+    def __init__(self, name, age, company):
+        super().__init__(name, age)
+        self.company = company
+">
+<div class="command-header">
+<span class="command-name">Inheritance</span>
+</div>
+<div class="command-syntax">class Child(Parent): super().__init__()</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="from dataclasses import dataclass
+
+@dataclass
+class Point:
+    x: float
+    y: float
+    label: str = 'origin'
+">
+<div class="command-header">
+<span class="command-name">Dataclass</span>
+</div>
+<div class="command-syntax">@dataclass class ClassName: field: type = default</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="class Temperature:
+    def __init__(self, celsius):
+        self._celsius = celsius
+    
+    @property
+    def fahrenheit(self):
+        return self._celsius * 9/5 + 32
+">
+<div class="command-header">
+<span class="command-name">Properties</span>
+</div>
+<div class="command-syntax">@property def method(self): ...</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="decorators">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Decorators</span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="def my_decorator(func):
+    def wrapper(*args, **kwargs):
+        print('Before')
+        result = func(*args, **kwargs)
+        print('After')
+        return result
+    return wrapper
+
+@my_decorator
+def say_hello():
+    print('Hello!')
+">
+<div class="command-header">
+<span class="command-name">Basic Decorator</span>
+</div>
+<div class="command-syntax">@decorator def func(): ...</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="def repeat(times):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            for _ in range(times):
+                result = func(*args, **kwargs)
+            return result
+        return wrapper
+    return decorator
+
+@repeat(times=3)
+def greet():
+    print('Hi')
+">
+<div class="command-header">
+<span class="command-name">Decorator with Args</span>
+</div>
+<div class="command-syntax">@decorator(arg) def func(): ...</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="from functools import wraps
+
+def my_decorator(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    return wrapper
+">
+<div class="command-header">
+<span class="command-name">@wraps</span>
+</div>
+<div class="command-syntax">@wraps(func) preserves func metadata</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="generators">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Generators</span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="def countdown(n):
+    while n > 0:
+        yield n
+        n -= 1
+
+for num in countdown(5):
+    print(num)
+">
+<div class="command-header">
+<span class="command-name">Generator Function</span>
+</div>
+<div class="command-syntax">def func(): yield value</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="squares = (x**2 for x in range(10))
+list_of_squares = list(squares)
+">
+<div class="command-header">
+<span class="command-name">Generator Expression</span>
+</div>
+<div class="command-syntax">(expression for item in iterable)</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="def read_large_file(file_path):
+    with open(file_path, 'r') as f:
+        for line in f:
+            yield line.strip()
+">
+<div class="command-header">
+<span class="command-name">Lazy File Reading</span>
+</div>
+<div class="command-syntax">yield line for memory-efficient processing</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="comprehensions">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Comprehensions <span class="tag">4 types</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="squares = [x**2 for x in range(10)]
+evens = [x for x in range(10) if x % 2 == 0]
+matrix = [[i*j for j in range(3)] for i in range(3)]
+">
+<div class="command-header">
+<span class="command-name">List Comprehension</span>
+</div>
+<div class="command-syntax">[expr for item in iterable if condition]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="squares_dict = {x: x**2 for x in range(5)}
+">
+<div class="command-header">
+<span class="command-name">Dict Comprehension</span>
+</div>
+<div class="command-syntax">{key: value for item in iterable}</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="unique_squares = {x**2 for x in [-1, 1, 2, -2]}
+">
+<div class="command-header">
+<span class="command-name">Set Comprehension</span>
+</div>
+<div class="command-syntax">{expr for item in iterable}</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="gen = (x**2 for x in range(10))
+">
+<div class="command-header">
+<span class="command-name">Generator Expression</span>
+</div>
+<div class="command-syntax">(expr for item in iterable)</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="fileio">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">File I/O</span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="with open('file.txt', 'r') as f:
+    content = f.read()
+
+with open('file.txt', 'r') as f:
+    lines = f.readlines()
+
+with open('file.txt', 'r') as f:
+    for line in f:
+        print(line.strip())
+">
+<div class="command-header">
+<span class="command-name">Reading Files</span>
+</div>
+<div class="command-syntax">with open(file, 'r') as f: content = f.read()</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="with open('file.txt', 'w') as f:
+    f.write('Hello, World!')
+
+with open('file.txt', 'a') as f:
+    f.write('Appended line\n')
+
+with open('file.txt', 'r+') as f:
+    f.write('Overwritten')
+">
+<div class="command-header">
+<span class="command-name">Writing Files</span>
+</div>
+<div class="command-syntax">open(file, 'w'|'a'|'r+')</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="import json
+
+with open('data.json', 'r') as f:
+    data = json.load(f)
+
+with open('data.json', 'w') as f:
+    json.dump(data, f, indent=2)
+">
+<div class="command-header">
+<span class="command-name">JSON Files</span>
+</div>
+<div class="command-syntax">json.load() | json.dump()</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="exceptions">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Exception Handling</span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="try:
+    result = 10 / 0
+except ZeroDivisionError as e:
+    print(f'Error: {e}')
+except Exception as e:
+    print(f'Unexpected: {e}')
+else:
+    print('Success')
+finally:
+    print('Cleanup')
+">
+<div class="command-header">
+<span class="command-name">try/except/else/finally</span>
+</div>
+<div class="command-syntax">try: ... except Type as e: ... else: ... finally: ...</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="raise ValueError('Invalid value')
+raise TypeError('Expected str')
+">
+<div class="command-header">
+<span class="command-name">Raising Exceptions</span>
+</div>
+<div class="command-syntax">raise ExceptionType('message')</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="class InsufficientFundsError(Exception):
+    def __init__(self, balance, amount):
+        self.balance = balance
+        self.amount = amount
+        super().__init__(f'Cannot withdraw {amount}, balance is {balance}')
+">
+<div class="command-header">
+<span class="command-name">Custom Exceptions</span>
+</div>
+<div class="command-syntax">class CustomError(Exception): ...</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="virtualenv">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Virtual Environments & Pip</span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="python -m venv venv
+venv\Scripts\activate  # Windows
+source venv/bin/activate  # Linux/Mac
+deactivate
+">
+<div class="command-header">
+<span class="command-name">Create Virtual Env</span>
+</div>
+<div class="command-syntax">python -m venv venv | activate | deactivate</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="pip install requests
+pip install requests==2.28.0
+pip install requests>=2.28.0
+pip install -r requirements.txt
+pip freeze > requirements.txt
+">
+<div class="command-header">
+<span class="command-name">Pip Commands</span>
+</div>
+<div class="command-syntax">pip install | pip freeze | pip install -r</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="modules">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Common Modules <span class="tag">7 modules</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="import os
+os.getcwd()
+os.listdir('.')
+os.path.exists('file.txt')
+os.makedirs('new_dir', exist_ok=True)
+os.environ.get('HOME')
+">
+<div class="command-header">
+<span class="command-name">os</span>
+</div>
+<div class="command-syntax">os.getcwd() | listdir() | path.exists() | makedirs()</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="import sys
+sys.argv
+sys.exit(0)
+sys.version
+sys.path.append('/custom/path')
+">
+<div class="command-header">
+<span class="command-name">sys</span>
+</div>
+<div class="command-syntax">sys.argv | exit() | version | path</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="import json
+data = json.loads('{"key": "value"}')
+json_str = json.dumps(data, indent=2)
+json.dump(data, open('file.json', 'w'))
+">
+<div class="command-header">
+<span class="command-name">json</span>
+</div>
+<div class="command-syntax">json.loads() | dumps() | dump() | load()</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="import re
+re.search(r'\d+', 'abc123')
+re.findall(r'\w+', 'hello world')
+re.sub(r'\s+', '-', 'hello world')
+">
+<div class="command-header">
+<span class="command-name">re (Regex)</span>
+</div>
+<div class="command-syntax">re.search() | findall() | sub()</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="from datetime import datetime, timedelta
+now = datetime.now()
+tomorrow = now + timedelta(days=1)
+formatted = now.strftime('%Y-%m-%d %H:%M:%S')
+parsed = datetime.strptime('2024-01-01', '%Y-%m-%d')
+">
+<div class="command-header">
+<span class="command-name">datetime</span>
+</div>
+<div class="command-syntax">datetime.now() | timedelta() | strftime() | strptime()</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="from collections import Counter, defaultdict, namedtuple
+
+Counter(['a', 'b', 'a'])  # {'a': 2, 'b': 1}
+dd = defaultdict(int)
+Point = namedtuple('Point', ['x', 'y'])
+">
+<div class="command-header">
+<span class="command-name">collections</span>
+</div>
+<div class="command-syntax">Counter | defaultdict | namedtuple | deque</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="import itertools
+list(itertools.chain([1,2], [3,4]))
+list(itertools.product('AB', repeat=2))
+list(itertools.groupby('AAABBB'))
+">
+<div class="command-header">
+<span class="command-name">itertools</span>
+</div>
+<div class="command-syntax">chain() | product() | groupby() | permutations()</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<script>
+function toggleSection(header) {
+    header.parentElement.classList.toggle('collapsed');
+}
+
+function copyCommand(commandEl) {
+    const cmd = commandEl.getAttribute('data-command');
+    navigator.clipboard.writeText(cmd).then(() => {
+        commandEl.classList.add('copied');
+        setTimeout(() => commandEl.classList.remove('copied'), 1500);
+    });
+}
+
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    const query = e.target.value.toLowerCase();
+    document.querySelectorAll('.command').forEach(cmd => {
+        const text = cmd.textContent.toLowerCase();
+        const syntax = cmd.querySelector('.command-syntax').textContent.toLowerCase();
+        const name = cmd.querySelector('.command-name').textContent.toLowerCase();
+        if (text.includes(query) || syntax.includes(query) || name.includes(query)) {
+            cmd.classList.remove('hidden');
+        } else {
+            cmd.classList.add('hidden');
+        }
+    });
+    
+    document.querySelectorAll('.section').forEach(section => {
+        const visibleCommands = section.querySelectorAll('.command:not(.hidden)');
+        if (visibleCommands.length === 0 && query) {
+            section.classList.add('hidden');
+        } else {
+            section.classList.remove('hidden');
+        }
+    });
+});
+</script>
+</body>
+</html>

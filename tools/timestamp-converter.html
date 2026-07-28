@@ -21,7 +21,7 @@ header a:hover{color:var(--text)}
 .section h3{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px}
 .input-row{display:flex;gap:12px;margin-bottom:12px}
 .input-row input,.input-row select{flex:1;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;font-family:var(--mono);font-size:14px;outline:none}
-.input-row input:focus{input-row select:focus{border-color:#444}}
+.input-row input:focus,.input-row select:focus{border-color:#444}
 .btn{background:var(--accent);color:#000;border:none;padding:10px 20px;border-radius:var(--radius);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:opacity .2s}
 .btn:hover{opacity:.8}
 .btn-row{display:flex;gap:12px;margin-bottom:12px}
@@ -62,13 +62,13 @@ header a:hover{color:var(--text)}
 function updateClock(){const n=new Date();document.getElementById('liveTime').textContent=n.toLocaleTimeString('en-US',{hour12:false});document.getElementById('liveDate').textContent=n.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}
 setInterval(updateClock,1000);updateClock();
 function convertTs(){
-const v=document.getElementById('tsInput').value.trim();const u=document.getElementById('tsUnit').value;if(!v)return;
+const v=document.getElementById('tsInput').value.trim();const u=document.getElementById('tsUnit').value;if(!v){document.getElementById('results').innerHTML='<div class="result-item"><span class="label">Error</span><span class="value" style="color:var(--muted)">Please enter a timestamp</span></div>';return;}
 let ms=+v;if(u==='s')ms*=1000;
-const d=new Date(ms);if(isNaN(d))return;
+const d=new Date(ms);if(isNaN(d)){document.getElementById('results').innerHTML='<div class="result-item"><span class="label">Error</span><span class="value" style="color:#ef4444">Invalid timestamp</span></div>';return;}
 document.getElementById('results').innerHTML=formatResults(d,ms/1000,ms);
 }
 function convertDate(){
-const v=document.getElementById('dateInput').value;if(!v)return;
+const v=document.getElementById('dateInput').value;if(!v){document.getElementById('results').innerHTML='<div class="result-item"><span class="label">Error</span><span class="value" style="color:var(--muted)">Please select a date</span></div>';return;}
 const d=new Date(v);const s=Math.floor(d.getTime()/1000);const ms=d.getTime();
 document.getElementById('results').innerHTML=formatResults(d,s,ms);
 }

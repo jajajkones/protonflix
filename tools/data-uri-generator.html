@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data URI Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh}
+.header{padding:20px 30px;border-bottom:1px solid #222;display:flex;align-items:center;gap:20px}
+.header h1{font-size:1.4rem;font-weight:600}
+.header a{color:#737373;text-decoration:none;font-size:.9rem;transition:color .2s}
+.header a:hover{color:#fff}
+.container{max-width:900px;margin:0 auto;padding:30px}
+.panel{background:#111;border:1px solid #222;border-radius:12px;padding:24px;margin-bottom:20px}
+.panel h2{font-size:1rem;font-weight:500;margin-bottom:16px}
+.drop-zone{border:2px dashed #333;border-radius:12px;padding:50px;text-align:center;cursor:pointer;transition:all .2s}
+.drop-zone:hover,.drop-zone.dragover{border-color:#666;background:#151515}
+.drop-zone p{color:#737373;font-size:.9rem;margin-top:10px}
+.drop-zone .icon{font-size:2rem;margin-bottom:10px}
+input[type="file"]{display:none}
+.preview-box{display:flex;gap:20px;flex-wrap:wrap;margin-top:16px}
+.preview-img{max-width:300px;max-height:200px;border-radius:8px;border:1px solid #222;object-fit:contain}
+.size-info{display:flex;gap:20px;margin:16px 0}
+.size-card{flex:1;background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:14px;text-align:center}
+.size-card .label{font-size:.75rem;color:#737373;text-transform:uppercase;letter-spacing:.5px}
+.size-card .value{font-size:1.3rem;font-weight:600;margin-top:4px}
+.output-box{background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:14px;position:relative}
+.output-box pre{white-space:pre-wrap;word-break:break-all;font-size:.8rem;line-height:1.5;max-height:200px;overflow-y:auto;color:#ccc}
+.btn-row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.btn{background:#1a1a1a;border:1px solid #333;color:#fff;padding:8px 18px;border-radius:8px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:.85rem;transition:all .2s}
+.btn:hover{background:#252525;border-color:#555}
+.btn.primary{background:#fff;color:#0a0a0a;border-color:#fff}
+.btn.primary:hover{background:#e0e0e0}
+.copy-msg{font-size:.75rem;color:#4ade80;opacity:0;transition:opacity .3s}
+.copy-msg.show{opacity:1}
+.label-tag{font-size:.7rem;color:#737373;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:block}
+.hidden{display:none}
+
+@media(max-width:768px){header{padding:20px 16px}header h1{font-size:16px}.content{padding:20px 16px}.container{padding:16px}}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html">&larr; Back</a>
+<h1>Data URI Generator</h1>
+</div>
+<div class="container">
+<div class="panel">
+<h2>Upload Image</h2>
+<div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+<div class="icon">&#128196;</div>
+<p>Drop an image here or click to browse</p>
+<p style="font-size:.75rem;margin-top:6px;color:#555">Supports: PNG, JPG, GIF, SVG, WEBP</p>
+</div>
+<input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.gif,.svg,.webp,image/png,image/jpeg,image/gif,image/svg+xml,image/webp">
+</div>
+<div id="result" class="hidden">
+<div class="panel">
+<h2>Preview</h2>
+<div class="preview-box">
+<img id="previewImg" class="preview-img" alt="Preview">
+<div>
+<div class="label-tag">File Info</div>
+<div id="fileInfo" style="font-size:.85rem;color:#ccc;line-height:1.8"></div>
+</div>
+</div>
+<div class="size-info">
+<div class="size-card">
+<div class="label">Original File Size</div>
+<div class="value" id="originalSize">-</div>
+</div>
+<div class="size-card">
+<div class="label">Data URI Size</div>
+<div class="value" id="dataUriSize">-</div>
+</div>
+<div class="size-card">
+<div class="label">Overhead</div>
+<div class="value" id="overhead">-</div>
+</div>
+</div>
+</div>
+<div class="panel">
+<h2>Data URI</h2>
+<div class="output-box"><pre id="dataUriOutput"></pre></div>
+<div class="btn-row">
+<button class="btn primary" onclick="copyToClipboard('dataUriOutput','msg1')">Copy Data URI</button>
+<span class="copy-msg" id="msg1">Copied!</span>
+</div>
+</div>
+<div class="panel">
+<h2>CSS Background Image</h2>
+<div class="output-box"><pre id="cssOutput"></pre></div>
+<div class="btn-row">
+<button class="btn primary" onclick="copyToClipboard('cssOutput','msg2')">Copy CSS</button>
+<span class="copy-msg" id="msg2">Copied!</span>
+</div>
+</div>
+<div class="panel">
+<h2>HTML img Tag</h2>
+<div class="output-box"><pre id="htmlOutput"></pre></div>
+<div class="btn-row">
+<button class="btn primary" onclick="copyToClipboard('htmlOutput','msg3')">Copy HTML</button>
+<span class="copy-msg" id="msg3">Copied!</span>
+</div>
+</div>
+</div>
+</div>
+<script>
+const dropZone=document.getElementById('dropZone');
+const fileInput=document.getElementById('fileInput');
+dropZone.addEventListener('dragover',e=>{e.preventDefault();dropZone.classList.add('dragover')});
+dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop',e=>{e.preventDefault();dropZone.classList.remove('dragover');if(e.dataTransfer.files.length)handleFile(e.dataTransfer.files[0])});
+fileInput.addEventListener('change',e=>{if(e.target.files.length)handleFile(e.target.files[0])});
+function formatSize(bytes){if(bytes<1024)return bytes+' B';if(bytes<1048576)return(bytes/1024).toFixed(1)+' KB';return(bytes/1048576).toFixed(2)+' MB'}
+function getMimeType(file){const types={'.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.gif':'image/gif','.svg':'image/svg+xml','.webp':'image/webp'};const ext='.'+file.name.split('.').pop().toLowerCase();return types[ext]||file.type||'image/png'}
+function handleFile(file){
+const mime=getMimeType(file);
+const reader=new FileReader();
+reader.onload=function(e){
+const dataUri=e.target.result;
+const base64=dataUri.split(',')[1];
+document.getElementById('previewImg').src=dataUri;
+document.getElementById('fileInfo').innerHTML=`<div>Name: ${file.name}</div><div>Type: ${mime}</div><div>Dimensions: <span id="dims">Loading...</span></div>`;
+document.getElementById('originalSize').textContent=formatSize(file.size);
+const dataSize=new Blob([dataUri]).size;
+document.getElementById('dataUriSize').textContent=formatSize(dataSize);
+const pct=((dataSize/file.size-1)*100).toFixed(1);
+document.getElementById('overhead').textContent=(pct>0?'+':'')+pct+'%';
+document.getElementById('dataUriOutput').textContent=dataUri;
+document.getElementById('cssOutput').textContent=`background-image: url('${dataUri}');`;
+document.getElementById('htmlOutput').textContent=`<img src="${dataUri}" alt="${file.name}">`;
+document.getElementById('result').classList.remove('hidden');
+const img=new Image();img.onload=()=>{document.getElementById('dims').textContent=img.width+' × '+img.height+' px'};img.src=dataUri;
+};
+reader.readAsDataURL(file);
+}
+function copyToClipboard(elId,msgId){const text=document.getElementById(elId).textContent;navigator.clipboard.writeText(text).then(()=>{const m=document.getElementById(msgId);m.classList.add('show');setTimeout(()=>m.classList.remove('show'),1500)})}
+</script>
+</body>
+</html>

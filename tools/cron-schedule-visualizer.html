@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cron Schedule Visualizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;padding:20px}
+.container{max-width:1000px;margin:0 auto}
+header{display:flex;align-items:center;gap:16px;margin-bottom:32px;padding-bottom:16px;border-bottom:1px solid #222}
+h1{font-size:1.8rem;font-weight:600}
+.back{color:#737373;text-decoration:none;font-size:0.9rem;transition:color .2s}
+.back:hover{color:#fff}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:24px;margin-bottom:20px}
+label{display:block;font-weight:500;margin-bottom:8px;color:#e0e0e0;font-size:0.9rem}
+input[type=text]{width:100%;background:#0a0a0a;border:1px solid #222;color:#fff;font-family:'Courier New',monospace;padding:12px 16px;border-radius:8px;font-size:1.1rem;letter-spacing:2px}
+.btn{background:#2563eb;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-family:'Outfit',sans-serif;font-weight:500;font-size:0.9rem;cursor:pointer;transition:background .2s}
+.btn:hover{background:#1d4ed8}
+.btn-sm{padding:8px 14px;font-size:0.8rem}
+.btn-row{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+.btn-outline{background:transparent;border:1px solid #222;color:#fff}
+.btn-outline:hover{background:#222}
+.preset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:16px}
+.preset-btn{background:#0a0a0a;border:1px solid #222;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:0.78rem;text-align:left;transition:border-color .2s}
+.preset-btn:hover{border-color:#2563eb}
+.preset-btn strong{display:block;color:#e0e0e0;margin-bottom:2px;font-size:0.82rem}
+.preset-btn span{color:#737373}
+.visual-section{margin-bottom:24px}
+.visual-section h3{font-size:0.85rem;color:#737373;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.visual-section h3 span{color:#2563eb;font-weight:400}
+.grid-min{display:grid;grid-template-columns:repeat(12,1fr);gap:4px}
+.grid-hour{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.grid-dom{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.grid-mon{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.grid-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cell{background:#0a0a0a;border:1px solid #222;border-radius:6px;padding:8px 4px;text-align:center;font-size:0.78rem;color:#737373;cursor:default;transition:all .2s;position:relative}
+.cell.active{background:#2563eb33;border-color:#2563eb;color:#fff;font-weight:500}
+.cell.active::after{content:'';position:absolute;top:2px;right:2px;width:6px;height:6px;background:#34d399;border-radius:50%}
+.cell:hover{border-color:#555}
+.legend{display:flex;gap:16px;margin:12px 0;font-size:0.8rem;color:#737373}
+.legend-item{display:flex;align-items:center;gap:6px}
+.legend-dot{width:10px;height:10px;border-radius:3px}
+.exec-list{list-style:none;padding:0}
+.exec-list li{padding:8px 12px;border-bottom:1px solid #222;font-size:0.85rem;color:#a0a0a0;display:flex;align-items:center;gap:8px}
+.exec-list li:last-child{border:none}
+.exec-num{color:#2563eb;font-weight:600;min-width:24px}
+.exec-date{flex:1}
+.exec-day{color:#737373;font-size:0.8rem}
+.error-msg{color:#f87171;font-size:0.85rem;padding:8px}
+
+@media(max-width:768px){header{padding:20px 16px}header h1{font-size:16px}.content{padding:20px 16px}.container{padding:16px}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<a href="index.html" class="back">← Back</a>
+<h1>Cron Schedule Visualizer</h1>
+</header>
+
+<div class="card">
+<label>Enter Cron Expression</label>
+<div style="display:flex;gap:8px">
+<input type="text" id="cronInput" value="0 9 * * 1-5" placeholder="* * * * *">
+<button class="btn" onclick="visualize()">Visualize</button>
+</div>
+<div class="preset-grid" style="margin-top:12px">
+<button class="preset-btn" onclick="setPreset('* * * * *')"><strong>Every Minute</strong><span>* * * * *</span></button>
+<button class="preset-btn" onclick="setPreset('0 * * * *')"><strong>Every Hour</strong><span>0 * * * *</span></button>
+<button class="preset-btn" onclick="setPreset('0 9 * * *')"><strong>Daily 9 AM</strong><span>0 9 * * *</span></button>
+<button class="preset-btn" onclick="setPreset('0 9 * * 1-5')"><strong>Weekdays 9 AM</strong><span>0 9 * * 1-5</span></button>
+<button class="preset-btn" onclick="setPreset('0 9 * * 0')"><strong>Sunday 9 AM</strong><span>0 9 * * 0</span></button>
+<button class="preset-btn" onclick="setPreset('*/15 * * * *')"><strong>Every 15 Min</strong><span>*/15 * * * *</span></button>
+<button class="preset-btn" onclick="setPreset('0 0 1 * *')"><strong>1st of Month</strong><span>0 0 1 * *</span></button>
+<button class="preset-btn" onclick="setPreset('30 4 * * 0')"><strong>Sun 4:30 AM</strong><span>30 4 * * 0</span></button>
+</div>
+</div>
+
+<div id="output" class="hidden">
+<div class="card">
+<div class="legend">
+<div class="legend-item"><div class="legend-dot" style="background:#2563eb33;border:1px solid #2563eb"></div> Active</div>
+<div class="legend-item"><div class="legend-dot" style="background:#0a0a0a;border:1px solid #222"></div> Inactive</div>
+</div>
+</div>
+
+<div class="card visual-section">
+<h3>Minutes <span id="minLabel"></span></h3>
+<div class="grid-min" id="minGrid"></div>
+</div>
+
+<div class="card visual-section">
+<h3>Hours <span id="hourLabel"></span></h3>
+<div class="grid-hour" id="hourGrid"></div>
+</div>
+
+<div class="card visual-section">
+<h3>Day of Month <span id="domLabel"></span></h3>
+<div class="grid-dom" id="domGrid"></div>
+</div>
+
+<div class="card visual-section">
+<h3>Month <span id="monLabel"></span></h3>
+<div class="grid-mon" id="monGrid"></div>
+</div>
+
+<div class="card visual-section">
+<h3>Day of Week <span id="dowLabel"></span></h3>
+<div class="grid-dow" id="dowGrid"></div>
+</div>
+
+<div class="card">
+<h3 style="font-size:0.85rem;color:#737373;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px">Next 20 Executions</h3>
+<ul class="exec-list" id="execList"></ul>
+</div>
+</div>
+
+<div id="errorMsg" class="card error-msg hidden"></div>
+</div>
+
+<script>
+function setPreset(expr){
+document.getElementById('cronInput').value=expr;
+visualize();
+}
+
+function parseCronField(expr,min,max){
+const vals=new Set();
+const parts=expr.split(',');
+parts.forEach(part=>{
+part=part.trim();
+if(part==='*'){
+for(let i=min;i<=max;i++)vals.add(i);
+}else if(part.includes('/')){
+const[base,step]=part.split('/');
+const s=parseInt(step);
+const b=base==='*'?min:parseInt(base);
+for(let i=b;i<=max;i+=s)vals.add(i);
+}else if(part.includes('-')){
+const[a,b]=part.split('-').map(Number);
+for(let i=a;i<=b;i++)vals.add(i);
+}else{
+vals.add(parseInt(part));
+}
+});
+return[...vals].sort((a,b)=>a-b);
+}
+
+function visualize(){
+const expr=document.getElementById('cronInput').value.trim();
+const parts=expr.split(/\s+/);
+document.getElementById('output').classList.remove('hidden');
+document.getElementById('errorMsg').classList.add('hidden');
+
+if(parts.length!==5){
+document.getElementById('output').classList.add('hidden');
+document.getElementById('errorMsg').textContent='Invalid cron expression. Must have 5 fields.';
+document.getElementById('errorMsg').classList.remove('hidden');
+return;
+}
+
+try{
+const minutes=parseCronField(parts[0],0,59);
+const hours=parseCronField(parts[1],0,23);
+const doms=parseCronField(parts[2],1,31);
+const months=parseCronField(parts[3],1,12);
+const dows=parseCronField(parts[4],0,6);
+
+renderGrid('minGrid','minLabel',minutes,0,59,v=>String(v).padStart(2,'0'));
+renderGrid('hourGrid','hourLabel',hours,0,23,v=>String(v).padStart(2,'0')+':00');
+renderGrid('domGrid','domLabel',doms,1,31,v=>String(v));
+const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+renderGrid('monGrid','monLabel',months,1,12,v=>monthNames[v-1]);
+const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+renderGrid('dowGrid','dowLabel',dows,0,6,v=>dayNames[v]);
+
+showNextExecutions(parts,minutes,hours,doms,months,dows);
+}catch(e){
+document.getElementById('output').classList.add('hidden');
+document.getElementById('errorMsg').textContent='Error: '+e.message;
+document.getElementById('errorMsg').classList.remove('hidden');
+}
+}
+
+function renderGrid(gridId,labelId,active,min,max,fmt){
+const grid=document.getElementById(gridId);
+const label=document.getElementById(labelId);
+label.textContent='('+active.length+' values)';
+let html='';
+for(let i=min;i<=max;i++){
+const isActive=active.includes(i);
+html+='<div class="cell'+(isActive?' active':'')+'" title="'+fmt(i)+(isActive?' ✓':'')+'">'+fmt(i)+'</div>';
+}
+grid.innerHTML=html;
+}
+
+function showNextExecutions(parts,minutes,hours,doms,months,dows){
+const list=document.getElementById('execList');
+list.innerHTML='';
+const now=new Date();
+let count=0;
+let check=new Date(now);
+check.setSeconds(0);check.setMilliseconds(0);
+check.setMinutes(check.getMinutes()+1);
+const maxIter=525600;
+let iter=0;
+while(count<20&&iter<maxIter){
+iter++;
+if(matchesCron(check,parts)){
+const li=document.createElement('li');
+const num=document.createElement('span');
+num.className='exec-num';
+num.textContent=count+1;
+const dateSpan=document.createElement('span');
+dateSpan.className='exec-date';
+dateSpan.textContent=check.toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});
+const daySpan=document.createElement('span');
+daySpan.className='exec-day';
+daySpan.textContent=check.toLocaleString('en-US',{weekday:'long'});
+li.appendChild(num);li.appendChild(dateSpan);li.appendChild(daySpan);
+list.appendChild(li);
+count++;
+}
+check.setMinutes(check.getMinutes()+1);
+}
+}
+
+function matchesCron(d,parts){
+return matchField(d.getMinutes(),parts[0],0,59)&&matchField(d.getHours(),parts[1],0,23)&&matchField(d.getDate(),parts[2],1,31)&&matchField(d.getMonth()+1,parts[3],1,12)&&matchField(d.getDay(),parts[4],0,6);
+}
+
+function matchField(val,expr,min,max){
+if(expr==='*')return true;
+if(expr.includes(','))return expr.split(',').some(e=>matchField(val,e.trim(),min,max));
+if(expr.includes('-')){
+const[a,b]=expr.split('-').map(Number);
+return val>=a&&val<=b;
+}
+if(expr.includes('/')){const[base,step]=expr.split('/');const b=base==='*'?min:parseInt(base);return(val-b)%parseInt(step)===0&&val>=b}
+return parseInt(expr)===val;
+}
+
+// Init
+visualize();
+</script>
+</body>
+</html>

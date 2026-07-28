@@ -26,23 +26,23 @@ textarea:focus{border-color:var(--accent)}
 <body>
 <header><h1>ROT13 / Caesar Cipher</h1><a href="index.html">← Back to Tools</a></header>
 <div class="content">
-<textarea id="input" placeholder="Enter text to encode/decode..." oninput="process()">The quick brown fox jumps over the lazy dog</textarea>
+<textarea id="input" placeholder="Enter text to encode/decode..." oninput="process()" aria-label="Input text for cipher encoding">The quick brown fox jumps over the lazy dog</textarea>
 <div class="btn-row">
-<button class="btn" onclick="setMode('rot13')">ROT13</button>
-<button class="btn active" onclick="setMode('caesar')">Caesar</button>
-<button class="btn" onclick="setMode('vigenere')">Vigenere</button>
-<button class="btn" onclick="setMode('atbash')">Atbash</button>
-<button class="btn" onclick="setMode('reverse')">Reverse</button>
-<button class="btn" onclick="copyOut()">Copy</button>
+<button class="btn" onclick="setMode('rot13')" aria-label="ROT13 cipher mode">ROT13</button>
+<button class="btn active" onclick="setMode('caesar')" aria-label="Caesar cipher mode">Caesar</button>
+<button class="btn" onclick="setMode('vigenere')" aria-label="Vigenere cipher mode">Vigenere</button>
+<button class="btn" onclick="setMode('atbash')" aria-label="Atbash cipher mode">Atbash</button>
+<button class="btn" onclick="setMode('reverse')" aria-label="Reverse text mode">Reverse</button>
+<button class="btn" onclick="copyOut()" aria-label="Copy output to clipboard">Copy</button>
 </div>
 <div class="slider-row" id="caesarShift">
 <span>Shift:</span>
-<input type="range" id="shift" min="0" max="25" value="13" oninput="process()">
+<input type="range" id="shift" min="0" max="25" value="13" oninput="process()" aria-label="Caesar cipher shift amount">
 <span id="shiftVal">13</span>
 </div>
 <div class="slider-row" id="vigKey" style="display:none">
 <span>Key:</span>
-<input type="text" id="vkey" value="secret" oninput="process()" style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;font-family:var(--mono);font-size:13px;outline:none;width:200px">
+<input type="text" id="vkey" value="secret" oninput="process()" style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;font-family:var(--mono);font-size:13px;outline:none;width:200px" aria-label="Vigenere cipher key">
 </div>
 <div class="output" id="output" onclick="navigator.clipboard.writeText(this.textContent)"></div>
 <div class="info" id="info"></div>
@@ -66,7 +66,7 @@ document.getElementById('info').textContent=`${text.length} chars | Mode: ${mode
 }
 function rot(s,n){return s.replace(/[a-zA-Z]/g,c=>{const base=c<='Z'?65:97;return String.fromCharCode((c.charCodeAt(0)-base+n)%26+base)})}
 function vigenere(s,k){if(!k)return s;let ki=0;return s.replace(/[a-zA-Z]/g,c=>{const base=c<='Z'?65:97;const shift=k[ki%k.length].toLowerCase().charCodeAt(0)-97;ki++;return String.fromCharCode((c.charCodeAt(0)-base+shift)%26+base)})}
-function copyOut(){navigator.clipboard.writeText(document.getElementById('output').textContent)}
+function copyOut(){navigator.clipboard.writeText(document.getElementById('output').textContent).then(()=>{const b=document.querySelector('[onclick="copyOut()"]');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500)})}
 process();
 </script>
 </body>

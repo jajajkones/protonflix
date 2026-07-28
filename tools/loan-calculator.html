@@ -14,7 +14,8 @@ header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;alig
 .input-group label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px}
 .input-group input{width:100%;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-family:var(--mono);font-size:18px;outline:none}
 .input-group input:focus{border-color:var(--accent)}
-.result-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0}
+.result-cards{display:grid;grid-template-columns:1fr;gap:12px;margin:24px 0}
+@media(min-width:500px){.result-cards{grid-template-columns:repeat(3,1fr)}}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center}
 .card .value{font-size:28px;font-weight:300;font-family:var(--mono);margin-top:4px}
 .card .label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
@@ -44,7 +45,7 @@ header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;alig
 <script>
 function calc(){
 const P=+document.getElementById('amount').value;const r=+document.getElementById('rate').value/100/12;const n=+document.getElementById('years').value*12;
-if(!P||!r||!n)return;
+if(!P||!r||!n){document.getElementById('cards').innerHTML='<div class="card" style="grid-column:1/-1;color:var(--muted)">Please enter valid loan details</div>';document.getElementById('bars').innerHTML='';document.getElementById('amort').innerHTML='';return;}
 const M=P*(r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1);
 const total=M*n;const interest=total-P;
 document.getElementById('cards').innerHTML=`
@@ -57,7 +58,7 @@ document.getElementById('bars').innerHTML=`
 <div class="bar-row"><span class="bar-label">Interest</span><div class="bar bar-interest" style="width:${interestPct}%"></div><span>${interestPct.toFixed(1)}%</span></div>`;
 let balance=P;let html='';let yearPrincipal=0;let yearInterest=0;
 for(let i=1;i<=n;i++){
-const intPayment=balance*r;const prinPayment=M-intPayment;balance-=prinPrincipal=prinPayment;
+const intPayment=balance*r;const prinPayment=M-intPayment;balance-=prinPayment;
 yearPrincipal+=prinPayment;yearInterest+=intPayment;
 if(i%12===0){
 const yr=i/12;

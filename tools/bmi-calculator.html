@@ -34,12 +34,12 @@ header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;alig
 <div class="tab" onclick="setUnit('imperial')">Imperial</div>
 </div>
 <div id="metricInputs">
-<div class="input-row"><input type="number" id="height" placeholder="Height (cm)" value="175" oninput="calc()"></div>
-<div class="input-row"><input type="number" id="weight" placeholder="Weight (kg)" value="70" oninput="calc()"></div>
+<div class="input-row"><label for="height" style="position:absolute;width:1px;height:1px;overflow:hidden">Height in cm</label><input type="number" id="height" placeholder="Height (cm)" value="175" oninput="calc()"></div>
+<div class="input-row"><label for="weight" style="position:absolute;width:1px;height:1px;overflow:hidden">Weight in kg</label><input type="number" id="weight" placeholder="Weight (kg)" value="70" oninput="calc()"></div>
 </div>
 <div id="imperialInputs" style="display:none">
-<div class="input-row"><input type="number" id="ft" placeholder="Feet" value="5" oninput="calc()"><input type="number" id="inch" placeholder="Inches" value="9" oninput="calc()"></div>
-<div class="input-row"><input type="number" id="lbs" placeholder="Pounds" value="154" oninput="calc()"></div>
+<div class="input-row"><label for="ft" style="position:absolute;width:1px;height:1px;overflow:hidden">Feet</label><input type="number" id="ft" placeholder="Feet" value="5" oninput="calc()"><label for="inch" style="position:absolute;width:1px;height:1px;overflow:hidden">Inches</label><input type="number" id="inch" placeholder="Inches" value="9" oninput="calc()"></div>
+<div class="input-row"><label for="lbs" style="position:absolute;width:1px;height:1px;overflow:hidden">Pounds</label><input type="number" id="lbs" placeholder="Pounds" value="154" oninput="calc()"></div>
 </div>
 <div class="result" id="result"></div>
 <div class="info" id="info"></div>
@@ -55,7 +55,7 @@ h=+document.getElementById('height').value/100;w=+document.getElementById('weigh
 const ft=+document.getElementById('ft').value;const inch=+document.getElementById('inch').value;w=+document.getElementById('lbs').value*0.453592;
 h=(ft*12+inch)*0.0254;
 }
-if(!h||!w)return;
+if(!h||!w){document.getElementById('result').innerHTML='<div style="color:var(--muted);padding:20px">Please enter valid height and weight</div>';document.getElementById('info').innerHTML='';return;}
 bmi=w/(h*h);
 const cats=[{max:18.5,name:'Underweight',color:'#3b82f6'},{max:25,name:'Normal',color:'#22c55e'},{max:30,name:'Overweight',color:'#f59e0b'},{max:Infinity,name:'Obese',color:'#ef4444'}];
 const cat=cats.find(c=>bmi<c.max);

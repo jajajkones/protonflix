@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UUID v5 Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;padding:20px}
+.header{display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #222}
+.header h1{font-size:1.5rem;font-weight:600}
+.header a{color:#737373;text-decoration:none;font-size:.875rem;transition:color .2s}
+.header a:hover{color:#fff}
+.container{max-width:900px;margin:0 auto}
+.surface{background:#111;border:1px solid #222;border-radius:8px;padding:16px;margin-bottom:16px}
+label{display:block;font-size:.75rem;color:#737373;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+input,select,textarea{width:100%;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;padding:10px 12px;font-family:'Outfit',sans-serif;font-size:.875rem;outline:none;transition:border-color .2s}
+input:focus,select:focus,textarea:focus{border-color:#444}
+textarea{resize:vertical;font-family:monospace;font-size:.8rem}
+.btn{background:#fff;color:#0a0a0a;border:none;border-radius:6px;padding:10px 20px;font-family:'Outfit',sans-serif;font-size:.875rem;font-weight:500;cursor:pointer;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.btn-secondary{background:transparent;color:#fff;border:1px solid #222}
+.btn-secondary:hover{border-color:#444}
+.row{display:flex;gap:12px;align-items:flex-end}
+.row>*{flex:1}
+.uuid-item{background:#0a0a0a;border:1px solid #222;border-radius:6px;padding:10px 12px;margin-bottom:6px;font-family:monospace;font-size:.8rem;cursor:pointer;transition:background .2s;display:flex;justify-content:space-between;align-items:center}
+.uuid-item:hover{background:#1a1a1a}
+.uuid-item .label{font-family:'Outfit',sans-serif;font-size:.7rem;color:#737373;margin-bottom:2px}
+.uuid-item .value{color:#ccc}
+.uuid-item .copy-btn{background:#222;border:none;color:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:.7rem;font-family:'Outfit',sans-serif}
+.uuid-item .copy-btn:hover{background:#333}
+.output-area{max-height:400px;overflow:auto}
+.stats{font-size:.8rem;color:#737373;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html">&larr; Back</a>
+<h1>UUID v5 Generator</h1>
+</div>
+
+<div class="surface">
+<label>Namespace</label>
+<select id="namespace" onchange="toggleCustomNs()">
+<option value="6ba7b810-9dad-11d1-80b4-00c04fd430c8">DNS</option>
+<option value="6ba7b811-9dad-11d1-80b4-00c04fd430c8">URL</option>
+<option value="6ba7b812-9dad-11d1-80b4-00c04fd430c8">OID</option>
+<option value="6ba7b814-9dad-11d1-80b4-00c04fd430c8">X500</option>
+<option value="custom">Custom UUID...</option>
+</select>
+<input type="text" id="customNs" placeholder="Custom namespace UUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)" style="margin-top:8px;display:none" aria-label="Custom namespace UUID">
+</div>
+
+<div class="surface">
+<label>Name</label>
+<input type="text" id="name" placeholder="Enter name to generate UUID v5" aria-label="Name for UUID v5 generation">
+</div>
+
+<div class="surface">
+<div class="row">
+<div>
+<label>Batch Size</label>
+<input type="number" id="batchSize" value="1" min="1" max="100">
+</div>
+<div>
+<label>&nbsp;</label>
+<button class="btn" onclick="generate()">Generate UUID v5</button>
+</div>
+</div>
+</div>
+
+<div class="surface">
+<label>Results</label>
+<div class="output-area" id="output"></div>
+<div class="stats" id="stats">Ready</div>
+<div style="margin-top:8px;display:flex;gap:8px">
+<button class="btn-secondary btn" onclick="copyAll()">Copy All</button>
+<button class="btn-secondary btn" onclick="exportAs('json')">Export JSON</button>
+</div>
+</div>
+</div>
+
+<script>
+const NAMESPACES={dns:'6ba7b810-9dad-11d1-80b4-00c04fd430c8',url:'6ba7b811-9dad-11d1-80b4-00c04fd430c8',oid:'6ba7b812-9dad-11d1-80b4-00c04fd430c8',x500:'6ba7b814-9dad-11d1-80b4-00c04fd430c8'};
+
+function toggleCustomNs(){
+const v=document.getElementById('namespace').value;
+document.getElementById('customNs').style.display=v==='custom'?'block':'none';
+}
+
+function uuidToBytes(uuid){
+const hex=uuid.replace(/-/g,'');
+const bytes=new Uint8Array(16);
+for(let i=0;i<16;i++)bytes[i]=parseInt(hex.substr(i*2,2),16);
+return bytes;
+}
+
+function bytesToUuid(buf){
+const hex=[...buf].map(b=>b.toString(16).padStart(2,'0')).join('');
+return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+}
+
+async function sha1(data){
+const hash=await crypto.subtle.digest('SHA-1',data);
+return new Uint8Array(hash);
+}
+
+function generateV4(){
+const arr=crypto.getRandomValues(new Uint8Array(16));
+arr[6]=(arr[6]&0x0f)|0x40;
+arr[8]=(arr[8]&0x3f)|0x80;
+return bytesToUuid(arr);
+}
+
+async function generateV5Raw(namespace,name){
+const nsBytes=uuidToBytes(namespace);
+const nameBytes=new TextEncoder().encode(name);
+const data=new Uint8Array(nsBytes.length+nameBytes.length);
+data.set(nsBytes);data.set(nameBytes,nsBytes.length);
+const hash=await sha1(data);
+hash[6]=(hash[6]&0x0f)|0x50;
+hash[8]=(hash[8]&0x3f)|0x80;
+return bytesToUuid(hash);
+}
+
+let results=[];
+
+async function generate(){
+const nsSelect=document.getElementById('namespace').value;
+const ns=nsSelect==='custom'?document.getElementById('customNs').value.trim():nsSelect;
+const name=document.getElementById('name').value;
+const count=parseInt(document.getElementById('batchSize').value)||1;
+if(!name){alert('Enter a name');return;}
+if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ns)){alert('Invalid namespace UUID');return;}
+results=[];
+for(let i=0;i<count;i++){
+const v5=await generateV5Raw(ns,name+i);
+const v4=generateV4();
+results.push({v5,v4,name:name+(count>1?' '+i:'')});
+}
+render();
+}
+
+function render(){
+const el=document.getElementById('output');
+el.innerHTML=results.map((r,i)=>`
+<div class="uuid-item">
+<div><div class="label">v5 - ${r.name}</div><div class="value">${r.v5}</div></div>
+<button class="copy-btn" onclick="event.stopPropagation();navigator.clipboard.writeText('${r.v5}')">Copy</button>
+</div>
+<div class="uuid-item" style="margin-bottom:12px">
+<div><div class="label">v4 comparison</div><div class="value">${r.v4}</div></div>
+<button class="copy-btn" onclick="event.stopPropagation();navigator.clipboard.writeText('${r.v4}')">Copy</button>
+</div>
+`).join('');
+document.getElementById('stats').textContent=`${results.length} UUID pairs generated`;
+}
+
+function copyAll(){
+navigator.clipboard.writeText(results.map(r=>`v5: ${r.v5}\nv4: ${r.v4}`).join('\n'));
+}
+
+function exportAs(fmt){
+if(!results.length)return;
+const data=results.map(r=>({v5:r.v5,v4:r.v4,name:r.name}));
+const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='uuids.json';a.click();
+}
+</script>
+</body>
+</html>

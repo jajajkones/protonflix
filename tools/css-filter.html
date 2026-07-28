@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS Filter Generator - ProtonFlix Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#fff;font-family:'Outfit',sans-serif;min-height:100vh;padding:20px}
+a{color:#fff;text-decoration:none}
+.container{max-width:1200px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:#111;border:1px solid #222;border-radius:12px;margin-bottom:24px}
+header h1{font-size:1.3rem;font-weight:600}
+header a{font-size:.9rem;color:#737373;transition:color .2s}
+header a:hover{color:#fff}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:768px){.grid{grid-template-columns:1fr}}
+.panel{background:#111;border:1px solid #222;border-radius:12px;padding:24px}
+.panel h2{font-size:1.1rem;font-weight:500;margin-bottom:20px;color:#737373}
+.preview-box{background:#000;border:1px solid #222;border-radius:12px;overflow:hidden;min-height:280px;display:flex;align-items:center;justify-content:center}
+.preview-image{width:100%;height:280px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);transition:filter .3s}
+.control-group{margin-bottom:18px}
+.control-group label{display:flex;justify-content:space-between;font-size:.85rem;color:#737373;margin-bottom:6px}
+.control-group label span{color:#fff;font-weight:500}
+.control-group input[type="range"]{width:100%;accent-color:#fff;height:4px;background:#222;border-radius:2px;outline:none;-webkit-appearance:none}
+.control-group input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:#fff;border-radius:50%;cursor:pointer}
+.control-row{display:flex;gap:16px}
+.control-row .control-group{flex:1}
+.reset-btn{width:100%;padding:10px;background:#1a1a1a;border:1px solid #222;border-radius:8px;color:#737373;font-family:'Outfit',sans-serif;font-size:.9rem;cursor:pointer;transition:all .2s;margin-top:8px}
+.reset-btn:hover{background:#222;color:#fff}
+.css-output{position:relative;background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:16px;font-family:'Courier New',monospace;font-size:.85rem;color:#a8ff60;white-space:pre-wrap;word-break:break-all;cursor:pointer;transition:border-color .2s}
+.css-output:hover{border-color:#444}
+.css-output .copy-hint{position:absolute;top:8px;right:12px;font-size:.7rem;color:#737373;font-family:'Outfit',sans-serif}
+.css-output.copied{border-color:#a8ff60}
+.css-output.copied .copy-hint{color:#a8ff60}
+.preset-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.preset-btn{padding:8px 14px;background:#1a1a1a;border:1px solid #222;border-radius:6px;color:#fff;font-family:'Outfit',sans-serif;font-size:.8rem;cursor:pointer;transition:all .2s}
+.preset-btn:hover{background:#222;border-color:#444}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>CSS Filter Generator</h1>
+<a href="index.html">← Back to Tools</a>
+</header>
+<div class="grid">
+<div class="panel">
+<h2>Controls</h2>
+<div class="preset-bar">
+<button class="preset-btn" onclick="applyPreset('none')">Reset</button>
+<button class="preset-btn" onclick="applyPreset('vintage')">Vintage</button>
+<button class="preset-btn" onclick="applyPreset('noir')">Noir</button>
+<button class="preset-btn" onclick="applyPreset('dramatic')">Dramatic</button>
+<button class="preset-btn" onclick="applyPreset('dreamy')">Dreamy</button>
+<button class="preset-btn" onclick="applyPreset('cold')">Cold</button>
+</div>
+<div class="control-group">
+<label>Blur <span id="blur-val">0px</span></label>
+<input type="range" min="0" max="20" step="0.1" value="0" id="blur" oninput="update()">
+</div>
+<div class="control-group">
+<label>Brightness <span id="brightness-val">100%</span></label>
+<input type="range" min="0" max="200" value="100" id="brightness" oninput="update()">
+</div>
+<div class="control-group">
+<label>Contrast <span id="contrast-val">100%</span></label>
+<input type="range" min="0" max="200" value="100" id="contrast" oninput="update()">
+</div>
+<div class="control-group">
+<label>Grayscale <span id="grayscale-val">0%</span></label>
+<input type="range" min="0" max="100" value="0" id="grayscale" oninput="update()">
+</div>
+<div class="control-group">
+<label>Hue Rotate <span id="hue-rotate-val">0deg</span></label>
+<input type="range" min="0" max="360" value="0" id="hue-rotate" oninput="update()">
+</div>
+<div class="control-group">
+<label>Invert <span id="invert-val">0%</span></label>
+<input type="range" min="0" max="100" value="0" id="invert" oninput="update()">
+</div>
+<div class="control-group">
+<label>Opacity <span id="opacity-val">100%</span></label>
+<input type="range" min="0" max="100" value="100" id="opacity" oninput="update()">
+</div>
+<div class="control-group">
+<label>Saturate <span id="saturate-val">100%</span></label>
+<input type="range" min="0" max="200" value="100" id="saturate" oninput="update()">
+</div>
+<div class="control-group">
+<label>Sepia <span id="sepia-val">0%</span></label>
+<input type="range" min="0" max="100" value="0" id="sepia" oninput="update()">
+</div>
+<div class="control-group">
+<label>Drop Shadow X <span id="ds-x-val">0px</span></label>
+<input type="range" min="-20" max="20" value="0" id="ds-x" oninput="update()">
+</div>
+<div class="control-group">
+<label>Drop Shadow Y <span id="ds-y-val">0px</span></label>
+<input type="range" min="-20" max="20" value="0" id="ds-y" oninput="update()">
+</div>
+<div class="control-group">
+<label>Drop Shadow Blur <span id="ds-blur-val">0px</span></label>
+<input type="range" min="0" max="40" value="0" id="ds-blur" oninput="update()">
+</div>
+<div class="control-group">
+<label>Drop Shadow Color</label>
+<input type="color" value="#000000" id="ds-color" oninput="update()" style="width:100%;height:36px;border:1px solid #222;border-radius:6px;background:#111;cursor:pointer;padding:2px">
+</div>
+<button class="reset-btn" onclick="applyPreset('none')">Reset All</button>
+</div>
+<div>
+<div class="panel" style="margin-bottom:24px">
+<h2>Live Preview</h2>
+<div class="preview-box">
+<div class="preview-image" id="preview"></div>
+</div>
+</div>
+<div class="panel">
+<h2>CSS Output</h2>
+<div class="css-output" id="cssOutput" onclick="copyCSS()"><span class="copy-hint">Click to copy</span></div>
+</div>
+</div>
+</div>
+</div>
+<script>
+const filters=['blur','brightness','contrast','grayscale','hue-rotate','invert','opacity','saturate','sepia'];
+const units={blur:'px',brightness:'%',contrast:'%',grayscale:'%','hue-rotate':'deg',invert:'%',opacity:'%',saturate:'%',sepia:'%'};
+const defaults={blur:0,brightness:100,contrast:100,grayscale:0,'hue-rotate':0,invert:0,opacity:100,saturate:100,sepia:0};
+
+const presets={
+none:{...defaults,'ds-x':0,'ds-y':0,'ds-blur':0,'ds-color':'#000000'},
+vintage:{blur:0,brightness:110,contrast:85,grayscale:20,'hue-rotate':0,invert:0,opacity:100,saturate:70,sepia:40,'ds-x':0,'ds-y':0,'ds-blur':0,'ds-color':'#000000'},
+noir:{blur:0,brightness:90,contrast:130,grayscale:100,'hue-rotate':0,invert:0,opacity:100,saturate:50,sepia:0,'ds-x':0,'ds-y':0,'ds-blur':0,'ds-color':'#000000'},
+dramatic:{blur:0,brightness:80,contrast:150,grayscale:0,'hue-rotate':0,invert:0,opacity:100,saturate:150,sepia:0,'ds-x':0,'ds-y':0,'ds-blur':0,'ds-color':'#000000'},
+dreamy:{blur:1,brightness:115,contrast:90,grayscale:0,'hue-rotate':0,invert:0,opacity:95,saturate:120,sepia:10,'ds-x':0,'ds-y':0,'ds-blur':0,'ds-color':'#000000'},
+cold:{blur:0,brightness:100,contrast:105,grayscale:0,'hue-rotate':180,invert:0,opacity:100,saturate:80,sepia:0,'ds-x':0,'ds-y':0,'ds-blur':0,'ds-color':'#000000'}
+};
+
+function getVal(id){return document.getElementById(id).value}
+function setVal(id,v){document.getElementById(id).value=v}
+
+function update(){
+const parts=[];
+filters.forEach(f=>{
+const v=parseFloat(getVal(f));
+const d=defaults[f];
+if(v!==d){
+const u=units[f];
+parts.push(`${f}(${v}${u})`);
+}
+});
+const dxx=parseFloat(getVal('ds-x'));
+const dyy=parseFloat(getVal('ds-y'));
+const dbl=parseFloat(getVal('ds-blur'));
+const dcol=getVal('ds-color');
+if(dxx!==0||dyy!==0||dbl!==0){
+parts.push(`drop-shadow(${dxx}px ${dyy}px ${dbl}px ${dcol})`);
+}
+const css=parts.length?parts.join(' '):'none';
+document.getElementById('preview').style.filter=css;
+filters.forEach(f=>{
+const v=parseFloat(getVal(f));
+document.getElementById(`${f}-val`).textContent=v+units[f];
+});
+document.getElementById('ds-x-val').textContent=getVal('ds-x')+'px';
+document.getElementById('ds-y-val').textContent=getVal('ds-y')+'px';
+document.getElementById('ds-blur-val').textContent=getVal('ds-blur')+'px';
+document.getElementById('cssOutput').innerHTML=`<span class="copy-hint">Click to copy</span>filter: ${css};`;
+}
+
+function applyPreset(name){
+const p=presets[name];
+Object.keys(p).forEach(k=>{
+if(document.getElementById(k))setVal(k,p[k]);
+});
+update();
+}
+
+function copyCSS(){
+const css=`filter: ${document.getElementById('preview').style.filter||'none'};`;
+navigator.clipboard.writeText(css).then(()=>{
+const el=document.getElementById('cssOutput');
+el.classList.add('copied');
+el.querySelector('.copy-hint').textContent='Copied!';
+setTimeout(()=>{el.classList.remove('copied');el.querySelector('.copy-hint').textContent='Click to copy';},1500);
+});
+}
+
+update();
+</script>
+</body>
+</html>

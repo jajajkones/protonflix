@@ -38,14 +38,14 @@ textarea{flex:1;background:var(--bg);color:var(--text);border:none;padding:20px;
 <body>
 <header><h1>Markdown to HTML</h1><a href="index.html">← Back to Tools</a></header>
 <div class="toolbar">
-<button class="btn primary" onclick="convert()">Convert</button>
-<button class="btn" onclick="copyHtml()">Copy HTML</button>
-<button class="btn" onclick="copyStyled()">Copy Styled HTML</button>
+<button class="btn primary" onclick="convert()" aria-label="Convert Markdown to HTML">Convert</button>
+<button class="btn" onclick="copyHtml()" aria-label="Copy HTML output">Copy HTML</button>
+<button class="btn" onclick="copyStyled()" aria-label="Copy styled HTML output">Copy Styled HTML</button>
 </div>
 <div class="container">
 <div class="pane">
 <div class="pane-header">Markdown</div>
-<textarea id="input" oninput="convert()" placeholder="Type markdown..."># Hello World
+<textarea id="input" oninput="convert()" placeholder="Type markdown..." aria-label="Input Markdown text"># Hello World
 
 This is **bold** and *italic* text.
 
@@ -96,8 +96,8 @@ document.getElementById('previewView').innerHTML=html;
 document.getElementById('htmlView').textContent=html.replace(/<\/p><p>/g,'\n\n').replace(/<p>/g,'').replace(/<\/p>/g,'');
 }
 function showView(v){document.getElementById('previewView').style.display=v==='preview'?'block':'none';document.getElementById('htmlView').style.display=v==='html'?'block':'none'}
-function copyHtml(){navigator.clipboard.writeText(document.getElementById('htmlView').textContent)}
-function copyStyled(){navigator.clipboard.writeText(document.getElementById('htmlView').textContent)}
+function copyHtml(){navigator.clipboard.writeText(document.getElementById('htmlView').textContent).then(()=>{const b=document.querySelector('[onclick="copyHtml()"]');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy HTML',1500)})}
+function copyStyled(){navigator.clipboard.writeText(document.getElementById('htmlView').textContent).then(()=>{const b=document.querySelector('[onclick="copyStyled()"]');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy Styled HTML',1500)})}
 convert();
 </script>
 </body>

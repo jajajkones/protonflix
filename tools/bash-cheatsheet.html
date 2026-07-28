@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bash Scripting Cheat Sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a0a; color: #fff; font-family: 'Outfit', sans-serif; line-height: 1.6; }
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+header { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #222; }
+h1 { font-size: 2rem; font-weight: 600; }
+.back-link { color: #737373; text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+.back-link:hover { color: #fff; }
+.search-container { margin-bottom: 30px; }
+.search-input { width: 100%; max-width: 400px; padding: 12px 20px; background: #111; border: 1px solid #222; border-radius: 8px; color: #fff; font-family: 'Outfit', sans-serif; font-size: 1rem; outline: none; transition: border-color 0.2s; }
+.search-input:focus { border-color: #444; }
+.search-input::placeholder { color: #737373; }
+.section { background: #111; border: 1px solid #222; border-radius: 12px; margin-bottom: 20px; overflow: hidden; }
+.section-header { padding: 16px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
+.section-header:hover { background: #1a1a1a; }
+.section-title { font-size: 1.1rem; font-weight: 500; }
+.section-toggle { color: #737373; font-size: 1.2rem; transition: transform 0.3s; }
+.section.collapsed .section-content { display: none; }
+.section.collapsed .section-toggle { transform: rotate(-90deg); }
+.section-content { padding: 0 20px 20px; }
+.command { background: #0a0a0a; border: 1px solid #222; border-radius: 6px; padding: 12px 16px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; position: relative; }
+.command:hover { border-color: #444; background: #151515; }
+.command-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.command-name { font-weight: 500; color: #fff; font-size: 0.95rem; }
+.command-syntax { font-family: 'Courier New', monospace; color: #a0a0a0; font-size: 0.85rem; word-break: break-all; }
+.copy-hint { position: absolute; top: 8px; right: 12px; color: #737373; font-size: 0.75rem; opacity: 0; transition: opacity 0.2s; }
+.command:hover .copy-hint { opacity: 1; }
+.copied { background: #1a2a1a !important; border-color: #2a4a2a !important; }
+.copied .command-name::after { content: ' ✓ Copied!'; color: #4ade80; font-size: 0.8rem; }
+.hidden { display: none !important; }
+.tag { display: inline-block; background: #222; color: #a0a0a0; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-left: 8px; }
+
+@media(max-width:768px){header{padding:20px 16px}header h1{font-size:16px}.content{padding:20px 16px}.container{padding:16px}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>Bash Scripting Cheat Sheet</h1>
+<a href="index.html" class="back-link">← Back to ProtonFlix</a>
+</header>
+
+<div class="search-container">
+<input type="text" class="search-input" placeholder="Search commands..." id="searchInput">
+</div>
+
+<div id="sections">
+
+<div class="section" data-category="variables">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Variables <span class="tag">5 patterns</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="NAME='John'
+AGE=25
+readonly PI=3.14
+echo $NAME ${AGE}
+">
+<div class="command-header">
+<span class="command-name">Variable Assignment</span>
+</div>
+<div class="command-syntax">VAR='value' | readonly VAR=value | $VAR ${VAR}</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="NAME=\${1:-default}
+FILE=\${2:?Error: file required}
+COUNT=\${#ARRAY[@]}
+UPPER=\${VAR^^}
+LOWER=\${VAR,,}
+">
+<div class="command-header">
+<span class="command-name">Special Parameters</span>
+</div>
+<div class="command-syntax">\${var:-default} | \${var:?error} | \${#var} | \${var^^} | \${var,,}</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="echo \$0  # Script name
+echo \$1  # First argument
+echo \$@  # All arguments
+echo \$#  # Argument count
+echo \$?  # Last exit code
+echo \$\$  # Current PID
+">
+<div class="command-header">
+<span class="command-name">Special Variables</span>
+</div>
+<div class="command-syntax">$0 $1 $@ $# \$? \$\$ $! $-</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="conditionals">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Conditionals <span class="tag">4 patterns</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="if [ condition ]; then
+    echo 'true'
+elif [ condition ]; then
+    echo 'elif'
+else
+    echo 'false'
+fi
+">
+<div class="command-header">
+<span class="command-name">if/elif/else</span>
+</div>
+<div class="command-syntax">if [ cond ]; then ... elif [ cond ]; then ... else ... fi</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="# String tests
+[ -z "\$var" ]  # Empty
+[ -n "\$var" ]  # Not empty
+[ "\$a" = "\$b" ]  # Equal
+[ "\$a" != "\$b" ]  # Not equal
+[[ \$var == pattern* ]]  # Pattern match
+">
+<div class="command-header">
+<span class="command-name">String Tests</span>
+</div>
+<div class="command-syntax">[ -z var ] | [ -n var ] | [ a = b ] | [[ var == pattern* ]]</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="# Numeric tests
+[ \$a -eq \$b ]  # Equal
+[ \$a -ne \$b ]  # Not equal
+[ \$a -gt \$b ]  # Greater than
+[ \$a -lt \$b ]  # Less than
+[ \$a -ge \$b ]  # Greater or equal
+[ \$a -le \$b ]  # Less or equal
+">
+<div class="command-header">
+<span class="command-name">Numeric Tests</span>
+</div>
+<div class="command-syntax">-eq | -ne | -gt | -lt | -ge | -le</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="# File tests
+[ -f file ]  # Is file
+[ -d dir ]  # Is directory
+[ -e path ]  # Exists
+[ -r file ]  # Readable
+[ -w file ]  # Writable
+[ -x file ]  # Executable
+[ -s file ]  # Not empty
+">
+<div class="command-header">
+<span class="command-name">File Tests</span>
+</div>
+<div class="command-syntax">-f | -d | -e | -r | -w | -x | -s</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="loops">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Loops <span class="tag">4 patterns</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="for i in 1 2 3 4 5; do
+    echo \$i
+done
+
+for i in {1..10}; do
+    echo \$i
+done
+
+for i in \$(seq 1 2 20); do
+    echo \$i
+done
+">
+<div class="command-header">
+<span class="command-name">for Loop</span>
+</div>
+<div class="command-syntax">for var in list; do ... done</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="for ((i=0; i<10; i++)); do
+    echo \$i
+done
+
+for file in *.txt; do
+    echo \"Processing \$file\"
+done
+">
+<div class="command-header">
+<span class="command-name">C-style for Loop</span>
+</div>
+<div class="command-syntax">for ((init; cond; inc)); do ... done</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="while [ \$count -lt 10 ]; do
+    echo \$count
+    ((count++))
+done
+
+while read -r line; do
+    echo \"Line: \$line\"
+done < file.txt
+">
+<div class="command-header">
+<span class="command-name">while Loop</span>
+</div>
+<div class="command-syntax">while [ cond ]; do ... done</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="until [ -f /tmp/lock ]; do
+    sleep 1
+done
+echo 'Lock file created'
+">
+<div class="command-header">
+<span class="command-name">until Loop</span>
+</div>
+<div class="command-syntax">until [ cond ]; do ... done</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="functions">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Functions</span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="greet() {
+    local name=\$1
+    echo \"Hello, \$name!\"
+}
+greet 'World'
+">
+<div class="command-header">
+<span class="command-name">Basic Function</span>
+</div>
+<div class="command-syntax">func() { local var=\$1; ... } | func arg</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="add() {
+    echo \$(( \$1 + \$2 ))
+}
+result=\$(add 5 3)
+echo \"Result: \$result\"
+">
+<div class="command-header">
+<span class="command-name">Return Value</span>
+</div>
+<div class="command-syntax">result=$(func args) | func args | echo \$?</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="strings">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">String Manipulation <span class="tag">6 operations</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="STR='Hello, World!'
+echo \${#STR}  # Length: 12
+echo \${STR:0:5}  # Substring: Hello
+echo \${STR:6}  # From index: World!
+">
+<div class="command-header">
+<span class="command-name">Substring</span>
+</div>
+<div class="command-syntax">\${#str} | \${str:offset:length}</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="STR='Hello World'
+echo \${STR/World/Bash}  # Hello Bash
+echo \${STR//l/L}  # HeLLo WorLd
+echo \${STR/#Hello/Hi}  # Hi World
+echo \${STR/%World/Earth}  # Hello Earth
+">
+<div class="command-header">
+<span class="command-name">Pattern Substitution</span>
+</div>
+<div class="command-syntax">\${str/pattern/replacement} | // for global | # start | % end</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="FILE='document.tar.gz'
+echo \${FILE%.gz}  # document.tar
+echo \${FILE%%.*}  # document
+echo \${FILE#*.}  # tar.gz
+echo \${FILE##*.}  # gz
+">
+<div class="command-header">
+<span class="command-name">Remove Affix</span>
+</div>
+<div class="command-syntax">\${str%pattern} | %% | # | ##</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="arrays">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Array Operations</span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="ARR=(apple banana cherry)
+ARR[3]='date'
+echo \${ARR[0]}  # apple
+echo \${ARR[@]}  # All elements
+echo \${#ARR[@]}  # Length: 4
+">
+<div class="command-header">
+<span class="command-name">Array Basics</span>
+</div>
+<div class="command-syntax">ARR=(el1 el2) | ARR[n]=val | \${ARR[@]} | \${#ARR[@]}</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="for item in \${ARR[@]}; do
+    echo \$item
+done
+
+unset ARR[1]  # Remove element at index 1
+ARR+=(new_item)  # Append
+">
+<div class="command-header">
+<span class="command-name">Array Iteration</span>
+</div>
+<div class="command-syntax">for item in \${arr[@]}; do ... done | unset | +=</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="declare -A MAP
+MAP[name]='John'
+MAP[age]=25
+echo \${MAP[name]}
+echo \${!MAP[@]}  # All keys
+">
+<div class="command-header">
+<span class="command-name">Associative Arrays</span>
+</div>
+<div class="command-syntax">declare -A MAP | MAP[key]=val | \${MAP[key]}</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="files">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">File Operations</span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="while IFS= read -r line; do
+    echo \"\$line\"
+done < input.txt
+">
+<div class="command-header">
+<span class="command-name">Reading Files</span>
+</div>
+<div class="command-syntax">while read -r line; do ... done < file</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="cat << EOF > output.txt
+Line 1
+Line 2
+EOF
+">
+<div class="command-header">
+<span class="command-name">Writing Files</span>
+</div>
+<div class="command-syntax">cat << EOF > file ... EOF</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="mktemp /tmp/tmp.XXXXXX
+trap 'rm -f /tmp/tmp.*' EXIT
+">
+<div class="command-header">
+<span class="command-name">Temp Files & Cleanup</span>
+</div>
+<div class="command-syntax">mktemp | trap 'rm file' EXIT</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="process">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Process Management</span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="command1 &
+command2 &
+wait
+">
+<div class="command-header">
+<span class="command-name">Background Jobs</span>
+</div>
+<div class="command-syntax">command & | wait</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="command1 && command2 || command3
+">
+<div class="command-header">
+<span class="command-name">Command Chaining</span>
+</div>
+<div class="command-syntax">cmd1 && cmd2 || cmd3</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="nohup command > output.log 2>&1 &
+disown
+">
+<div class="command-header">
+<span class="command-name">nohup</span>
+</div>
+<div class="command-syntax">nohup command > log 2>&1 & disown</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="redirection">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Redirection & Piping</span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="command > file.txt  # Redirect stdout
+command >> file.txt  # Append stdout
+command 2> error.txt  # Redirect stderr
+command &> all.txt  # Redirect both
+command 2>&1  # Stderr to stdout
+command < input.txt  # Redirect stdin
+">
+<div class="command-header">
+<span class="command-name">Redirection</span>
+</div>
+<div class="command-syntax">> | >> | 2> | &> | 2>&1 | <</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="cat file.txt | grep 'pattern' | sort | uniq
+cmd1 | cmd2 | cmd3
+">
+<div class="command-header">
+<span class="command-name">Piping</span>
+</div>
+<div class="command-syntax">cmd1 | cmd2 | cmd3</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="cmd << EOF
+line 1
+line 2
+EOF
+
+cmd << 'EOF'
+literal text
+EOF
+
+cmd <<< 'here string'
+">
+<div class="command-header">
+<span class="command-name">Here Documents</span>
+</div>
+<div class="command-syntax">cmd << EOF ... EOF | cmd <<< 'string'</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="arithmetic">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Arithmetic</span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="((a + b))
+((a - b))
+((a * b))
+((a / b))
+((a % b))
+((a ** 2))
+">
+<div class="command-header">
+<span class="command-name">Arithmetic Expansion</span>
+</div>
+<div class="command-syntax">$((a + b)) | + | - | * | / | % | **</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="let sum=a+b
+let prod=a*b
+echo \$sum \$prod
+">
+<div class="command-header">
+<span class="command-name">let Command</span>
+</div>
+<div class="command-syntax">let var=expr</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="echo \$(( 10 / 3 ))  # 3 (integer division)
+echo \$(( 10 % 3 ))  # 1 (modulus)
+echo \$(( 2 ** 8 ))  # 256 (power)
+">
+<div class="command-header">
+<span class="command-name">Bash Math</span>
+</div>
+<div class="command-syntax">/ for division | % for modulus | ** for power</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+<div class="section" data-category="commands">
+<div class="section-header" onclick="toggleSection(this)">
+<span class="section-title">Common Commands <span class="tag">9 commands</span></span>
+<span class="section-toggle">▼</span>
+</div>
+<div class="section-content">
+<div class="command" onclick="copyCommand(this)" data-command="find /path -name '*.log' -type f
+find . -mtime -7 -name '*.txt'
+find . -exec grep -l 'pattern' {} +
+">
+<div class="command-header">
+<span class="command-name">find</span>
+</div>
+<div class="command-syntax">find path -name pattern -type f|d -exec cmd {} +</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="grep -r 'pattern' /path
+grep -i 'pattern' file.txt
+grep -n 'pattern' file.txt
+grep -v 'pattern' file.txt
+">
+<div class="command-header">
+<span class="command-name">grep</span>
+</div>
+<div class="command-syntax">grep -r|-i|-n|-v 'pattern' file</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="sed 's/old/new/g' file.txt
+sed -i 's/old/new/g' file.txt
+sed -n '10,20p' file.txt
+">
+<div class="command-header">
+<span class="command-name">sed</span>
+</div>
+<div class="command-syntax">sed 's/pattern/replacement/g' | -i for in-place</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="awk '{print \$1, \$3}' file.txt
+awk -F: '{print \$1}' /etc/passwd
+awk '/pattern/ {print}' file.txt
+">
+<div class="command-header">
+<span class="command-name">awk</span>
+</div>
+<div class="command-syntax">awk '{print $N}' | -F delimiter | /pattern/</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="cut -d: -f1,3 file.txt
+cut -c1-10 file.txt
+">
+<div class="command-header">
+<span class="command-name">cut</span>
+</div>
+<div class="command-syntax">cut -d delimiter -f fields | -c chars</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="sort file.txt
+sort -u file.txt
+sort -k2,2n file.txt
+sort -t: -k3,3n /etc/passwd
+">
+<div class="command-header">
+<span class="command-name">sort</span>
+</div>
+<div class="command-syntax">sort | -u unique | -k key | -t delimiter</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="uniq sorted.txt
+sort file.txt | uniq -c | sort -rn
+">
+<div class="command-header">
+<span class="command-name">uniq</span>
+</div>
+<div class="command-syntax">uniq | uniq -c count | sort -rn for frequency</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="find . -name '*.txt' | xargs grep 'pattern'
+find . -name '*.txt' -print0 | xargs -0 grep 'pattern'
+">
+<div class="command-header">
+<span class="command-name">xargs</span>
+</div>
+<div class="command-syntax">cmd | xargs command | -0 for null-delimited</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+
+<div class="command" onclick="copyCommand(this)" data-command="tr 'a-z' 'A-Z' < file.txt
+tr -d '\r' < file.txt
+tr -s ' ' < file.txt
+">
+<div class="command-header">
+<span class="command-name">tr</span>
+</div>
+<div class="command-syntax">tr 'set1' 'set2' | -d delete | -s squeeze</div>
+<div class="copy-hint">Click to copy</div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<script>
+function toggleSection(header) {
+    header.parentElement.classList.toggle('collapsed');
+}
+
+function copyCommand(commandEl) {
+    const cmd = commandEl.getAttribute('data-command');
+    navigator.clipboard.writeText(cmd).then(() => {
+        commandEl.classList.add('copied');
+        setTimeout(() => commandEl.classList.remove('copied'), 1500);
+    });
+}
+
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    const query = e.target.value.toLowerCase();
+    document.querySelectorAll('.command').forEach(cmd => {
+        const text = cmd.textContent.toLowerCase();
+        const syntax = cmd.querySelector('.command-syntax').textContent.toLowerCase();
+        const name = cmd.querySelector('.command-name').textContent.toLowerCase();
+        if (text.includes(query) || syntax.includes(query) || name.includes(query)) {
+            cmd.classList.remove('hidden');
+        } else {
+            cmd.classList.add('hidden');
+        }
+    });
+    
+    document.querySelectorAll('.section').forEach(section => {
+        const visibleCommands = section.querySelectorAll('.command:not(.hidden)');
+        if (visibleCommands.length === 0 && query) {
+            section.classList.add('hidden');
+        } else {
+            section.classList.remove('hidden');
+        }
+    });
+});
+</script>
+</body>
+</html>

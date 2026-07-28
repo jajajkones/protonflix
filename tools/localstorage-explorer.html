@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LocalStorage Explorer - ProtonFlix Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh}
+header{background:#111;border-bottom:1px solid #222;padding:16px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+header h1{font-size:1.3rem;font-weight:600}
+header a{color:#737373;text-decoration:none;font-size:.9rem;transition:color .2s}
+header a:hover{color:#fff}
+.container{max-width:900px;margin:0 auto;padding:24px}
+.btn{padding:8px 16px;border:1px solid #222;background:#111;color:#fff;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.85rem;transition:all .2s}
+.btn:hover{background:#222}
+.btn-danger{border-color:#ff4444;color:#ff4444}
+.btn-danger:hover{background:#ff444420}
+.btn-primary{background:#2563eb;border-color:#2563eb}
+.btn-primary:hover{background:#1d4ed8}
+.btn-success{border-color:#22c55e;color:#22c55e}
+.btn-success:hover{background:#22c55e20}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:16px;margin-bottom:12px}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.card-actions{display:flex;gap:6px;flex-wrap:wrap}
+.stats{display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.stat{background:#111;border:1px solid #222;border-radius:8px;padding:12px 16px;flex:1;min-width:120px}
+.stat-value{font-size:1.5rem;font-weight:600;color:#60a5fa}
+.stat-label{font-size:.75rem;color:#737373;margin-top:2px}
+.tabs{display:flex;gap:4px;margin-bottom:16px}
+.tab{padding:8px 20px;background:#111;border:1px solid #222;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.85rem;color:#737373;transition:all .2s}
+.tab.active{background:#2563eb20;color:#60a5fa;border-color:#2563eb}
+.search-bar{width:100%;padding:10px 14px;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;font-family:inherit;font-size:.85rem;margin-bottom:12px}
+.search-bar:focus{outline:none;border-color:#2563eb}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{text-align:left;padding:10px 12px;background:#0a0a0a;border-bottom:1px solid #222;color:#737373;font-weight:500}
+td{padding:10px 12px;border-bottom:1px solid #1a1a1a;word-break:break-all}
+tr:hover td{background:#111}
+.empty-state{text-align:center;padding:40px;color:#737373}
+.modal-overlay{display:none;position:fixed;inset:0;background:#000000cc;z-index:200;justify-content:center;align-items:center}
+.modal-overlay.active{display:flex}
+.modal{background:#111;border:1px solid #222;border-radius:12px;padding:24px;width:90%;max-width:500px;max-height:80vh;overflow-y:auto}
+.modal h2{font-size:1.1rem;margin-bottom:16px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:.8rem;color:#737373;margin-bottom:4px}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:8px 12px;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;font-family:inherit;font-size:.85rem}
+.form-group textarea{min-height:100px;resize:vertical}
+.form-group input:focus,.form-group textarea:focus{outline:none;border-color:#2563eb}
+.toast{position:fixed;bottom:24px;right:24px;background:#22c55e;color:#fff;padding:12px 20px;border-radius:8px;font-size:.85rem;z-index:300;animation:slideIn .3s ease}
+@keyframes slideIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.value-preview{max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;font-family:monospace;font-size:.8rem;color:#a3a3a3}
+.value-preview:hover{color:#fff}
+
+@media(max-width:768px){header{padding:20px 16px}header h1{font-size:16px}.content{padding:20px 16px}.container{padding:16px}}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html">← Back</a>
+  <h1>🗄 LocalStorage / SessionStorage Explorer</h1>
+</header>
+<div class="container">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('local')">localStorage</button>
+    <button class="tab" onclick="switchTab('session')">sessionStorage</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-value" id="itemCount">0</div><div class="stat-label">Items</div></div>
+    <div class="stat"><div class="stat-value" id="totalSize">0 B</div><div class="stat-label">Total Size</div></div>
+    <div class="stat"><div class="stat-value" id="storageType">localStorage</div><div class="stat-label">Active Storage</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2 style="font-size:1rem">Key-Value Pairs</h2>
+      <div class="card-actions">
+        <button class="btn btn-primary" onclick="openModal('add')">+ Add Entry</button>
+        <button class="btn btn-success" onclick="exportJSON()">⬇ Export JSON</button>
+        <button class="btn" onclick="document.getElementById('importInput').click()">⬆ Import JSON</button>
+        <input type="file" id="importInput" accept=".json" style="display:none" onchange="importJSON(event)">
+        <button class="btn btn-danger" onclick="deleteAll()">🗑 Delete All</button>
+      </div>
+    </div>
+    <input class="search-bar" id="searchInput" placeholder="Search keys or values..." oninput="renderEntries()">
+    <div id="entryList"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">Add Entry</h2>
+    <div class="form-group">
+      <label>Key</label>
+      <input type="text" id="entryKey" placeholder="my_key">
+    </div>
+    <div class="form-group">
+      <label>Value</label>
+      <textarea id="entryValue" placeholder="my_value"></textarea>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:20px">
+      <button class="btn btn-primary" onclick="saveEntry()">Save</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" style="display:none"></div>
+
+<script>
+let currentTab = 'local';
+let editingKey = null;
+
+function getStorage() { return currentTab === 'local' ? localStorage : sessionStorage; }
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.tab:${tab === 'local' ? 'first-child' : 'last-child'}`).classList.add('active');
+  document.getElementById('storageType').textContent = tab === 'local' ? 'localStorage' : 'sessionStorage';
+  document.getElementById('searchInput').value = '';
+  renderEntries();
+}
+
+function renderEntries() {
+  const storage = getStorage();
+  const query = document.getElementById('searchInput').value.toLowerCase();
+  const entries = [];
+  let size = 0;
+  for (let i = 0; i < storage.length; i++) {
+    const key = storage.key(i);
+    const val = storage.getItem(key);
+    size += (key.length + val.length) * 2;
+    if (!query || key.toLowerCase().includes(query) || val.toLowerCase().includes(query)) {
+      entries.push({ key, value: val });
+    }
+  }
+  document.getElementById('itemCount').textContent = storage.length;
+  document.getElementById('totalSize').textContent = formatSize(size);
+  const container = document.getElementById('entryList');
+  if (!entries.length) {
+    container.innerHTML = `<div class="empty-state">${query ? 'No matching entries' : 'No entries found'}</div>`;
+    return;
+  }
+  container.innerHTML = `<table>
+    <thead><tr><th>Key</th><th>Value</th><th>Actions</th></tr></thead>
+    <tbody>${entries.map(e => `<tr>
+      <td><strong>${esc(e.key)}</strong></td>
+      <td><div class="value-preview" onclick="copyVal('${esc(e.key)}')" title="Click to copy">${esc(e.value)}</div></td>
+      <td>
+        <button class="btn" onclick="editEntry('${esc(e.key)}')">Edit</button>
+        <button class="btn btn-danger" onclick="deleteEntry('${esc(e.key)}')">Delete</button>
+      </td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function formatSize(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+  return (b / 1048576).toFixed(1) + ' MB';
+}
+
+function openModal(mode, key) {
+  editingKey = mode === 'edit' ? key : null;
+  document.getElementById('modalTitle').textContent = mode === 'add' ? 'Add Entry' : 'Edit Entry';
+  document.getElementById('entryKey').value = mode === 'edit' ? key : '';
+  document.getElementById('entryValue').value = mode === 'edit' ? getStorage().getItem(key) : '';
+  document.getElementById('entryKey').disabled = mode === 'edit';
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+  document.getElementById('entryKey').disabled = false;
+}
+
+function saveEntry() {
+  const key = document.getElementById('entryKey').value.trim();
+  const value = document.getElementById('entryValue').value;
+  if (!key) return toast('Key is required');
+  getStorage().setItem(key, value);
+  closeModal();
+  renderEntries();
+  toast(editingKey ? 'Entry updated' : 'Entry added');
+}
+
+function editEntry(key) { openModal('edit', key); }
+
+function deleteEntry(key) {
+  getStorage().removeItem(key);
+  renderEntries();
+  toast('Entry deleted');
+}
+
+function deleteAll() {
+  if (!confirm('Delete all entries?')) return;
+  getStorage().clear();
+  renderEntries();
+  toast('All entries deleted');
+}
+
+function copyVal(key) {
+  navigator.clipboard.writeText(getStorage().getItem(key));
+  toast('Value copied');
+}
+
+function exportJSON() {
+  const obj = {};
+  const storage = getStorage();
+  for (let i = 0; i < storage.length; i++) {
+    const key = storage.key(i);
+    obj[key] = storage.getItem(key);
+  }
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${currentTab}-export.json`;
+  a.click();
+  toast('Exported');
+}
+
+function importJSON(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const obj = JSON.parse(ev.target.result);
+      Object.entries(obj).forEach(([k, v]) => getStorage().setItem(k, String(v)));
+      renderEntries();
+      toast('Imported successfully');
+    } catch { toast('Invalid JSON file'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 2500);
+}
+
+document.getElementById('modalOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+renderEntries();
+</script>
+</body>
+</html>

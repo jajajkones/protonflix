@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git Commands Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#fff;font-family:'Outfit',sans-serif;min-height:100vh;padding:20px}
+.header{display:flex;align-items:center;gap:20px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #222}
+.header h1{font-size:1.8rem;font-weight:600}
+.header a{color:#737373;text-decoration:none;font-size:0.9rem;transition:color .2s}
+.header a:hover{color:#fff}
+.search{width:100%;padding:12px 16px;background:#111;border:1px solid #222;border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:1rem;outline:none;transition:border-color .2s;margin-bottom:20px}
+.search:focus{border-color:#555}
+.search::placeholder{color:#737373}
+.stats{color:#737373;font-size:0.85rem;margin-bottom:16px}
+.section{margin-bottom:28px}
+.section-title{font-size:1.1rem;font-weight:600;color:#e5e5e5;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #222;display:flex;align-items:center;gap:8px}
+.section-title::before{content:"";width:4px;height:16px;background:#4ade80;border-radius:2px}
+.cmd-list{display:flex;flex-direction:column;gap:8px}
+.cmd{background:#111;border:1px solid #222;border-radius:8px;padding:14px 16px;cursor:pointer;transition:all .2s}
+.cmd:hover{border-color:#555;background:#161616}
+.cmd.copied{border-color:#4ade80;box-shadow:0 0 12px rgba(74,222,128,0.12)}
+.cmd-line{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.cmd-name{font-family:'Courier New',monospace;font-weight:600;color:#4ade80;font-size:0.95rem}
+.cmd-desc{color:#a5a5a5;font-size:0.85rem}
+.cmd-flags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.flag{font-family:'Courier New',monospace;font-size:0.72rem;background:#0a0a0a;border:1px solid #222;padding:2px 7px;border-radius:4px;color:#737373}
+.copied-toast{position:fixed;bottom:24px;right:24px;background:#222;color:#4ade80;padding:10px 18px;border-radius:8px;font-size:0.85rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.copied-toast.show{opacity:1}
+@media(max-width:600px){.cmd-flags{display:none}}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html">← Back</a>
+<h1>Git Commands Reference</h1>
+</div>
+<input type="text" class="search" placeholder="Search commands, descriptions, or flags..." id="searchInput" aria-label="Search Git commands">
+<div class="stats" id="stats"></div>
+<div id="container"></div>
+<div class="copied-toast" id="toast">Copied!</div>
+<script>
+const sections=[
+{title:"Setup",commands:[
+{cmd:"git config --global user.name \"Name\"",desc:"Set global username",flags:["--global","--local","--system"]},
+{cmd:"git config --global user.email \"email@example.com\"",desc:"Set global email",flags:["--global","--local"]},
+{cmd:"git config --global core.editor vim",desc:"Set default text editor",flags:["--global"]},
+{cmd:"git config --global init.defaultBranch main",desc:"Set default branch name",flags:["--global"]},
+{cmd:"git config --list",desc:"Show all configuration settings",flags:["--global","--local","--show-origin"]}
+]},
+{title:"Repository",commands:[
+{cmd:"git init",desc:"Initialize a new Git repository",flags:["-b <branch>"]},
+{cmd:"git clone <url>",desc:"Clone a remote repository",flags:["--depth","--branch","--single-branch"]},
+{cmd:"git clone <url> <dir>",desc:"Clone into a specific directory",flags:[]},
+{cmd:"git remote add origin <url>",desc:"Add a remote repository",flags:["-f","--tags"]},
+{cmd:"git remote -v",desc:"List remote connections",flags:["-v"]},
+{cmd:"git remote remove <name>",desc:"Remove a remote",flags:[]},
+{cmd:"git remote rename <old> <new>",desc:"Rename a remote",flags:[]}
+]},
+{title:"Snapshotting",commands:[
+{cmd:"git add <file>",desc:"Stage a file",flags:["-p","-A","-u"]},
+{cmd:"git add .",desc:"Stage all changes in current directory",flags:["-A"]},
+{cmd:"git add -p",desc:"Stage changes interactively",flags:["-p"]},
+{cmd:"git status",desc:"Show working tree status",flags:["-s","--short","--porcelain"]},
+{cmd:"git diff",desc:"Show unstaged changes",flags:["--staged","--cached","--stat"]},
+{cmd:"git diff --staged",desc:"Show staged changes",flags:["--stat"]},
+{cmd:"git commit -m \"message\"",desc:"Commit staged changes",flags:["-a","-m","--amend","-v"]},
+{cmd:"git commit -am \"message\"",desc:"Stage and commit tracked files",flags:["-a","-m"]},
+{cmd:"git commit --amend",desc:"Modify the last commit",flags:["--no-edit","-m"]},
+{cmd:"git stash",desc:"Stash working directory changes",flags:["-u","-a","push","pop","list","drop"]},
+{cmd:"git stash pop",desc:"Apply and remove latest stash",flags:["--index"]},
+{cmd:"git stash list",desc:"List all stashes",flags:[]},
+{cmd:"git stash drop",desc:"Remove a specific stash",flags:[]},
+{cmd:"git restore <file>",desc:"Restore working tree files",flags:["--staged","--source"]},
+{cmd:"git reset <commit>",desc:"Reset current HEAD to a commit",flags:["--soft","--mixed","--hard","--merge"]},
+{cmd:"git reset --soft HEAD~1",desc:"Undo last commit, keep changes staged",flags:["--soft"]},
+{cmd:"git reset --hard HEAD~1",desc:"Undo last commit and discard changes",flags:["--hard"]}
+]},
+{title:"Branching",commands:[
+{cmd:"git branch",desc:"List local branches",flags:["-a","-r","-d","-D"]},
+{cmd:"git branch -a",desc:"List all branches (local + remote)",flags:["-a"]},
+{cmd:"git branch <name>",desc:"Create a new branch",flags:[]},
+{cmd:"git branch -d <name>",desc:"Delete a branch",flags:["-D","-r"]},
+{cmd:"git branch -m <old> <new>",desc:"Rename a branch",flags:[]},
+{cmd:"git checkout <branch>",desc:"Switch to a branch",flags:["-b"]},
+{cmd:"git checkout -b <branch>",desc:"Create and switch to a new branch",flags:["-b"]},
+{cmd:"git switch <branch>",desc:"Switch to a branch (modern)",flags:["-c","-C"]},
+{cmd:"git switch -c <branch>",desc:"Create and switch to a new branch",flags:["-c"]},
+{cmd:"git checkout -",desc:"Switch to the last branch",flags:[]}
+]},
+{title:"Merging",commands:[
+{cmd:"git merge <branch>",desc:"Merge a branch into the current branch",flags:["--no-ff","--squash","--abort"]},
+{cmd:"git merge --no-ff <branch>",desc:"Merge with a merge commit",flags:["--no-ff"]},
+{cmd:"git merge --squash <branch>",desc:"Squash merge into current branch",flags:["--squash"]},
+{cmd:"git rebase <branch>",desc:"Rebase current branch onto another",flags:["-i","--onto","--abort"]},
+{cmd:"git rebase -i HEAD~N",desc:"Interactive rebase last N commits",flags:["-i"]},
+{cmd:"git cherry-pick <commit>",desc:"Apply a specific commit",flags:["--no-commit","-n"]},
+{cmd:"git revert <commit>",desc:"Create a new commit reverting changes",flags:["--no-commit","-n"]}
+]},
+{title:"Sharing",commands:[
+{cmd:"git push origin <branch>",desc:"Push a branch to remote",flags:["-u","--force","--force-with-lease","--all"]},
+{cmd:"git push -u origin <branch>",desc:"Push and set upstream tracking",flags:["-u"]},
+{cmd:"git push --force",desc:"Force push (use with caution!)",flags:["--force-with-lease"]},
+{cmd:"git push --all",desc:"Push all branches",flags:["--all"]},
+{cmd:"git push --tags",desc:"Push all tags",flags:["--tags"]},
+{cmd:"git pull",desc:"Fetch and merge from remote",flags:["--rebase","--ff-only","--no-ff"]},
+{cmd:"git pull --rebase",desc:"Fetch and rebase from remote",flags:["--rebase"]},
+{cmd:"git fetch",desc:"Download objects and refs from remote",flags:["--all","--prune","--tags"]}
+]},
+{title:"Inspection",commands:[
+{cmd:"git log",desc:"Show commit history",flags:["--oneline","--graph","--all","-n","--stat","-p"]},
+{cmd:"git log --oneline --graph",desc:"Compact graph view of history",flags:["--oneline","--graph","--all"]},
+{cmd:"git log -n 5",desc:"Show last 5 commits",flags:["-n","--stat"]},
+{cmd:"git log --stat",desc:"Show commits with file stats",flags:["--stat","--shortstat"]},
+{cmd:"git log -p",desc:"Show commits with diffs",flags:["-p","--stat"]},
+{cmd:"git show <commit>",desc:"Show details of a commit",flags:["--stat","-p"]},
+{cmd:"git blame <file>",desc:"Show who changed what in a file",flags:["-L","-w","--porcelain"]},
+{cmd:"git reflog",desc:"Show reference log",flags:["--all"]},
+{cmd:"git shortlog -sn",desc:"Count commits per author",flags:["-s","-n","-e"]},
+{cmd:"git describe --tags",desc:"Describe the current commit using tags",flags:["--always","--dirty"]}
+]},
+{title:"Patching",commands:[
+{cmd:"git format-patch <commit>",desc:"Create patch files from commits",flags:["-o","--stdout","-1"]},
+{cmd:"git am <patch>",desc:"Apply patch files from format-patch",flags:["--3way","--skip"]},
+{cmd:"git apply <patch>",desc:"Apply a patch file",flags:["--check","--stat","--reverse"]},
+{cmd:"git diff > changes.patch",desc:"Create a diff patch",flags:["--staged"]},
+{cmd:"git apply --reverse <patch>",desc:"Reverse apply a patch",flags:["--reverse","--check"]}
+]},
+{title:"Debugging",commands:[
+{cmd:"git bisect start",desc:"Start bisection to find bugs",flags:["start","reset","good","bad"]},
+{cmd:"git bisect good <commit>",desc:"Mark a commit as good",flags:["good"]},
+{cmd:"git bisect bad <commit>",desc:"Mark a commit as bad",flags:["bad"]},
+{cmd:"git bisect reset",desc:"End bisection and reset",flags:["reset"]},
+{cmd:"git grep <pattern>",desc:"Search for patterns in files",flags:["-i","-n","-l","-c","--count"]}
+]},
+{title:"Advanced",commands:[
+{cmd:"git worktree add <dir> <branch>",desc:"Add a worktree for parallel work",flags:["add","list","remove"]},
+{cmd:"git worktree list",desc:"List all worktrees",flags:["list"]},
+{cmd:"git subtree add --prefix=<dir> <url>",desc:"Add a subtree",flags:["add","push","pull","split"]},
+{cmd:"git archive --format=zip HEAD -o repo.zip",desc:"Create a zip archive of a commit",flags:["--format","--prefix"]},
+{cmd:"git clean -fd",desc:"Remove untracked files and directories",flags:["-f","-d","-n","-x"]},
+{cmd:"git clean -n",desc:"Dry run - show what would be removed",flags:["-n","--dry-run"]},
+{cmd:"git tag <name>",desc:"Create a lightweight tag",flags:["-a","-m","-d"]},
+{cmd:"git tag -a <name> -m \"msg\"",desc:"Create an annotated tag",flags:["-a","-m"]},
+{cmd:"git tag -d <name>",desc:"Delete a tag",flags:["-d"]},
+{cmd:"git notes add -m \"note\" <commit>",desc:"Add a note to a commit",flags:["-m","-f"]}
+]}
+];
+const container=document.getElementById('container');
+const searchInput=document.getElementById('searchInput');
+const stats=document.getElementById('stats');
+const toast=document.getElementById('toast');
+let toastTimer;
+function showToast(msg){toast.textContent=msg;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('show'),1500)}
+function copyText(text){navigator.clipboard.writeText(text).then(()=>showToast('Copied: '+text))}
+let totalCmds=0;
+sections.forEach(s=>totalCmds+=s.commands.length);
+function render(filter=''){
+const f=filter.toLowerCase();
+container.innerHTML='';
+let count=0;
+sections.forEach(s=>{
+const filtered=s.commands.filter(c=>!f||c.cmd.toLowerCase().includes(f)||c.desc.toLowerCase().includes(f)||c.flags.some(fl=>fl.toLowerCase().includes(f)));
+if(filtered.length===0)return;
+count+=filtered.length;
+const sec=document.createElement('div');
+sec.className='section';
+let cmdsHtml=filtered.map(c=>{
+const flagsHtml=c.flags.map(fl=>`<span class="flag">${fl}</span>`).join('');
+return`<div class="cmd" data-cmd="${c.cmd.replace(/"/g,'&quot;')}"><div class="cmd-line"><span class="cmd-name">${c.cmd}</span></div><div class="cmd-desc">${c.desc}</div>${c.flags.length?`<div class="cmd-flags">${flagsHtml}</div>`:''}</div>`;
+}).join('');
+sec.innerHTML=`<div class="section-title">${s.title}</div><div class="cmd-list">${cmdsHtml}</div>`;
+sec.querySelectorAll('.cmd').forEach(el=>{
+el.addEventListener('click',()=>{
+copyText(el.getAttribute('data-cmd'));
+el.classList.add('copied');
+setTimeout(()=>el.classList.remove('copied'),600);
+});
+});
+container.appendChild(sec);
+});
+stats.textContent=count+' of '+totalCmds+' commands';
+}
+searchInput.addEventListener('input',e=>render(e.target.value));
+render();
+</script>
+</body>
+</html>

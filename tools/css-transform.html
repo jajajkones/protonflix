@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS Transform Generator - ProtonFlix Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#fff;font-family:'Outfit',sans-serif;min-height:100vh;padding:20px}
+a{color:#fff;text-decoration:none}
+.container{max-width:1200px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:#111;border:1px solid #222;border-radius:12px;margin-bottom:24px}
+header h1{font-size:1.3rem;font-weight:600}
+header a{font-size:.9rem;color:#737373;transition:color .2s}
+header a:hover{color:#fff}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:768px){.grid{grid-template-columns:1fr}}
+.panel{background:#111;border:1px solid #222;border-radius:12px;padding:24px}
+.panel h2{font-size:1.1rem;font-weight:500;margin-bottom:20px;color:#737373}
+.preview-area{background:#000;border:1px solid #222;border-radius:12px;min-height:300px;display:flex;align-items:center;justify-content:center;perspective:800px}
+.preview-box{width:120px;height:120px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;transition:transform .3s}
+.control-group{margin-bottom:16px}
+.control-group label{display:flex;justify-content:space-between;font-size:.85rem;color:#737373;margin-bottom:6px}
+.control-group label span{color:#fff;font-weight:500}
+.control-group input[type="range"]{width:100%;accent-color:#fff;height:4px;background:#222;border-radius:2px;outline:none;-webkit-appearance:none}
+.control-group input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:#fff;border-radius:50%;cursor:pointer}
+.section{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #222}
+.section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.section-title{font-size:.9rem;font-weight:600;color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.section-title .toggle{width:36px;height:20px;background:#333;border-radius:10px;position:relative;cursor:pointer;transition:background .2s}
+.section-title .toggle.active{background:#667eea}
+.section-title .toggle::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left .2s}
+.section-title .toggle.active::after{left:18px}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.preset-btn{padding:8px 14px;background:#1a1a1a;border:1px solid #222;border-radius:6px;color:#fff;font-family:'Outfit',sans-serif;font-size:.8rem;cursor:pointer;transition:all .2s}
+.preset-btn:hover{background:#222;border-color:#444}
+.chain-list{margin-bottom:16px}
+.chain-item{display:flex;align-items:center;gap:8px;background:#0a0a0a;border:1px solid #222;border-radius:6px;padding:8px 12px;margin-bottom:8px;font-size:.8rem}
+.chain-item .chain-text{flex:1;color:#a8ff60;font-family:'Courier New',monospace}
+.chain-item .remove-chain{background:none;border:none;color:#737373;cursor:pointer;font-size:1rem}
+.chain-item .remove-chain:hover{color:#ff4444}
+.add-chain-btn{width:100%;padding:10px;background:#1a1a1a;border:1px dashed #333;border-radius:8px;color:#737373;font-family:'Outfit',sans-serif;font-size:.9rem;cursor:pointer;transition:all .2s}
+.add-chain-btn:hover{background:#222;color:#fff;border-color:#555}
+.css-output{position:relative;background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:16px;font-family:'Courier New',monospace;font-size:.85rem;color:#a8ff60;white-space:pre-wrap;word-break:break-all;cursor:pointer;transition:border-color .2s}
+.css-output:hover{border-color:#444}
+.css-output .copy-hint{position:absolute;top:8px;right:12px;font-size:.7rem;color:#737373;font-family:'Outfit',sans-serif}
+.css-output.copied{border-color:#a8ff60}
+.css-output.copied .copy-hint{color:#a8ff60}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>CSS Transform Generator</h1>
+<a href="index.html">← Back to Tools</a>
+</header>
+<div class="grid">
+<div class="panel">
+<h2>Controls</h2>
+<div class="presets">
+<button class="preset-btn" onclick="applyPreset('reset')">Reset</button>
+<button class="preset-btn" onclick="applyPreset('spin')">Spin</button>
+<button class="preset-btn" onclick="applyPreset('flip')">Flip</button>
+<button class="preset-btn" onclick="applyPreset('tilt')">Tilt</button>
+<button class="preset-btn" onclick="applyPreset('3dbox')">3D Box</button>
+<button class="preset-btn" onclick="applyPreset('bounce')">Bounce</button>
+</div>
+<div class="section">
+<div class="section-title">
+Translate
+<div class="toggle active" id="toggle-translate" onclick="toggleSection('translate')"></div>
+</div>
+<div class="control-group">
+<label>Translate X <span id="tx-val">0px</span></label>
+<input type="range" min="-200" max="200" value="0" id="translate-x" oninput="update()">
+</div>
+<div class="control-group">
+<label>Translate Y <span id="ty-val">0px</span></label>
+<input type="range" min="-200" max="200" value="0" id="translate-y" oninput="update()">
+</div>
+<div class="control-group">
+<label>Translate Z <span id="tz-val">0px</span></label>
+<input type="range" min="-200" max="200" value="0" id="translate-z" oninput="update()">
+</div>
+</div>
+<div class="section">
+<div class="section-title">
+Scale
+<div class="toggle active" id="toggle-scale" onclick="toggleSection('scale')"></div>
+</div>
+<div class="control-group">
+<label>Scale X <span id="sx-val">1</span></label>
+<input type="range" min="0" max="3" step="0.01" value="1" id="scale-x" oninput="update()">
+</div>
+<div class="control-group">
+<label>Scale Y <span id="sy-val">1</span></label>
+<input type="range" min="0" max="3" step="0.01" value="1" id="scale-y" oninput="update()">
+</div>
+</div>
+<div class="section">
+<div class="section-title">
+Rotate
+<div class="toggle active" id="toggle-rotate" onclick="toggleSection('rotate')"></div>
+</div>
+<div class="control-group">
+<label>Rotate X <span id="rx-val">0deg</span></label>
+<input type="range" min="-180" max="180" value="0" id="rotate-x" oninput="update()">
+</div>
+<div class="control-group">
+<label>Rotate Y <span id="ry-val">0deg</span></label>
+<input type="range" min="-180" max="180" value="0" id="rotate-y" oninput="update()">
+</div>
+<div class="control-group">
+<label>Rotate Z <span id="rz-val">0deg</span></label>
+<input type="range" min="-360" max="360" value="0" id="rotate-z" oninput="update()">
+</div>
+</div>
+<div class="section">
+<div class="section-title">
+Skew
+<div class="toggle active" id="toggle-skew" onclick="toggleSection('skew')"></div>
+</div>
+<div class="control-group">
+<label>Skew X <span id="skx-val">0deg</span></label>
+<input type="range" min="-45" max="45" value="0" id="skew-x" oninput="update()">
+</div>
+<div class="control-group">
+<label>Skew Y <span id="sky-val">0deg</span></label>
+<input type="range" min="-45" max="45" value="0" id="skew-y" oninput="update()">
+</div>
+</div>
+<div class="section">
+<div class="section-title">
+Perspective
+<div class="toggle" id="toggle-perspective" onclick="toggleSection('perspective')"></div>
+</div>
+<div class="control-group">
+<label>Perspective <span id="pv-val">800px</span></label>
+<input type="range" min="100" max="2000" value="800" id="perspective" oninput="update()">
+</div>
+</div>
+<h2 style="margin-top:8px">Transform Chain</h2>
+<div class="chain-list" id="chainList"></div>
+<button class="add-chain-btn" onclick="addToChain()">+ Add Current as Chain Step</button>
+</div>
+<div>
+<div class="panel" style="margin-bottom:24px">
+<h2>Live Preview</h2>
+<div class="preview-area">
+<div class="preview-box" id="preview">Box</div>
+</div>
+</div>
+<div class="panel">
+<h2>CSS Output</h2>
+<div class="css-output" id="cssOutput" onclick="copyCSS()"><span class="copy-hint">Click to copy</span></div>
+</div>
+</div>
+</div>
+</div>
+<script>
+const sections={translate:true,scale:true,rotate:true,skew:true,perspective:false};
+let chain=[];
+
+function toggleSection(name){
+sections[name]=!sections[name];
+document.getElementById(`toggle-${name}`).classList.toggle('active',sections[name]);
+update();
+}
+
+function getVal(id){return parseFloat(document.getElementById(id).value)}
+
+function buildTransform(){
+let parts=[];
+if(sections.translate){
+const x=getVal('translate-x');
+const y=getVal('translate-y');
+const z=getVal('translate-z');
+if(z!==0)parts.push(`translate3d(${x}px, ${y}px, ${z}px)`);
+else if(x!==0||y!==0)parts.push(`translate(${x}px, ${y}px)`);
+}
+if(sections.scale){
+const x=getVal('scale-x');
+const y=getVal('scale-y');
+if(x!==1||y!==1)parts.push(`scale(${x}, ${y})`);
+}
+if(sections.rotate){
+const x=getVal('rotate-x');
+const y=getVal('rotate-y');
+const z=getVal('rotate-z');
+if(x!==0)parts.push(`rotateX(${x}deg)`);
+if(y!==0)parts.push(`rotateY(${y}deg)`);
+if(z!==0)parts.push(`rotateZ(${z}deg)`);
+}
+if(sections.skew){
+const x=getVal('skew-x');
+const y=getVal('skew-y');
+if(x!==0||y!==0)parts.push(`skew(${x}deg, ${y}deg)`);
+}
+return parts.join(' ');
+}
+
+function update(){
+const transform=buildTransform();
+const pv=document.getElementById('preview');
+if(sections.perspective){
+pv.parentElement.style.perspective=getVal('perspective')+'px';
+}else{
+pv.parentElement.style.perspective='none';
+}
+pv.style.transform=transform||'none';
+document.getElementById('tx-val').textContent=getVal('translate-x')+'px';
+document.getElementById('ty-val').textContent=getVal('translate-y')+'px';
+document.getElementById('tz-val').textContent=getVal('translate-z')+'px';
+document.getElementById('sx-val').textContent=getVal('scale-x');
+document.getElementById('sy-val').textContent=getVal('scale-y');
+document.getElementById('rx-val').textContent=getVal('rotate-x')+'deg';
+document.getElementById('ry-val').textContent=getVal('rotate-y')+'deg';
+document.getElementById('rz-val').textContent=getVal('rotate-z')+'deg';
+document.getElementById('skx-val').textContent=getVal('skew-x')+'deg';
+document.getElementById('sky-val').textContent=getVal('skew-y')+'deg';
+document.getElementById('pv-val').textContent=getVal('perspective')+'px';
+renderChain();
+const fullCSS=buildFullCSS();
+document.getElementById('cssOutput').innerHTML=`<span class="copy-hint">Click to copy</span>${fullCSS}`;
+}
+
+function buildFullCSS(){
+let css='';
+if(sections.perspective){
+css+=`perspective: ${getVal('perspective')}px;\n`;
+}
+css+=`transform: ${buildTransform()||'none'};`;
+return css;
+}
+
+function addToChain(){
+const t=buildTransform();
+if(!t)return;
+chain.push(t);
+renderChain();
+update();
+}
+
+function removeFromChain(i){
+chain.splice(i,1);
+renderChain();
+update();
+}
+
+function renderChain(){
+const el=document.getElementById('chainList');
+el.innerHTML=chain.map((c,i)=>`
+<div class="chain-item">
+<span class="chain-text">${c}</span>
+<button class="remove-chain" onclick="removeFromChain(${i})">×</button>
+</div>
+`).join('');
+}
+
+function applyPreset(name){
+const defaults={translate:0,scale:1,rotate:0,skew:0,perspective:800};
+Object.keys(sections).forEach(s=>{sections[s]=false});
+document.querySelectorAll('.toggle').forEach(t=>t.classList.remove('active'));
+chain=[];
+
+if(name==='reset'){
+Object.keys(defaults).forEach(k=>{
+if(k==='translate'){
+setVal('translate-x',0);setVal('translate-y',0);setVal('translate-z',0);
+}else if(k==='scale'){
+setVal('scale-x',1);setVal('scale-y',1);
+}else if(k==='rotate'){
+setVal('rotate-x',0);setVal('rotate-y',0);setVal('rotate-z',0);
+}else if(k==='skew'){
+setVal('skew-x',0);setVal('skew-y',0);
+}else if(k==='perspective'){
+setVal('perspective',800);
+}
+});
+sections.translate=true;sections.scale=true;sections.rotate=true;sections.skew=true;
+document.getElementById('toggle-translate').classList.add('active');
+document.getElementById('toggle-scale').classList.add('active');
+document.getElementById('toggle-rotate').classList.add('active');
+document.getElementById('toggle-skew').classList.add('active');
+update();return;
+}
+if(name==='spin'){
+sections.rotate=true;
+document.getElementById('toggle-rotate').classList.add('active');
+setVal('rotate-z',360);update();return;
+}
+if(name==='flip'){
+sections.rotate=true;
+document.getElementById('toggle-rotate').classList.add('active');
+setVal('rotate-y',180);update();return;
+}
+if(name==='tilt'){
+sections.rotate=true;sections.perspective=true;
+document.getElementById('toggle-rotate').classList.add('active');
+document.getElementById('toggle-perspective').classList.add('active');
+setVal('rotate-x',15);setVal('rotate-y',-15);setVal('perspective',600);update();return;
+}
+if(name==='3dbox'){
+sections.rotate=true;sections.perspective=true;
+document.getElementById('toggle-rotate').classList.add('active');
+document.getElementById('toggle-perspective').classList.add('active');
+setVal('rotate-x',25);setVal('rotate-y',25);setVal('perspective',500);update();return;
+}
+if(name==='bounce'){
+sections.scale=true;sections.translate=true;
+document.getElementById('toggle-scale').classList.add('active');
+document.getElementById('toggle-translate').classList.add('active');
+setVal('scale-x',1.2);setVal('scale-y',0.8);setVal('translate-y',-20);update();return;
+}
+}
+
+function setVal(id,v){document.getElementById(id).value=v}
+
+function copyCSS(){
+const css=buildFullCSS();
+navigator.clipboard.writeText(css).then(()=>{
+const el=document.getElementById('cssOutput');
+el.classList.add('copied');
+el.querySelector('.copy-hint').textContent='Copied!';
+setTimeout(()=>{el.classList.remove('copied');el.querySelector('.copy-hint').textContent='Click to copy';},1500);
+});
+}
+
+update();
+</script>
+</body>
+</html>

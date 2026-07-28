@@ -30,15 +30,15 @@ textarea{flex:1;background:var(--bg);color:var(--text);border:none;padding:20px;
 <body>
 <header><h1>HTML Minifier / Beautifier</h1><a href="index.html">← Back to Tools</a></header>
 <div class="toolbar">
-<button class="btn primary" onclick="minify()">Minify</button>
-<button class="btn primary" onclick="beautify()">Beautify</button>
-<button class="btn" onclick="copyOutput()">Copy</button>
-<button class="btn" onclick="clearAll()">Clear</button>
+<button class="btn primary" onclick="minify()" aria-label="Minify HTML code">Minify</button>
+<button class="btn primary" onclick="beautify()" aria-label="Beautify HTML code">Beautify</button>
+<button class="btn" onclick="copyOutput()" aria-label="Copy output to clipboard">Copy</button>
+<button class="btn" onclick="clearAll()" aria-label="Clear input and output">Clear</button>
 </div>
 <div class="container">
 <div class="pane">
 <div class="pane-header">Input <span class="info" id="inInfo"></span></div>
-<textarea id="input" placeholder="Paste HTML here..." spellcheck="false" oninput="updateInfo()"></textarea>
+<textarea id="input" placeholder="Paste HTML here..." spellcheck="false" oninput="updateInfo()" aria-label="Input HTML code to minify or beautify"></textarea>
 </div>
 <div class="pane">
 <div class="pane-header">Output <span class="info" id="outInfo"></span></div>
@@ -71,7 +71,7 @@ if(pos<html.length)out+=html.substring(pos);
 document.getElementById('output').textContent=out.trim();
 document.getElementById('outInfo').textContent=`${out.trim().split('\n').length} lines`;
 }
-function copyOutput(){navigator.clipboard.writeText(document.getElementById('output').textContent)}
+function copyOutput(){navigator.clipboard.writeText(document.getElementById('output').textContent).then(()=>{const b=document.querySelector('[onclick="copyOutput()"]');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500)})}
 function clearAll(){document.getElementById('input').value='';document.getElementById('output').textContent='';document.getElementById('inInfo').textContent='';document.getElementById('outInfo').textContent=''}
 function updateInfo(){const v=document.getElementById('input').value;document.getElementById('inInfo').textContent=v?`${v.length} chars`:''}
 </script>

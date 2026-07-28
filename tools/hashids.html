@@ -44,19 +44,19 @@ a{color:#fff;text-decoration:none}
 <div class="container">
 <div class="panel">
 <h2>Encode</h2>
-<div class="field"><label>Number(s) - comma separated</label><input id="numbers" placeholder="e.g. 1, 2, 3" value="1, 2, 3"></div>
-<div class="field"><label>Salt (optional)</label><input id="salt" placeholder="e.g. my-secret-salt" value=""></div>
-<div class="field"><label>Alphabet (optional)</label><input id="alphabet" placeholder="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890" value=""></div>
-<button class="btn" onclick="encode()">Encode →</button>
+<div class="field"><label for="numbers">Number(s) - comma separated</label><input id="numbers" placeholder="e.g. 1, 2, 3" value="1, 2, 3" aria-label="Numbers to encode as hash IDs"></div>
+<div class="field"><label for="salt">Salt (optional)</label><input id="salt" placeholder="e.g. my-secret-salt" value="" aria-label="Optional salt for encoding"></div>
+<div class="field"><label for="alphabet">Alphabet (optional)</label><input id="alphabet" placeholder="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890" value="" aria-label="Optional custom alphabet"></div>
+<button class="btn" onclick="encode()" aria-label="Encode numbers to hash IDs">Encode →</button>
 <div class="result" id="encResult"><div class="result-label">Hash IDs</div><div class="result-value" id="encValue">-</div></div>
 <div class="error" id="encError"></div>
 </div>
 <div class="panel">
 <h2>Decode</h2>
-<div class="field"><label>Hash ID(s) - comma separated</label><input id="hashids" placeholder="e.g. O2bM9x, VwZ3Y7"></div>
-<div class="field"><label>Salt (must match encode salt)</label><input id="salt2" placeholder="e.g. my-secret-salt" value=""></div>
-<div class="field"><label>Alphabet (must match encode alphabet)</label><input id="alphabet2" placeholder="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890" value=""></div>
-<button class="btn secondary" onclick="decode()">Decode →</button>
+<div class="field"><label for="hashids">Hash ID(s) - comma separated</label><input id="hashids" placeholder="e.g. O2bM9x, VwZ3Y7" aria-label="Hash IDs to decode"></div>
+<div class="field"><label for="salt2">Salt (must match encode salt)</label><input id="salt2" placeholder="e.g. my-secret-salt" value="" aria-label="Salt matching the encode operation"></div>
+<div class="field"><label for="alphabet2">Alphabet (must match encode alphabet)</label><input id="alphabet2" placeholder="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890" value="" aria-label="Alphabet matching the encode operation"></div>
+<button class="btn secondary" onclick="decode()" aria-label="Decode hash IDs to numbers">Decode →</button>
 <div class="result" id="decResult"><div class="result-label">Numbers</div><div class="result-value" id="decValue">-</div></div>
 <div class="error" id="decError"></div>
 </div>

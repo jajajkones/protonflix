@@ -21,7 +21,8 @@ header a:hover{color:var(--text)}
 .input-row{display:flex;gap:12px;align-items:center;margin-bottom:16px}
 .input-row input{flex:1;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-family:var(--mono);font-size:20px;outline:none;text-align:right}
 .input-row input:focus{border-color:var(--accent)}
-.input-row select{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-size:14px;font-family:inherit;outline:none;min-width:140px}
+.input-row select{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-size:14px;font-family:inherit;outline:none;min-width:0;flex:1;max-width:160px}
+@media(max-width:480px){.input-row{flex-direction:column}.input-row select{max-width:100%}}
 .swap{display:flex;justify-content:center;margin:10px 0}
 .swap button{background:var(--bg);color:var(--muted);border:1px solid var(--border);width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:18px;transition:all .2s}
 .swap button:hover{color:var(--text);border-color:var(--accent)}

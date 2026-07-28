@@ -33,8 +33,8 @@ textarea:focus{border-color:#444}
 <a href="index.html">← Back to Tools</a>
 </header>
 <div class="content">
-<textarea id="input" placeholder="Enter text to hash..." spellcheck="false"></textarea>
-<button class="btn" onclick="generate()">Generate Hashes</button>
+<textarea id="input" placeholder="Enter text to hash..." spellcheck="false" aria-label="Input text for hash generation"></textarea>
+<button class="btn" onclick="generate()" aria-label="Generate hashes from input text">Generate Hashes</button>
 <div class="hash-grid" id="output"></div>
 </div>
 <script>

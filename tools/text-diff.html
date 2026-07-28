@@ -30,6 +30,9 @@ textarea{flex:1;background:var(--bg);color:var(--text);border:none;padding:20px;
 .stats .add{color:#22c55e}
 .stats .remove{color:#ef4444}
 @media(max-width:768px){.container{grid-template-columns:1fr}.pane{min-height:35vh}.pane:last-child{border-top:1px solid var(--border)}}
+.copy-toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#22c55e;color:#000;padding:8px 16px;border-radius:var(--radius);font-size:12px;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:101}
+.copy-toast.show{opacity:1}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
 </style>
 </head>
 <body>
@@ -38,19 +41,23 @@ textarea{flex:1;background:var(--bg);color:var(--text);border:none;padding:20px;
 <button class="btn" onclick="compare()">Compare</button>
 <button class="btn-outline" onclick="swap()">Swap</button>
 <button class="btn-outline" onclick="clearAll()">Clear</button>
+<button class="btn-outline" onclick="copyDiff()">Copy</button>
 </div>
 <div class="container">
 <div class="pane">
 <div class="pane-header">Original</div>
+<label class="sr-only" for="left">Original text</label>
 <textarea id="left" placeholder="Paste original text..."></textarea>
 </div>
 <div class="pane">
 <div class="pane-header">Modified</div>
+<label class="sr-only" for="right">Modified text</label>
 <textarea id="right" placeholder="Paste modified text..."></textarea>
 </div>
 </div>
 <div class="diff-output" id="diffOutput" style="border-top:1px solid var(--border)"></div>
 <div class="stats" id="stats"></div>
+<div class="copy-toast" id="copyToast">Copied!</div>
 <script>
 function compare(){
 const a=document.getElementById('left').value.split('\n');
@@ -80,6 +87,7 @@ document.getElementById('stats').innerHTML=`<span class="add">+${adds} added</sp
 function swap(){const l=document.getElementById('left'),r=document.getElementById('right');[l.value,r.value]=[r.value,l.value]}
 function clearAll(){document.getElementById('left').value='';document.getElementById('right').value='';document.getElementById('diffOutput').innerHTML='';document.getElementById('stats').innerHTML=''}
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function copyDiff(){navigator.clipboard.writeText(document.getElementById('diffOutput').textContent);const t=document.getElementById('copyToast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
 </script>
 </body>
 </html>

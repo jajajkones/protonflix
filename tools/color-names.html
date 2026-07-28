@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS Color Names Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;padding:20px}
+.header{text-align:center;padding:30px 0;border-bottom:1px solid #222;margin-bottom:30px}
+.header h1{font-size:2rem;font-weight:600;margin-bottom:10px}
+.header a{color:#737373;text-decoration:none;font-size:0.9rem;transition:color .2s}
+.header a:hover{color:#fff}
+.search-wrap{max-width:600px;margin:0 auto 30px}
+.search{width:100%;padding:12px 16px;border-radius:8px;border:1px solid #222;background:#111;color:#fff;font-family:'Outfit',sans-serif;font-size:1rem;outline:none;transition:border .2s}
+.search:focus{border-color:#444}
+.info-bar{display:flex;gap:20px;justify-content:center;margin-bottom:20px;font-size:0.85rem;color:#737373;flex-wrap:wrap}
+.info-bar span{display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;max-width:1200px;margin:0 auto}
+.color-card{border-radius:8px;border:1px solid #222;overflow:hidden;cursor:pointer;transition:transform .2s,border-color .2s}
+.color-card:hover{transform:translateY(-2px);border-color:#444}
+.color-card.copied{outline:2px solid #81c784}
+.swatch{height:80px;width:100%}
+.info{padding:10px;background:#111}
+.name{font-size:0.85rem;font-weight:500;margin-bottom:2px;text-transform:capitalize}
+.hex{font-size:0.75rem;color:#737373;font-family:monospace}
+.cb-safe{font-size:0.6rem;color:#81c784;margin-top:2px}
+.toast{position:fixed;bottom:20px;right:20px;background:#222;color:#fff;padding:12px 20px;border-radius:8px;font-size:0.9rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:1000}
+.toast.show{opacity:1}
+.count{text-align:center;color:#737373;font-size:0.85rem;margin-bottom:20px}
+@media(max-width:600px){.grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr))}.swatch{height:60px}}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>CSS Color Names Reference</h1>
+<a href="index.html">← Back</a>
+</div>
+<div class="search-wrap">
+<input type="text" class="search" placeholder="Search colors..." id="search" aria-label="Search CSS color names">
+</div>
+<div class="info-bar">
+<span><span class="dot" style="background:#81c784"></span> Color-blind safe</span>
+<span><span class="dot" style="background:#737373"></span> Total: 148 named colors</span>
+</div>
+<div class="count" id="count"></div>
+<div class="grid" id="grid"></div>
+<div class="toast" id="toast"></div>
+<script>
+const colors=[{n:"aliceblue",h:"#f0f8ff",cb:1},{n:"antiquewhite",h:"#faebd7",cb:0},{n:"aqua",h:"#00ffff",cb:0},{n:"aquamarine",h:"#7fffd4",cb:0},{n:"azure",h:"#f0ffff",cb:0},{n:"beige",h:"#f5f5dc",cb:0},{n:"bisque",h:"#ffe4c4",cb:0},{n:"black",h:"#000000",cb:1},{n:"blanchedalmond",h:"#ffebcd",cb:0},{n:"blue",h:"#0000ff",cb:0},{n:"blueviolet",h:"#8a2be2",cb:0},{n:"brown",h:"#a52a2a",cb:0},{n:"burlywood",h:"#deb887",cb:0},{n:"cadetblue",h:"#5f9ea0",cb:0},{n:"chartreuse",h:"#7fff00",cb:0},{n:"chocolate",h:"#d2691e",cb:0},{n:"coral",h:"#ff7f50",cb:0},{n:"cornflowerblue",h:"#6495ed",cb:0},{n:"cornsilk",h:"#fff8dc",cb:0},{n:"crimson",h:"#dc143c",cb:0},{n:"cyan",h:"#00ffff",cb:0},{n:"darkblue",h:"#00008b",cb:0},{n:"darkcyan",h:"#008b8b",cb:0},{n:"darkgoldenrod",h:"#b8860b",cb:0},{n:"darkgray",h:"#a9a9a9",cb:0},{n:"darkgreen",h:"#006400",cb:0},{n:"darkgrey",h:"#a9a9a9",cb:0},{n:"darkkhaki",h:"#bdb76b",cb:0},{n:"darkmagenta",h:"#8b008b",cb:0},{n:"darkolivegreen",h:"#556b2f",cb:0},{n:"darkorange",h:"#ff8c00",cb:0},{n:"darkorchid",h:"#9932cc",cb:0},{n:"darkred",h:"#8b0000",cb:0},{n:"darksalmon",h:"#e9967a",cb:0},{n:"darkseagreen",h:"#8fbc8f",cb:0},{n:"darkslateblue",h:"#483d8b",cb:0},{n:"darkslategray",h:"#2f4f4f",cb:0},{n:"darkslategrey",h:"#2f4f4f",cb:0},{n:"darkturquoise",h:"#00ced1",cb:0},{n:"darkviolet",h:"#9400d3",cb:0},{n:"deeppink",h:"#ff1493",cb:0},{n:"deepskyblue",h:"#00bfff",cb:0},{n:"dimgray",h:"#696969",cb:0},{n:"dimgrey",h:"#696969",cb:0},{n:"dodgerblue",h:"#1e90ff",cb:0},{n:"firebrick",h:"#b22222",cb:0},{n:"floralwhite",h:"#fffaf0",cb:0},{n:"forestgreen",h:"#228b22",cb:0},{n:"fuchsia",h:"#ff00ff",cb:0},{n:"gainsboro",h:"#dcdcdc",cb:0},{n:"ghostwhite",h:"#f8f8ff",cb:0},{n:"gold",h:"#ffd700",cb:0},{n:"goldenrod",h:"#daa520",cb:0},{n:"gray",h:"#808080",cb:0},{n:"green",h:"#008000",cb:0},{n:"greenyellow",h:"#adff2f",cb:0},{n:"grey",h:"#808080",cb:0},{n:"honeydew",h:"#f0fff0",cb:0},{n:"hotpink",h:"#ff69b4",cb:0},{n:"indianred",h:"#cd5c5c",cb:0},{n:"indigo",h:"#4b0082",cb:0},{n:"ivory",h:"#fffff0",cb:0},{n:"khaki",h:"#f0e68c",cb:0},{n:"lavender",h:"#e6e6fa",cb:0},{n:"lavenderblush",h:"#fff0f5",cb:0},{n:"lawngreen",h:"#7cfc00",cb:0},{n:"lemonchiffon",h:"#fffacd",cb:0},{n:"lightblue",h:"#add8e6",cb:0},{n:"lightcoral",h:"#f08080",cb:0},{n:"lightcyan",h:"#e0ffff",cb:0},{n:"lightgoldenrodyellow",h:"#fafad2",cb:0},{n:"lightgray",h:"#d3d3d3",cb:0},{n:"lightgreen",h:"#90ee90",cb:0},{n:"lightgrey",h:"#d3d3d3",cb:0},{n:"lightpink",h:"#ffb6c1",cb:0},{n:"lightsalmon",h:"#ffa07a",cb:0},{n:"lightseagreen",h:"#20b2aa",cb:0},{n:"lightskyblue",h:"#87cefa",cb:0},{n:"lightslategray",h:"#778899",cb:0},{n:"lightslategrey",h:"#778899",cb:0},{n:"lightsteelblue",h:"#b0c4de",cb:0},{n:"lightyellow",h:"#ffffe0",cb:0},{n:"lime",h:"#00ff00",cb:0},{n:"limegreen",h:"#32cd32",cb:0},{n:"linen",h:"#faf0e6",cb:0},{n:"magenta",h:"#ff00ff",cb:0},{n:"maroon",h:"#800000",cb:0},{n:"mediumaquamarine",h:"#66cdaa",cb:0},{n:"mediumblue",h:"#0000cd",cb:0},{n:"mediumorchid",h:"#ba55d3",cb:0},{n:"mediumpurple",h:"#9370db",cb:0},{n:"mediumseagreen",h:"#3cb371",cb:0},{n:"mediumslateblue",h:"#7b68ee",cb:0},{n:"mediumspringgreen",h:"#00fa9a",cb:0},{n:"mediumturquoise",h:"#48d1cc",cb:0},{n:"mediumvioletred",h:"#c71585",cb:0},{n:"midnightblue",h:"#191970",cb:0},{n:"mintcream",h:"#f5fffa",cb:0},{n:"mistyrose",h:"#ffe4e1",cb:0},{n:"moccasin",h:"#ffe4b5",cb:0},{n:"navajowhite",h:"#ffdead",cb:0},{n:"navy",h:"#000080",cb:0},{n:"oldlace",h:"#fdf5e6",cb:0},{n:"olive",h:"#808000",cb:0},{n:"olivedrab",h:"#6b8e23",cb:0},{n:"orange",h:"#ffa500",cb:0},{n:"orangered",h:"#ff4500",cb:0},{n:"orchid",h:"#da70d6",cb:0},{n:"palegoldenrod",h:"#eee8aa",cb:0},{n:"palegreen",h:"#98fb98",cb:0},{n:"paleturquoise",h:"#afeeee",cb:0},{n:"palevioletred",h:"#db7093",cb:0},{n:"papayawhip",h:"#ffefd5",cb:0},{n:"peachpuff",h:"#ffdab9",cb:0},{n:"peru",h:"#cd853f",cb:0},{n:"pink",h:"#ffc0cb",cb:0},{n:"plum",h:"#dda0dd",cb:0},{n:"powderblue",h:"#b0e0e6",cb:0},{n:"purple",h:"#800080",cb:0},{n:"rebeccapurple",h:"#663399",cb:0},{n:"red",h:"#ff0000",cb:0},{n:"rosybrown",h:"#bc8f8f",cb:0},{n:"royalblue",h:"#4169e1",cb:0},{n:"saddlebrown",h:"#8b4513",cb:0},{n:"salmon",h:"#fa8072",cb:0},{n:"sandybrown",h:"#f4a460",cb:0},{n:"seagreen",h:"#2e8b57",cb:0},{n:"seashell",h:"#fff5ee",cb:0},{n:"sienna",h:"#a0522d",cb:0},{n:"silver",h:"#c0c0c0",cb:0},{n:"skyblue",h:"#87ceeb",cb:0},{n:"slateblue",h:"#6a5acd",cb:0},{n:"slategray",h:"#708090",cb:0},{n:"slategrey",h:"#708090",cb:0},{n:"snow",h:"#fffafa",cb:0},{n:"springgreen",h:"#00ff7f",cb:0},{n:"steelblue",h:"#4682b4",cb:0},{n:"tan",h:"#d2b48c",cb:0},{n:"teal",h:"#008080",cb:1},{n:"thistle",h:"#d8bfd8",cb:0},{n:"tomato",h:"#ff6347",cb:0},{n:"turquoise",h:"#40e0d0",cb:0},{n:"violet",h:"#ee82ee",cb:0},{n:"wheat",h:"#f5deb3",cb:0},{n:"white",h:"#ffffff",cb:1},{n:"whitesmoke",h:"#f5f5f5",cb:0},{n:"yellow",h:"#ffff00",cb:0},{n:"yellowgreen",h:"#9acd32",cb:0}];
+function render(filter=''){
+const g=document.getElementById('grid');g.innerHTML='';
+const f=colors.filter(c=>!filter||c.n.includes(filter.toLowerCase())||c.h.toLowerCase().includes(filter.toLowerCase()));
+document.getElementById('count').textContent=f.length+' colors';
+f.forEach(c=>{
+const el=document.createElement('div');el.className='color-card';
+el.innerHTML=`<div class="swatch" style="background:${c.h}"></div><div class="info"><div class="name">${c.n}</div><div class="hex">${c.h}</div>${c.cb?'<div class="cb-safe">Color-blind safe</div>':''}</div>`;
+el.onclick=()=>{navigator.clipboard.writeText(c.h);el.classList.add('copied');showToast('Copied '+c.h);setTimeout(()=>el.classList.remove('copied'),500)};
+g.appendChild(el);
+});
+}
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+document.getElementById('search').oninput=e=>render(e.target.value);
+render();
+</script>
+</body>
+</html>

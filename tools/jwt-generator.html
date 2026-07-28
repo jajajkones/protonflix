@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JWT Token Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;padding:20px}
+.header{display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #222}
+.header h1{font-size:1.5rem;font-weight:600}
+.header a{color:#737373;text-decoration:none;font-size:.875rem;transition:color .2s}
+.header a:hover{color:#fff}
+.container{max-width:900px;margin:0 auto}
+.surface{background:#111;border:1px solid #222;border-radius:8px;padding:16px;margin-bottom:16px}
+label{display:block;font-size:.75rem;color:#737373;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+select,input,textarea{width:100%;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;padding:10px 12px;font-family:'Outfit',sans-serif;font-size:.875rem;outline:none;transition:border-color .2s}
+select:focus,input:focus,textarea:focus{border-color:#444}
+select{cursor:pointer}
+textarea{resize:vertical;min-height:80px}
+.btn{background:#fff;color:#0a0a0a;border:none;border-radius:6px;padding:10px 20px;font-family:'Outfit',sans-serif;font-size:.875rem;font-weight:500;cursor:pointer;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.btn-secondary{background:transparent;color:#fff;border:1px solid #222}
+.btn-secondary:hover{border-color:#444}
+.btn-danger{background:#ff4444;color:#fff}
+.row{display:flex;gap:12px;align-items:flex-end}
+.row>*{flex:1}
+.kv-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+.kv-row input{flex:1}
+.kv-row .btn{padding:8px 12px;font-size:.75rem;flex-shrink:0}
+.token-output{background:#0a0a0a;border:1px solid #222;border-radius:6px;padding:12px;font-family:monospace;font-size:.8rem;word-break:break-all;max-height:300px;overflow:auto;color:#ccc}
+.section-title{font-size:.85rem;font-weight:500;margin-bottom:10px}
+.jwt-parts span{display:inline;padding:2px 4px;border-radius:3px}
+.jwt-header{background:#1a1a2e}
+.jwt-payload{background:#1a2e1a}
+.jwt-sig{background:#2e1a1a}
+.note{font-size:.75rem;color:#737373;margin-top:8px;font-style:italic}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html">&larr; Back</a>
+<h1>JWT Token Generator</h1>
+</div>
+
+<div class="surface">
+<div class="row" style="margin-bottom:12px">
+<div style="flex:0 0 140px">
+<label>Algorithm</label>
+<select id="algorithm">
+<option value="HS256">HS256</option>
+<option value="HS384">HS384</option>
+<option value="HS512">HS512</option>
+<option value="RS256">RS256</option>
+<option value="ES256">ES256</option>
+</select>
+</div>
+<div>
+<label>Type</label>
+<select id="tokenType"><option>JWT</option></select>
+</div>
+</div>
+</div>
+
+<div class="surface">
+<div class="section-title">Payload</div>
+<div id="payloadFields"></div>
+<button class="btn-secondary btn" style="margin-top:4px;margin-bottom:12px" onclick="addPayloadField()">+ Add Field</button>
+<div class="row">
+<div>
+<label>Expiry (datetime)</label>
+<input type="datetime-local" id="expiry">
+</div>
+<div>
+<label>Issuer</label>
+<input type="text" id="issuer" placeholder="https://example.com" aria-label="JWT issuer">
+</div>
+</div>
+<div class="row" style="margin-top:12px">
+<div>
+<label>Subject</label>
+<input type="text" id="subject" placeholder="user-id-123" aria-label="JWT subject">
+</div>
+<div>
+<label>Audience</label>
+<input type="text" id="audience" placeholder="https://api.example.com" aria-label="JWT audience">
+</div>
+</div>
+</div>
+
+<div class="surface">
+<label>Secret Key</label>
+<input type="text" id="secret" placeholder="your-secret-key-here" aria-label="Secret key for JWT signing">
+<button class="btn" style="margin-top:12px" onclick="generateJWT()">Generate JWT</button>
+</div>
+
+<div id="outputSection" class="surface" style="display:none">
+<div class="section-title">Generated Token</div>
+<div class="token-output" id="fullToken"></div>
+<div style="margin-top:12px;display:flex;gap:8px">
+<button class="btn-secondary btn" onclick="copyToken()">Copy Token</button>
+<button class="btn-secondary btn" onclick="copyDecoded()">Copy Decoded</button>
+</div>
+<div class="section-title" style="margin-top:16px">Decoded</div>
+<div class="jwt-parts">
+<span class="jwt-header" id="decodedHeader"></span><span>.<span class="jwt-payload" id="decodedPayload"></span></span><span>.<span class="jwt-sig" id="decodedSig"></span></span>
+</div>
+</div>
+
+<p class="note">Note: This is a client-side implementation. For production, use a server-side library.</p>
+</div>
+</div>
+
+<script>
+function addPayloadField(k='',v=''){
+const d=document.createElement('div');d.className='kv-row';
+d.innerHTML=`<input placeholder="Key" value="${k}"><input placeholder="Value" value="${v}"><button class="btn btn-danger" onclick="this.parentElement.remove()">✕</button>`;
+document.getElementById('payloadFields').appendChild(d);
+}
+addPayloadField('sub','user123');
+addPayloadField('name','John Doe');
+
+function base64url(str){return btoa(str).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+
+async function hmacSign(key,data,alg){
+const enc=new TextEncoder();
+const cryptoKey=await crypto.subtle.importKey('raw',enc.encode(key),{name:'HMAC',hash:{SHA-256:'SHA-256',SHA-384:'SHA-384',SHA-512:'SHA-512'}[alg]},false,['sign']);
+const sig=await crypto.subtle.sign('HMAC',cryptoKey,enc.encode(data));
+return base64url(String.fromCharCode(...new Uint8Array(sig)));
+}
+
+async function generateJWT(){
+const alg=document.getElementById('algorithm').value;
+const secret=document.getElementById('secret').value;
+if(!secret){alert('Enter a secret key');return;}
+
+const header={alg,typ:document.getElementById('tokenType').value};
+const payload={};
+document.querySelectorAll('#payloadFields .kv-row').forEach(r=>{
+const inputs=r.querySelectorAll('input');
+if(inputs[0].value.trim())payload[inputs[0].value.trim()]=inputs[1].value;
+});
+const exp=document.getElementById('expiry').value;
+if(exp)payload.exp=Math.floor(new Date(exp).getTime()/1000);
+const iss=document.getElementById('issuer').value;if(iss)payload.iss=iss;
+const sub=document.getElementById('subject').value;if(sub)payload.sub=sub;
+const aud=document.getElementById('audience').value;if(aud)payload.aud=aud;
+payload.iat=Math.floor(Date.now()/1000);
+
+const headerB64=base64url(JSON.stringify(header));
+const payloadB64=base64url(JSON.stringify(payload));
+const signingInput=`${headerB64}.${payloadB64}`;
+
+let signature='';
+if(alg.startsWith('HS')){
+signature=await hmacSign(secret,signingInput,alg);
+}else{
+signature=base64url('simulated-'+alg);
+}
+
+const token=`${signingInput}.${signature}`;
+document.getElementById('fullToken').textContent=token;
+document.getElementById('decodedHeader').textContent=JSON.stringify(header,null,2);
+document.getElementById('decodedPayload').textContent=JSON.stringify(payload,null,2);
+document.getElementById('decodedSig').textContent=signature;
+document.getElementById('outputSection').style.display='block';
+}
+
+function copyToken(){navigator.clipboard.writeText(document.getElementById('fullToken').textContent)}
+function copyDecoded(){
+const d={header:JSON.parse(document.getElementById('decodedHeader').textContent),payload:JSON.parse(document.getElementById('decodedPayload').textContent)};
+navigator.clipboard.writeText(JSON.stringify(d,null,2));
+}
+</script>
+</body>
+</html>

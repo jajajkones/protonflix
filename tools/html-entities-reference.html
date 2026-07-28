@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML Entities Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#fff;font-family:'Outfit',sans-serif;min-height:100vh;padding:20px}
+.header{display:flex;align-items:center;gap:20px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid #222}
+.header h1{font-size:1.8rem;font-weight:600}
+.header a{color:#737373;text-decoration:none;font-size:0.9rem;transition:color .2s}
+.header a:hover{color:#fff}
+.search-wrap{margin-bottom:20px}
+.search{width:100%;padding:12px 16px;background:#111;border:1px solid #222;border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:1rem;outline:none;transition:border-color .2s}
+.search:focus{border-color:#555}
+.search::placeholder{color:#737373}
+.stats{color:#737373;font-size:0.85rem;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.card{background:#111;border:1px solid #222;border-radius:8px;padding:16px;cursor:pointer;transition:all .2s}
+.card:hover{border-color:#555;background:#161616}
+.card.copied{border-color:#4ade80;box-shadow:0 0 12px rgba(74,222,128,0.15)}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.entity-name{font-weight:600;font-size:1rem;color:#e5e5e5}
+.entity-char{font-size:2rem;line-height:1;min-width:48px;text-align:center;background:#0a0a0a;border:1px solid #222;border-radius:6px;padding:6px 10px}
+.codes{display:flex;flex-direction:column;gap:4px}
+.code-row{font-family:'Courier New',monospace;font-size:0.8rem;color:#737373}
+.code-row span{color:#a5a5a5}
+.copied-toast{position:fixed;bottom:24px;right:24px;background:#222;color:#4ade80;padding:10px 18px;border-radius:8px;font-size:0.85rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.copied-toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html">← Back</a>
+<h1>HTML Entities Reference</h1>
+</div>
+<div class="search-wrap">
+<input type="text" class="search" placeholder="Search entities by name, character, or code..." id="searchInput" aria-label="Search HTML entities">
+</div>
+<div class="stats" id="stats"></div>
+<div class="grid" id="grid"></div>
+<div class="copied-toast" id="toast">Copied!</div>
+<script>
+const entities=[
+{name:"amp",char:"&",hex:"&amp;",dec:"&amp;"},
+{name:"lt",char:"<",hex:"&lt;",dec:"&lt;"},
+{name:"gt",char:">",hex:"&gt;",dec:"&gt;"},
+{name:"quot",char:'"',hex:"&quot;",dec:"&quot;"},
+{name:"apos",char:"'",hex:"&apos;",dec:"&apos;"},
+{name:"nbsp",char:" ",hex:"&nbsp;",dec:"&#160;"},
+{name:"excl",char:"!",hex:"&excl;",dec:"&#33;"},
+{name:"quot",char:'"',hex:"&quot;",dec:"&#34;"},
+{name:"num",char:"#",hex:"&num;",dec:"&#35;"},
+{name:"dollar",char:"$",hex:"&dollar;",dec:"&#36;"},
+{name:"percnt",char:"%",hex:"&percnt;",dec:"&#37;"},
+{name:"amp",char:"&",hex:"&amp;",dec:"&#38;"},
+{name:"apos",char:"'",hex:"&apos;",dec:"&#39;"},
+{name:"lpar",char:"(",hex:"&lpar;",dec:"&#40;"},
+{name:"rpar",char:")",hex:"&rpar;",dec:"&#41;"},
+{name:"ast",char:"*",hex:"&ast;",dec:"&#42;"},
+{name:"plus",char:"+",hex:"&plus;",dec:"&#43;"},
+{name:"comma",char:",",hex:"&comma;",dec:"&#44;"},
+{name:"minus",char:"-",hex:"&minus;",dec:"&#45;"},
+{name:"period",char:".",hex:"&period;",dec:"&#46;"},
+{name:"sol",char:"/",hex:"&sol;",dec:"&#47;"},
+{name:"colon",char:":",hex:"&colon;",dec:"&#58;"},
+{name:"semi",char:";",hex:"&semi;",dec:"&#59;"},
+{name:"lt",char:"<",hex:"&lt;",dec:"&#60;"},
+{name:"equals",char:"=",hex:"&equals;",dec:"&#61;"},
+{name:"gt",char:">",hex:"&gt;",dec:"&#62;"},
+{name:"quest",char:"?",hex:"&quest;",dec:"&#63;"},
+{name:"commat",char:"@",hex:"&commat;",dec:"&#64;"},
+{name:"lsqb",char:"[",hex:"&lsqb;",dec:"&#91;"},
+{name:"bsol",char:"\\",hex:"&bsol;",dec:"&#92;"},
+{name:"rsqb",char:"]",hex:"&rsqb;",dec:"&#93;"},
+{name:"Hat",char:"^",hex:"&Hat;",dec:"&#94;"},
+{name:"lowbar",char:"_",hex:"&lowbar;",dec:"&#95;"},
+{name:"grave",char:"`",hex:"&grave;",dec:"&#96;"},
+{name:"lcub",char:"{",hex:"&lcub;",dec:"&#123;"},
+{name:"verbar",char:"|",hex:"&verbar;",dec:"&#124;"},
+{name:"rcub",char:"}",hex:"&rcub;",dec:"&#125;"},
+{name:"tilde",char:"~",hex:"&tilde;",dec:"&#126;"},
+{name:"nbsp",char:" ",hex:"&nbsp;",dec:"&#160;"},
+{name:"iexcl",char:"¡",hex:"&iexcl;",dec:"&#161;"},
+{name:"cent",char:"¢",hex:"&cent;",dec:"&#162;"},
+{name:"pound",char:"£",hex:"&pound;",dec:"&#163;"},
+{name:"curren",char:"¤",hex:"&curren;",dec:"&#164;"},
+{name:"yen",char:"¥",hex:"&yen;",dec:"&#165;"},
+{name:"brvbar",char:"¦",hex:"&brvbar;",dec:"&#166;"},
+{name:"sect",char:"§",hex:"&sect;",dec:"&#167;"},
+{name:"uml",char:"¨",hex:"&uml;",dec:"&#168;"},
+{name:"copy",char:"©",hex:"&copy;",dec:"&#169;"},
+{name:"ordf",char:"ª",hex:"&ordf;",dec:"&#170;"},
+{name:"laquo",char:"«",hex:"&laquo;",dec:"&#171;"},
+{name:"not",char:"¬",hex:"&not;",dec:"&#172;"},
+{name:"shy",char:"­",hex:"&shy;",dec:"&#173;"},
+{name:"reg",char:"®",hex:"&reg;",dec:"&#174;"},
+{name:"macr",char:"¯",hex:"&macr;",dec:"&#175;"},
+{name:"deg",char:"°",hex:"&deg;",dec:"&#176;"},
+{name:"plusmn",char:"±",hex:"&plusmn;",dec:"&#177;"},
+{name:"sup2",char:"²",hex:"&sup2;",dec:"&#178;"},
+{name:"sup3",char:"³",hex:"&sup3;",dec:"&#179;"},
+{name:"acute",char:"´",hex:"&acute;",dec:"&#180;"},
+{name:"micro",char:"µ",hex:"&micro;",dec:"&#181;"},
+{name:"para",char:"¶",hex:"&para;",dec:"&#182;"},
+{name:"middot",char:"·",hex:"&middot;",dec:"&#183;"},
+{name:"cedil",char:"¸",hex:"&cedil;",dec:"&#184;"},
+{name:"sup1",char:"¹",hex:"&sup1;",dec:"&#185;"},
+{name:"ordm",char:"º",hex:"&ordm;",dec:"&#186;"},
+{name:"raquo",char:"»",hex:"&raquo;",dec:"&#187;"},
+{name:"frac14",char:"¼",hex:"&frac14;",dec:"&#188;"},
+{name:"frac12",char:"½",hex:"&frac12;",dec:"&#189;"},
+{name:"frac34",char:"¾",hex:"&frac34;",dec:"&#190;"},
+{name:"iquest",char:"¿",hex:"&iquest;",dec:"&#191;"},
+{name:"Agrave",char:"À",hex:"&Agrave;",dec:"&#192;"},
+{name:"Aacute",char:"Á",hex:"&Aacute;",dec:"&#193;"},
+{name:"Acirc",char:"Â",hex:"&Acirc;",dec:"&#194;"},
+{name:"Atilde",char:"Ã",hex:"&Atilde;",dec:"&#195;"},
+{name:"Auml",char:"Ä",hex:"&Auml;",dec:"&#196;"},
+{name:"Aring",char:"Å",hex:"&Aring;",dec:"&#197;"},
+{name:"AElig",char:"Æ",hex:"&AElig;",dec:"&#198;"},
+{name:"Ccedil",char:"Ç",hex:"&Ccedil;",dec:"&#199;"},
+{name:"Egrave",char:"È",hex:"&Egrave;",dec:"&#200;"},
+{name:"Eacute",char:"É",hex:"&Eacute;",dec:"&#201;"},
+{name:"Ecirc",char:"Ê",hex:"&Ecirc;",dec:"&#202;"},
+{name:"Euml",char:"Ë",hex:"&Euml;",dec:"&#203;"},
+{name:"Igrave",char:"Ì",hex:"&Igrave;",dec:"&#204;"},
+{name:"Iacute",char:"Í",hex:"&Iacute;",dec:"&#205;"},
+{name:"Icirc",char:"Î",hex:"&Icirc;",dec:"&#206;"},
+{name:"Iuml",char:"Ï",hex:"&Iuml;",dec:"&#207;"},
+{name:"ETH",char:"Ð",hex:"&ETH;",dec:"&#208;"},
+{name:"Ntilde",char:"Ñ",hex:"&Ntilde;",dec:"&#209;"},
+{name:"Ograve",char:"Ò",hex:"&Ograve;",dec:"&#210;"},
+{name:"Oacute",char:"Ó",hex:"&Oacute;",dec:"&#211;"},
+{name:"Ocirc",char:"Ô",hex:"&Ocirc;",dec:"&#212;"},
+{name:"Otilde",char:"Õ",hex:"&Otilde;",dec:"&#213;"},
+{name:"Ouml",char:"Ö",hex:"&Ouml;",dec:"&#214;"},
+{name:"times",char:"×",hex:"&times;",dec:"&#215;"},
+{name:"Oslash",char:"Ø",hex:"&Oslash;",dec:"&#216;"},
+{name:"Ugrave",char:"Ù",hex:"&Ugrave;",dec:"&#217;"},
+{name:"Uacute",char:"Ú",hex:"&Uacute;",dec:"&#218;"},
+{name:"Ucirc",char:"Û",hex:"&Ucirc;",dec:"&#219;"},
+{name:"Uuml",char:"Ü",hex:"&Uuml;",dec:"&#220;"},
+{name:"Yacute",char:"Ý",hex:"&Yacute;",dec:"&#221;"},
+{name:"THORN",char:"Þ",hex:"&THORN;",dec:"&#222;"},
+{name:"szlig",char:"ß",hex:"&szlig;",dec:"&#223;"},
+{name:"agrave",char:"à",hex:"&agrave;",dec:"&#224;"},
+{name:"aacute",char:"á",hex:"&aacute;",dec:"&#225;"},
+{name:"acirc",char:"â",hex:"&acirc;",dec:"&#226;"},
+{name:"atilde",char:"ã",hex:"&atilde;",dec:"&#227;"},
+{name:"auml",char:"ä",hex:"&auml;",dec:"&#228;"},
+{name:"aring",char:"å",hex:"&aring;",dec:"&#229;"},
+{name:"aelig",char:"æ",hex:"&aelig;",dec:"&#230;"},
+{name:"ccedil",char:"ç",hex:"&ccedil;",dec:"&#231;"},
+{name:"egrave",char:"è",hex:"&egrave;",dec:"&#232;"},
+{name:"eacute",char:"é",hex:"&eacute;",dec:"&#233;"},
+{name:"ecirc",char:"ê",hex:"&ecirc;",dec:"&#234;"},
+{name:"euml",char:"ë",hex:"&euml;",dec:"&#235;"},
+{name:"igrave",char:"ì",hex:"&igrave;",dec:"&#236;"},
+{name:"iacute",char:"í",hex:"&iacute;",dec:"&#237;"},
+{name:"icirc",char:"î",hex:"&icirc;",dec:"&#238;"},
+{name:"iuml",char:"ï",hex:"&iuml;",dec:"&#239;"},
+{name:"eth",char:"ð",hex:"&eth;",dec:"&#240;"},
+{name:"ntilde",char:"ñ",hex:"&ntilde;",dec:"&#241;"},
+{name:"ograve",char:"ò",hex:"&ograve;",dec:"&#242;"},
+{name:"oacute",char:"ó",hex:"&oacute;",dec:"&#243;"},
+{name:"ocirc",char:"ô",hex:"&ocirc;",dec:"&#244;"},
+{name:"otilde",char:"õ",hex:"&otilde;",dec:"&#245;"},
+{name:"ouml",char:"ö",hex:"&ouml;",dec:"&#246;"},
+{name:"divide",char:"÷",hex:"&divide;",dec:"&#247;"},
+{name:"oslash",char:"ø",hex:"&oslash;",dec:"&#248;"},
+{name:"ugrave",char:"ù",hex:"&ugrave;",dec:"&#249;"},
+{name:"uacute",char:"ú",hex:"&uacute;",dec:"&#250;"},
+{name:"ucirc",char:"û",hex:"&ucirc;",dec:"&#251;"},
+{name:"uuml",char:"ü",hex:"&uuml;",dec:"&#252;"},
+{name:"yacute",char:"ý",hex:"&yacute;",dec:"&#253;"},
+{name:"thorn",char:"þ",hex:"&thorn;",dec:"&#254;"},
+{name:"yuml",char:"ÿ",hex:"&yuml;",dec:"&#255;"},
+{name:"OElig",char:"Œ",hex:"&OElig;",dec:"&#338;"},
+{name:"oelig",char:"œ",hex:"&oelig;",dec:"&#339;"},
+{name:"Scaron",char:"Š",hex:"&Scaron;",dec:"&#352;"},
+{name:"scaron",char:"š",hex:"&scaron;",dec:"&#353;"},
+{name:"Yuml",char:"Ÿ",hex:"&Yuml;",dec:"&#376;"},
+{name:"circ",char:"ˆ",hex:"&circ;",dec:"&#710;"},
+{name:"tilde",char:"~",hex:"&tilde;",dec:"&#732;"},
+{name:"ensp",char:" ",hex:"&ensp;",dec:"&#8194;"},
+{name:"emsp",char:" ",hex:"&emsp;",dec:"&#8195;"},
+{name:"thinsp",char:" ",hex:"&thinsp;",dec:"&#8201;"},
+{name:"zwnj",char:"‌",hex:"&zwnj;",dec:"&#8204;"},
+{name:"zwj",char:"‍",hex:"&zwj;",dec:"&#8205;"},
+{name:"lrm",char:"‎",hex:"&lrm;",dec:"&#8206;"},
+{name:"rlm",char:"‏",hex:"&rlm;",dec:"&#8207;"},
+{name:"ndash",char:"–",hex:"&ndash;",dec:"&#8211;"},
+{name:"mdash",char:"—",hex:"&mdash;",dec:"&#8212;"},
+{name:"lsquo",char:"'",hex:"&lsquo;",dec:"&#8216;"},
+{name:"rsquo",char:"'",hex:"&rsquo;",dec:"&#8217;"},
+{name:"sbquo",char:"‚",hex:"&sbquo;",dec:"&#8218;"},
+{name:"ldquo",char:""",hex:"&ldquo;",dec:"&#8220;"},
+{name:"rdquo",char:""",hex:"&rdquo;",dec:"&#8221;"},
+{name:"bdquo",char:"„",hex:"&bdquo;",dec:"&#8222;"},
+{name:"dagger",char:"†",hex:"&dagger;",dec:"&#8224;"},
+{name:"Dagger",char:"‡",hex:"&Dagger;",dec:"&#8225;"},
+{name:"permil",char:"‰",hex:"&permil;",dec:"&#8240;"},
+{name:"lsaquo",char:"‹",hex:"&lsaquo;",dec:"&#8249;"},
+{name:"rsaquo",char:"›",hex:"&rsaquo;",dec:"&#8250;"},
+{name:"euro",char:"€",hex:"&euro;",dec:"&#8364;"},
+{name:"trade",char:"™",hex:"&trade;",dec:"&#8482;"},
+{name:"larr",char:"←",hex:"&larr;",dec:"&#8592;"},
+{name:"rarr",char:"→",hex:"&rarr;",dec:"&#8594;"},
+{name:"darr",char:"↓",hex:"&darr;",dec:"&#8595;"},
+{name:"hearts",char:"♥",hex:"&hearts;",dec:"&#9829;"},
+{name:"clubs",char:"♣",hex:"&clubs;",dec:"&#9827;"},
+{name:"diams",char:"♦",hex:"&diams;",dec:"&#9830;"},
+{name:"spades",char:"♠",hex:"&spades;",dec:"&#9824;"},
+{name:"check",char:"✓",hex:"&check;",dec:"&#10003;"},
+{name:"cross",char:"✗",hex:"&cross;",dec:"&#10007;"},
+{name:"star",char:"★",hex:"&star;",dec:"&#9733;"},
+{name:"loz",char:"◊",hex:"&loz;",dec:"&#9674;"},
+{name:"bull",char:"•",hex:"&bull;",dec:"&#8226;"},
+{name:"hellip",char:"…",hex:"&hellip;",dec:"&#8230;"},
+{name:"prime",char:"′",hex:"&prime;",dec:"&#8242;"},
+{name:"Prime",char:"″",hex:"&Prime;",dec:"&#8243;"},
+{name:"oline",char:"‾",hex:"&oline;",dec:"&#8254;"},
+{name:"frasl",char:"⁄",hex:"&frasl;",dec:"&#8260;"},
+{name:"weierp",char:"℘",hex:"&weierp;",dec:"&#8472;"},
+{name:"image",char:"ℑ",hex:"&image;",dec:"&#8465;"},
+{name:"real",char:"ℜ",hex:"&real;",dec:"&#8476;"},
+{name:"infin",char:"∞",hex:"&infin;",dec:"&#8734;"},
+{name:"empty",char:"∅",hex:"&empty;",dec:"&#8709;"},
+{name:"nabla",char:"∇",hex:"&nabla;",dec:"&#8711;"},
+{name:"isin",char:"∈",hex:"&isin;",dec:"&#8712;"},
+{name:"notin",char:"∉",hex:"&notin;",dec:"&#8713;"},
+{name:"ni",char:"∋",hex:"&ni;",dec:"&#8715;"},
+{name:"prod",char:"∏",hex:"&prod;",dec:"&#8719;"},
+{name:"sum",char:"∑",hex:"&sum;",dec:"&#8721;"},
+{name:"minus",char:"−",hex:"&minus;",dec:"&#8722;"},
+{name:"lowast",char:"∗",hex:"&lowast;",dec:"&#8727;"},
+{name:"radic",char:"√",hex:"&radic;",dec:"&#8730;"},
+{name:"prop",char:"∝",hex:"&prop;",dec:"&#8733;"},
+{name:"infin",char:"∞",hex:"&infin;",dec:"&#8734;"},
+{name:"ang",char:"∠",hex:"&ang;",dec:"&#8736;"},
+{name:"and",char:"∧",hex:"&and;",dec:"&#8743;"},
+{name:"or",char:"∨",hex:"&or;",dec:"&#8744;"},
+{name:"cap",char:"∩",hex:"&cap;",dec:"&#8745;"},
+{name:"cup",char:"∪",hex:"&cup;",dec:"&#8746;"},
+{name:"int",char:"∫",hex:"&int;",dec:"&#8747;"},
+{name:"there4",char:"∴",hex:"&there4;",dec:"&#8756;"},
+{name:"sim",char:"∼",hex:"&sim;",dec:"&#8764;"},
+{name:"cong",char:"≅",hex:"&cong;",dec:"&#8773;"},
+{name:"asymp",char:"≈",hex:"&asymp;",dec:"&#8776;"},
+{name:"ne",char:"≠",hex:"&ne;",dec:"&#8800;"},
+{name:"equiv",char:"≡",hex:"&equiv;",dec:"&#8801;"},
+{name:"le",char:"≤",hex:"&le;",dec:"&#8804;"},
+{name:"ge",char:"≥",hex:"&ge;",dec:"&#8805;"},
+{name:"sub",char:"⊂",hex:"&sub;",dec:"&#8834;"},
+{name:"sup",char:"⊃",hex:"&sup;",dec:"&#8835;"},
+{name:"nsub",char:"⊄",hex:"&nsub;",dec:"&#8836;"},
+{name:"sube",char:"⊆",hex:"&sube;",dec:"&#8838;"},
+{name:"supe",char:"⊇",hex:"&supe;",dec:"&#8839;"},
+{name:"oplus",char:"⊕",hex:"&oplus;",dec:"&#8853;"},
+{name:"otimes",char:"⊗",hex:"&otimes;",dec:"&#8855;"},
+{name:"perp",char:"⊥",hex:"&perp;",dec:"&#8869;"},
+{name:"sdot",char:"⋅",hex:"&sdot;",dec:"&#8901;"},
+{name:"Alpha",char:"Α",hex:"&Alpha;",dec:"&#913;"},
+{name:"Beta",char:"Β",hex:"&Beta;",dec:"&#914;"},
+{name:"Gamma",char:"Γ",hex:"&Gamma;",dec:"&#915;"},
+{name:"Delta",char:"Δ",hex:"&Delta;",dec:"&#916;"},
+{name:"Epsilon",char:"Ε",hex:"&Epsilon;",dec:"&#917;"},
+{name:"Zeta",char:"Ζ",hex:"&Zeta;",dec:"&#918;"},
+{name:"Eta",char:"Η",hex:"&Eta;",dec:"&#919;"},
+{name:"Theta",char:"Θ",hex:"&Theta;",dec:"&#920;"},
+{name:"Iota",char:"Ι",hex:"&Iota;",dec:"&#921;"},
+{name:"Kappa",char:"Κ",hex:"&Kappa;",dec:"&#922;"},
+{name:"Lambda",char:"Λ",hex:"&Lambda;",dec:"&#923;"},
+{name:"Mu",char:"Μ",hex:"&Mu;",dec:"&#924;"},
+{name:"Nu",char:"Ν",hex:"&Nu;",dec:"&#925;"},
+{name:"Xi",char:"Ξ",hex:"&Xi;",dec:"&#926;"},
+{name:"Omicron",char:"Ο",hex:"&Omicron;",dec:"&#927;"},
+{name:"Pi",char:"Π",hex:"&Pi;",dec:"&#928;"},
+{name:"Rho",char:"Ρ",hex:"&Rho;",dec:"&#929;"},
+{name:"Sigma",char:"Σ",hex:"&Sigma;",dec:"&#931;"},
+{name:"Tau",char:"Τ",hex:"&Tau;",dec:"&#932;"},
+{name:"Upsilon",char:"Υ",hex:"&Upsilon;",dec:"&#933;"},
+{name:"Phi",char:"Φ",hex:"&Phi;",dec:"&#934;"},
+{name:"Chi",char:"Χ",hex:"&Chi;",dec:"&#935;"},
+{name:"Psi",char:"Ψ",hex:"&Psi;",dec:"&#936;"},
+{name:"Omega",char:"Ω",hex:"&Omega;",dec:"&#937;"},
+{name:"alpha",char:"α",hex:"&alpha;",dec:"&#945;"},
+{name:"beta",char:"β",hex:"&beta;",dec:"&#946;"},
+{name:"gamma",char:"γ",hex:"&gamma;",dec:"&#947;"},
+{name:"delta",char:"δ",hex:"&delta;",dec:"&#948;"},
+{name:"epsilon",char:"ε",hex:"&epsilon;",dec:"&#949;"},
+{name:"zeta",char:"ζ",hex:"&zeta;",dec:"&#950;"},
+{name:"eta",char:"η",hex:"&eta;",dec:"&#951;"},
+{name:"theta",char:"θ",hex:"&theta;",dec:"&#952;"},
+{name:"iota",char:"ι",hex:"&iota;",dec:"&#953;"},
+{name:"kappa",char:"κ",hex:"&kappa;",dec:"&#954;"},
+{name:"lambda",char:"λ",hex:"&lambda;",dec:"&#955;"},
+{name:"mu",char:"μ",hex:"&mu;",dec:"&#956;"},
+{name:"nu",char:"ν",hex:"&nu;",dec:"&#957;"},
+{name:"xi",char:"ξ",hex:"&xi;",dec:"&#958;"},
+{name:"omicron",char:"ο",hex:"&omicron;",dec:"&#959;"},
+{name:"pi",char:"π",hex:"&pi;",dec:"&#960;"},
+{name:"rho",char:"ρ",hex:"&rho;",dec:"&#961;"},
+{name:"sigmaf",char:"ς",hex:"&sigmaf;",dec:"&#962;"},
+{name:"sigma",char:"σ",hex:"&sigma;",dec:"&#963;"},
+{name:"tau",char:"τ",hex:"&tau;",dec:"&#964;"},
+{name:"upsilon",char:"υ",hex:"&upsilon;",dec:"&#965;"},
+{name:"phi",char:"φ",hex:"&phi;",dec:"&#966;"},
+{name:"chi",char:"χ",hex:"&chi;",dec:"&#967;"},
+{name:"psi",char:"ψ",hex:"&psi;",dec:"&#968;"},
+{name:"omega",char:"ω",hex:"&omega;",dec:"&#969;"},
+{name:"thetasym",char:"ϑ",hex:"&thetasym;",dec:"&#977;"},
+{name:"upsih",char:"ϒ",hex:"&upsih;",dec:"&#978;"},
+{name:"piv",char:"ϖ",hex:"&piv;",dec:"&#982;"},
+{name:"nbsp",char:" ",hex:"&nbsp;",dec:"&#160;"}
+];
+const grid=document.getElementById('grid');
+const searchInput=document.getElementById('searchInput');
+const stats=document.getElementById('stats');
+const toast=document.getElementById('toast');
+let toastTimer;
+function showToast(msg){
+toast.textContent=msg;
+toast.classList.add('show');
+clearTimeout(toastTimer);
+toastTimer=setTimeout(()=>toast.classList.remove('show'),1500);
+}
+function copyText(text){
+navigator.clipboard.writeText(text).then(()=>showToast('Copied: '+text));
+}
+function render(filter=''){
+const f=filter.toLowerCase();
+const filtered=entities.filter(e=>!f||e.name.toLowerCase().includes(f)||e.char.includes(f)||e.hex.toLowerCase().includes(f)||e.dec.toLowerCase().includes(f));
+stats.textContent=filtered.length+' of '+entities.length+' entities';
+grid.innerHTML='';
+filtered.forEach(e=>{
+const card=document.createElement('div');
+card.className='card';
+card.innerHTML=`
+<div class="card-top">
+<div>
+<div class="entity-name">&${e.name};</div>
+<div class="codes">
+<div class="code-row">Hex: <span>${e.hex}</span></div>
+<div class="code-row">Dec: <span>${e.dec}</span></div>
+</div>
+</div>
+<div class="entity-char">${e.char}</div>
+</div>`;
+card.addEventListener('click',()=>{
+copyText(e.hex);
+card.classList.add('copied');
+setTimeout(()=>card.classList.remove('copied'),600);
+});
+grid.appendChild(card);
+});
+}
+searchInput.addEventListener('input',e=>render(e.target.value));
+render();
+</script>
+</body>
+</html>

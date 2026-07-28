@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Blindness Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh}
+.header{padding:20px 30px;border-bottom:1px solid #222;display:flex;align-items:center;gap:20px}
+.header h1{font-size:1.4rem;font-weight:600}
+.header a{color:#737373;text-decoration:none;font-size:.9rem;transition:color .2s}
+.header a:hover{color:#fff}
+.container{max-width:1100px;margin:0 auto;padding:30px}
+.panel{background:#111;border:1px solid #222;border-radius:12px;padding:24px;margin-bottom:20px}
+.panel h2{font-size:1rem;font-weight:500;margin-bottom:16px}
+.input-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.input-group{flex:1;min-width:200px}
+.input-group label{display:block;font-size:.75rem;color:#737373;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.input-group input{width:100%;padding:10px 14px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s}
+.input-group input:focus{border-color:#555}
+.color-input-wrap{display:flex;gap:8px;align-items:center}
+.color-input-wrap input[type="color"]{width:44px;height:40px;padding:2px;background:#0a0a0a;border:1px solid #222;border-radius:8px;cursor:pointer}
+.color-input-wrap input[type="text"]{flex:1}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-top:16px}
+.swatch-card{background:#0a0a0a;border:1px solid #222;border-radius:10px;overflow:hidden;transition:transform .2s}
+.swatch-card:hover{transform:translateY(-2px)}
+.swatch-color{height:100px;position:relative;display:flex;align-items:center;justify-content:center}
+.swatch-color .hex{font-size:1.1rem;font-weight:600;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+.swatch-info{padding:12px}
+.swatch-info .type{font-size:.7rem;color:#737373;text-transform:uppercase;letter-spacing:.5px}
+.swatch-info .name{font-size:.9rem;font-weight:500;margin-top:2px}
+.palette-section{margin-top:20px}
+.palette-input{width:100%;min-height:80px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem;padding:14px;resize:vertical;outline:none}
+.palette-input:focus{border-color:#555}
+.palette-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:12px;margin-top:16px}
+.palette-item{text-align:center}
+.palette-swatch{height:60px;border-radius:8px;border:1px solid #222;margin-bottom:6px;position:relative;cursor:pointer}
+.palette-swatch .label{font-size:.65rem;color:#fff;position:absolute;bottom:4px;left:0;right:0;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.palette-item .hex{font-size:.7rem;color:#737373}
+.btn{background:#1a1a1a;border:1px solid #333;color:#fff;padding:8px 18px;border-radius:8px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:.85rem;transition:all .2s}
+.btn:hover{background:#252525;border-color:#555}
+.btn.primary{background:#fff;color:#0a0a0a;border-color:#fff}
+.btn.primary:hover{background:#e0e0e0}
+.btn-row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.copy-msg{font-size:.75rem;color:#4ade80;opacity:0;transition:opacity .3s;margin-left:auto}
+.copy-msg.show{opacity:1}
+.safe-list,.unsafe-list{margin-top:12px}
+.safe-list .tag{display:inline-block;background:#064e3b;color:#4ade80;padding:3px 10px;border-radius:20px;font-size:.75rem;margin:3px}
+.unsafe-list .tag{display:inline-block;background:#7f1d1d;color:#fca5a5;padding:3px 10px;border-radius:20px;font-size:.75rem;margin:3px}
+
+@media(max-width:768px){header{padding:20px 16px}header h1{font-size:16px}.content{padding:20px 16px}.container{padding:16px}}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html">&larr; Back</a>
+<h1>Color Blindness Simulator</h1>
+</div>
+<div class="container">
+<div class="panel">
+<h2>Select a Color</h2>
+<div class="input-row">
+<div class="input-group">
+<label>Hex Color</label>
+<div class="color-input-wrap">
+<input type="color" id="colorPicker" value="#e74c3c">
+<input type="text" id="hexInput" value="#e74c3c" placeholder="#e74c3c" maxlength="7">
+</div>
+</div>
+</div>
+</div>
+<div class="panel">
+<h2>Simulation Results</h2>
+<div class="swatches" id="simSwatches"></div>
+</div>
+<div class="panel">
+<h2>Palette Analyzer</h2>
+<p style="font-size:.85rem;color:#737373;margin-bottom:12px">Paste CSS containing colors (hex values) to analyze your entire palette.</p>
+<textarea class="palette-input" id="paletteInput" placeholder="Paste CSS like:&#10;.primary { color: #e74c3c; }&#10;.secondary { background: #3498db; }&#10;.text { color: #2ecc71; }"></textarea>
+<div class="btn-row">
+<button class="btn primary" onclick="analyzePalette()">Analyze Palette</button>
+<button class="btn" onclick="copyText('safeColors','msg1')">Copy Safe Colors</button>
+<button class="btn" onclick="copyText('unsafeColors','msg2')">Copy Unsafe Colors</button>
+<span class="copy-msg" id="msg1">Copied!</span>
+<span class="copy-msg" id="msg2">Copied!</span>
+</div>
+<div class="palette-grid" id="paletteGrid"></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+<div>
+<div style="font-size:.8rem;color:#4ade80;margin-bottom:6px">&#9989; Accessible (safe for all types)</div>
+<div class="safe-list" id="safeColors"></div>
+</div>
+<div>
+<div style="font-size:.8rem;color:#fca5a5;margin-bottom:6px">&#9888;&#65039; May be problematic</div>
+<div class="unsafe-list" id="unsafeColors"></div>
+</div>
+</div>
+</div>
+</div>
+<script>
+const colorTypes=[
+{name:'Normal Vision',id:'normal',matrix:null},
+{name:'Protanopia (Red-blind)',id:'protanopia',matrix:[[0.567,0.433,0,0.558,0.442,0,0,0.242,0.758]]},
+{name:'Deuteranopia (Green-blind)',id:'deuteranopia',matrix:[[0.625,0.375,0,0.7,0.3,0,0,0.3,0.7]]},
+{name:'Tritanopia (Blue-blind)',id:'tritanopia',matrix:[[0.95,0.05,0,0,0.433,0.567,0,0.475,0.525]]},
+{name:'Achromatopsia (Total)',id:'achromatopsia',matrix:[[0.299,0.587,0.114,0.299,0.587,0.114,0.299,0.587,0.114]]}
+];
+function hexToRgb(hex){hex=hex.replace('#','');if(hex.length===3)hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];return{r:parseInt(hex.substr(0,2),16),g:parseInt(hex.substr(2,2),16),b:parseInt(hex.substr(4,2),16)}}
+function rgbToHex(r,g,b){return'#'+[r,g,b].map(x=>{const h=Math.max(0,Math.min(255,Math.round(x))).toString(16);return h.length===1?'0'+h:h}).join('')}
+function simulateColor(hex,matrix){
+const rgb=hexToRgb(hex);
+if(!matrix)return hex;
+const m=matrix[0];
+const r=m[0]*rgb.r+m[1]*rgb.g+m[2]*rgb.b;
+const g=m[3]*rgb.r+m[4]*rgb.g+m[5]*rgb.b;
+const b=m[6]*rgb.r+m[7]*rgb.g+m[8]*rgb.b;
+return rgbToHex(r,g,b);
+}
+function getTextColor(hex){const rgb=hexToRgb(hex);return(rgb.r*0.299+rgb.g*0.587+rgb.b*0.114)>150?'#000000':'#ffffff'}
+function updateSwatches(){
+const hex=document.getElementById('hexInput').value;
+if(!/^#[0-9a-fA-F]{6}$/.test(hex))return;
+const container=document.getElementById('simSwatches');
+container.innerHTML='';
+colorTypes.forEach(type=>{
+const sim=type.matrix?simulateColor(hex,type.matrix):hex;
+const card=document.createElement('div');
+card.className='swatch-card';
+card.innerHTML=`<div class="swatch-color" style="background:${sim}"><span class="hex" style="color:${getTextColor(sim)}">${sim.toUpperCase()}</span></div><div class="swatch-info"><div class="type">${type.id}</div><div class="name">${type.name}</div></div>`;
+container.appendChild(card);
+});
+}
+document.getElementById('colorPicker').addEventListener('input',e=>{document.getElementById('hexInput').value=e.target.value;updateSwatches()});
+document.getElementById('hexInput').addEventListener('input',e=>{
+let v=e.target.value;if(!v.startsWith('#'))v='#'+v;e.target.value=v;
+if(/^#[0-9a-fA-F]{6}$/.test(v)){document.getElementById('colorPicker').value=v;updateSwatches()}
+});
+function extractColors(css){const re=/#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b/g;const colors=[];let m;while((m=re.exec(css))!==null){let hex=m[1];if(hex.length===3)hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];colors.push('#'+hex.toUpperCase())}return[...new Set(colors)]}
+function isColorSafe(hex){
+const rgb=hexToRgb(hex);
+const luminance=(0.299*rgb.r+0.587*rgb.g+0.114*rgb.b)/255;
+const isGray=Math.abs(rgb.r-rgb.g)<25&&Math.abs(rgb.g-rgb.b)<25&&Math.abs(rgb.r-rgb.b)<25;
+return isGray||luminance<0.1||luminance>0.9;
+}
+function analyzePalette(){
+const css=document.getElementById('paletteInput').value;
+const colors=extractColors(css);
+const grid=document.getElementById('paletteGrid');
+const safeContainer=document.getElementById('safeColors');
+const unsafeContainer=document.getElementById('unsafeColors');
+grid.innerHTML='';safeContainer.innerHTML='';unsafeContainer.innerHTML='';
+if(!colors.length){grid.innerHTML='<p style="color:#737373;font-size:.85rem">No hex colors found in input.</p>';return}
+const safe=[],unsafe=[];
+colors.forEach(hex=>{
+const safeForAll=[];
+const unsafeFor=[];
+colorTypes.forEach(type=>{
+if(type.id==='normal')return;
+const sim=simulateColor(hex,type.matrix);
+if(sim.toLowerCase()===hex.toLowerCase()){safeForAll.push(type.name)}else{unsafeFor.push(type.name)}
+});
+if(unsafeFor.length===0)safe.push(hex);else unsafe.push(hex);
+const gridItem=document.createElement('div');
+gridItem.className='palette-item';
+gridItem.innerHTML=`<div class="palette-swatch" style="background:${hex}"><span class="label" style="color:${getTextColor(hex)}">${hex}</span></div><div class="hex">${hex}</div>`;
+grid.appendChild(gridItem);
+});
+safe.forEach(c=>{const t=document.createElement('span');t.className='tag';t.textContent=c;safeContainer.appendChild(t)});
+unsafe.forEach(c=>{const t=document.createElement('span');t.className='tag';t.textContent=c;unsafeContainer.appendChild(t)});
+if(!unsafe.length)unsafeContainer.innerHTML='<span style="font-size:.8rem;color:#737373">All colors appear accessible</span>';
+}
+function copyText(elId,msgId){const el=document.getElementById(elId);const tags=el.querySelectorAll('.tag');let text='';tags.forEach(t=>text+=t.textContent+'\n');if(!text)text=el.textContent;navigator.clipboard.writeText(text.trim()).then(()=>{const m=document.getElementById(msgId);m.classList.add('show');setTimeout(()=>m.classList.remove('show'),1500)})}
+updateSwatches();
+</script>
+</body>
+</html>
