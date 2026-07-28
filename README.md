@@ -1,9 +1,9 @@
-# ProtonTools
+# protonflix
 
 > 200+ free, fast, and privacy-first browser tools for developers. No sign-up, no tracking. Everything runs locally in your browser.
 
-**Live:** [jajajkones.github.io/protontools/tools/](https://jajajkones.github.io/protontools/tools/)
-**Root (ProtonFlix):** [jajajkones.github.io/protontools/](https://jajajkones.github.io/protontools/)
+**Live:** [jajajkones.github.io/protonflix/tools/](https://jajajkones.github.io/protonflix/tools/)
+**Root (ProtonFlix):** [jajajkones.github.io/protonflix/](https://jajajkones.github.io/protonflix/)
 
 ---
 
@@ -278,15 +278,15 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 ## How to Use
 
 ### GitHub Pages
-Visit the live site: **[jajajkones.github.io/protontools/tools/](https://jajajkones.github.io/protontools/tools/)**
+Visit the live site: **[jajajkones.github.io/protonflix/tools/](https://jajajkones.github.io/protonflix/tools/)**
 
-The root URL serves the original protontools page: **[jajajkones.github.io/protontools/](https://jajajkones.github.io/protontools/)**
+The root URL serves the original protonflix page: **[jajajkones.github.io/protonflix/](https://jajajkones.github.io/protonflix/)**
 
 ### Local
 Clone the repo and open any tool file directly in your browser:
 ```bash
-git clone https://github.com/jajajkones/protontools.git
-cd protontools/tools
+git clone https://github.com/jajajkones/protonflix.git
+cd protonflix/tools
 open json-formatter.html  # or just double-click the file
 ```
 
