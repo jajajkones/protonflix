@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Markdown Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--radius:6px;--mono:'SF Mono',Consolas,'Courier New',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}
+header h1{font-size:20px;font-weight:500}
+header a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+header a:hover{color:var(--text)}
+.toolbar{padding:16px 40px;display:flex;gap:12px;border-bottom:1px solid var(--border)}
+.btn{background:var(--surface);color:var(--text);border:1px solid var(--border);padding:6px 14px;border-radius:var(--radius);font-size:12px;font-family:inherit;cursor:pointer;transition:all .2s}
+.btn:hover{border-color:#444}
+.container{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:0}
+.pane{display:flex;flex-direction:column;border-right:1px solid var(--border)}
+.pane:last-child{border-right:none}
+.pane-header{padding:12px 20px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border)}
+textarea{flex:1;background:var(--bg);color:var(--text);border:none;padding:20px;font-family:var(--mono);font-size:14px;line-height:1.6;resize:none;outline:none}
+.preview{flex:1;padding:20px;overflow:auto;line-height:1.7}
+.preview h1{font-size:28px;font-weight:600;margin:16px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.preview h2{font-size:22px;font-weight:600;margin:14px 0 10px}
+.preview h3{font-size:18px;font-weight:600;margin:12px 0 8px}
+.preview p{margin:8px 0;color:#ccc}
+.preview code{background:var(--surface);padding:2px 6px;border-radius:3px;font-family:var(--mono);font-size:13px}
+.preview pre{background:var(--surface);padding:16px;border-radius:var(--radius);overflow-x:auto;margin:12px 0}
+.preview pre code{background:none;padding:0}
+.preview blockquote{border-left:3px solid var(--border);padding-left:16px;color:var(--muted);margin:12px 0}
+.preview ul,.preview ol{padding-left:24px;margin:8px 0}
+.preview a{color:#3b82f6;text-decoration:none}
+.preview a:hover{text-decoration:underline}
+.preview table{border-collapse:collapse;margin:12px 0;width:100%}
+.preview th,.preview td{border:1px solid var(--border);padding:8px 12px;text-align:left}
+.preview th{background:var(--surface);font-weight:600}
+.preview img{max-width:100%;border-radius:var(--radius)}
+.preview hr{border:none;border-top:1px solid var(--border);margin:20px 0}
+@media(max-width:768px){.container{grid-template-columns:1fr}.pane{min-height:40vh}.pane:last-child{border-top:1px solid var(--border)}}
+</style>
+</head>
+<body>
+<header><h1>Markdown Preview</h1><a href="index.html">← Back to Tools</a></header>
+<div class="toolbar">
+<button class="btn" onclick="insertMd('**', '**')"><b>B</b></button>
+<button class="btn" onclick="insertMd('*', '*')"><i>I</i></button>
+<button class="btn" onclick="insertMd('# ', '')">H1</button>
+<button class="btn" onclick="insertMd('## ', '')">H2</button>
+<button class="btn" onclick="insertMd('`', '`')">&lt;/&gt;</button>
+<button class="btn" onclick="insertMd('```\n', '\n```')">Block</button>
+<button class="btn" onclick="insertMd('> ', '')">Quote</button>
+<button class="btn" onclick="insertMd('- ', '')">List</button>
+<button class="btn" onclick="insertMd('[', '](url)')">Link</button>
+<button class="btn" onclick="insertMd('![alt](', ')')">Image</button>
+<button class="btn" onclick="copyMd()">Copy MD</button>
+</div>
+<div class="container">
+<div class="pane">
+<div class="pane-header">Markdown</div>
+<textarea id="editor" oninput="render()" spellcheck="false"># Hello World
+
+This is a **markdown** preview tool.
+
+## Features
+- Live preview
+- Syntax highlighting
+- Export options
+
+### Code Example
+```javascript
+function hello() {
+  console.log("Hello, World!");
+}
+```
+
+> Blockquote text here
+
+| Column 1 | Column 2 |
+|----------|----------|
+| Cell 1   | Cell 2   |
+
+---
+
+[Link](https://example.com) | ![Image](https://via.placeholder.com/100)</textarea>
+</div>
+<div class="pane">
+<div class="pane-header">Preview</div>
+<div class="preview" id="preview"></div>
+</div>
+</div>
+<script>
+const editor=document.getElementById('editor'),preview=document.getElementById('preview');
+function render(){preview.innerHTML=parseMd(editor.value)}
+function parseMd(md){
+let html=md
+.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+.replace(/^### (.+)$/gm,'<h3>$1</h3>')
+.replace(/^## (.+)$/gm,'<h2>$1</h2>')
+.replace(/^# (.+)$/gm,'<h1>$1</h1>')
+.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+.replace(/\*(.+?)\*/g,'<em>$1</em>')
+.replace(/`([^`]+)`/g,'<code>$1</code>')
+.replace(/^```(\w*)\n([\s\S]*?)^```/gm,'<pre><code>$2</code></pre>')
+.replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>')
+.replace(/^---$/gm,'<hr>')
+.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2">$1</a>')
+.replace(/!\[([^\]]*)\]\(([^)]+)\)/g,'<img src="$2" alt="$1">')
+.replace(/^\- (.+)$/gm,'<li>$1</li>')
+.replace(/(<li>.*<\/li>)/s,'<ul>$1</ul>')
+.replace(/\n\n/g,'</p><p>')
+return html;
+}
+function insertMd(before,after){const s=editor.selectionStart,e=editor.selectionEnd,t=editor.value,m=t.substring(s,e)||'text';editor.value=t.substring(0,s)+before+m+after+t.substring(e);editor.focus();render()}
+function copyMd(){navigator.clipboard.writeText(editor.value)}
+render();
+</script>
+</body>
+</html>

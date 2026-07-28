@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timestamp Converter</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#f59e0b;--radius:6px;--mono:'SF Mono',Consolas,'Courier New',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}
+header h1{font-size:20px;font-weight:500}
+header a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+header a:hover{color:var(--text)}
+.content{flex:1;padding:40px;max-width:800px;width:100%;margin:0 auto}
+.live-clock{text-align:center;padding:40px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:30px}
+.live-clock .time{font-family:var(--mono);font-size:48px;font-weight:300;letter-spacing:2px}
+.live-clock .date{font-size:14px;color:var(--muted);margin-top:8px}
+.section{margin-bottom:30px}
+.section h3{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px}
+.input-row{display:flex;gap:12px;margin-bottom:12px}
+.input-row input,.input-row select{flex:1;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;font-family:var(--mono);font-size:14px;outline:none}
+.input-row input:focus{input-row select:focus{border-color:#444}}
+.btn{background:var(--accent);color:#000;border:none;padding:10px 20px;border-radius:var(--radius);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:opacity .2s}
+.btn:hover{opacity:.8}
+.btn-row{display:flex;gap:12px;margin-bottom:12px}
+.result-grid{display:grid;gap:8px}
+.result-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:all .2s}
+.result-item:hover{border-color:#444}
+.result-item .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.result-item .value{font-family:var(--mono);font-size:13px}
+.result-item.copied{border-color:#22c55e}
+</style>
+</head>
+<body>
+<header><h1>Timestamp Converter</h1><a href="index.html">← Back to Tools</a></header>
+<div class="content">
+<div class="live-clock">
+<div class="time" id="liveTime"></div>
+<div class="date" id="liveDate"></div>
+</div>
+<div class="section">
+<h3>Convert Timestamp</h3>
+<div class="input-row">
+<input type="text" id="tsInput" placeholder="Enter unix timestamp (e.g. 1700000000)">
+<select id="tsUnit"><option value="s">Seconds</option><option value="ms" selected>Milliseconds</option></select>
+<button class="btn" onclick="convertTs()">Convert</button>
+</div>
+</div>
+<div class="section">
+<h3>Convert Date</h3>
+<div class="input-row">
+<input type="datetime-local" id="dateInput" step="1">
+<button class="btn" onclick="convertDate()">Convert</button>
+<button class="btn" onclick="document.getElementById('dateInput').value=new Date().toISOString().slice(0,19);convertDate()">Now</button>
+</div>
+</div>
+<div class="result-grid" id="results"></div>
+</div>
+<script>
+function updateClock(){const n=new Date();document.getElementById('liveTime').textContent=n.toLocaleTimeString('en-US',{hour12:false});document.getElementById('liveDate').textContent=n.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}
+setInterval(updateClock,1000);updateClock();
+function convertTs(){
+const v=document.getElementById('tsInput').value.trim();const u=document.getElementById('tsUnit').value;if(!v)return;
+let ms=+v;if(u==='s')ms*=1000;
+const d=new Date(ms);if(isNaN(d))return;
+document.getElementById('results').innerHTML=formatResults(d,ms/1000,ms);
+}
+function convertDate(){
+const v=document.getElementById('dateInput').value;if(!v)return;
+const d=new Date(v);const s=Math.floor(d.getTime()/1000);const ms=d.getTime();
+document.getElementById('results').innerHTML=formatResults(d,s,ms);
+}
+function formatResults(d,s,ms){
+return[
+{l:'Unix (seconds)',v:Math.floor(s)},
+{l:'Unix (milliseconds)',v:ms},
+{l:'ISO 8601',v:d.toISOString()},
+{l:'UTC',v:d.toUTCString()},
+{l:'Local',v:d.toLocaleString()},
+{l:'Relative',v:timeAgo(d)},
+{l:'RFC 2822',v:d.toUTCString()},
+{l:'Date only',v:d.toISOString().split('T')[0]},
+{l:'Time only',v:d.toTimeString().split(' ')[0]}
+].map(r=>`<div class="result-item" onclick="copyItem(this,'${r.v}')"><span class="label">${r.l}</span><span class="value">${r.v}</span></div>`).join('');
+}
+function timeAgo(d){const s=Math.floor((Date.now()-d.getTime())/1000);if(s<60)return s+'s ago';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago'}
+function copyItem(el,v){navigator.clipboard.writeText(String(v));el.classList.add('copied');setTimeout(()=>el.classList.remove('copied'),1000)}
+</script>
+</body>
+</html>

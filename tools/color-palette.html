@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Palette Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--radius:6px;--mono:'SF Mono',Consolas,'Courier New',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}
+header h1{font-size:20px;font-weight:500}
+header a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+header a:hover{color:var(--text)}
+.content{flex:1;padding:40px;max-width:900px;width:100%;margin:0 auto}
+.toolbar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+.btn{background:var(--surface);color:var(--text);border:1px solid var(--border);padding:8px 18px;border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;transition:all .2s}
+.btn:hover{border-color:#444}
+.btn.primary{background:#3b82f6;border-color:#3b82f6;color:#fff}
+.palette{display:flex;border-radius:12px;overflow:hidden;height:300px;margin-bottom:20px}
+.color{flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding:16px;cursor:pointer;transition:flex .3s;position:relative}
+.color:hover{flex:2}
+.color .hex{font-family:var(--mono);font-size:14px;font-weight:500;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.color .rgb{font-size:11px;opacity:.7;margin-top:4px;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.copied-toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#22c55e;color:#000;padding:10px 20px;border-radius:var(--radius);font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:100}
+.copied-toast.show{opacity:1}
+.settings{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.settings label{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.settings select{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;font-size:13px;outline:none}
+.export{margin-top:16px}
+.export pre{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-family:var(--mono);font-size:12px;white-space:pre-wrap;cursor:pointer;transition:border-color .2s}
+.export pre:hover{border-color:#444}
+</style>
+</head>
+<body>
+<header><h1>Color Palette Generator</h1><a href="index.html">← Back to Tools</a></header>
+<div class="content">
+<div class="settings">
+<label>Harmony:</label>
+<select id="harmony" onchange="generate()">
+<option value="random">Random</option>
+<option value="analogous">Analogous</option>
+<option value="complementary">Complementary</option>
+<option value="triadic">Triadic</option>
+<option value="split">Split-Complementary</option>
+<option value="tetradic">Tetradic</option>
+<option value="monochromatic">Monochromatic</option>
+</select>
+<label>Count:</label>
+<select id="count" onchange="generate()">
+<option value="3">3</option>
+<option value="5" selected>5</option>
+<option value="7">7</option>
+<option value="9">9</option>
+</select>
+</div>
+<div class="toolbar">
+<button class="btn primary" onclick="generate()">Generate</button>
+<button class="btn" onclick="exportCSS()">Export CSS</button>
+<button class="btn" onclick="exportTailwind()">Export Tailwind</button>
+<button class="btn" onclick="exportJSON()">Export JSON</button>
+</div>
+<div class="palette" id="palette"></div>
+<div class="copied-toast" id="toast">Copied!</div>
+<div class="export" id="exportSection"></div>
+</div>
+<script>
+function hslToRgb(h,s,l){s/=100;l/=100;const a=s*Math.min(l,1-l);const f=n=>{const k=(n+h/30)%12;return l-a*Math.max(Math.min(k-3,9-k,1),-1)};return[Math.round(f(0)*255),Math.round(f(8)*255),Math.round(f(4)*255)]}
+function rgbToHex(r,g,b){return'#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('')}
+function generate(){
+const harmony=document.getElementById('harmony').value;
+const count=+document.getElementById('count').value;
+const baseHue=Math.random()*360;
+let hues=[];
+switch(harmony){
+case'analogous':for(let i=0;i<count;i++)hues.push((baseHue+i*30-count*15+360)%360);break;
+case'complementary':for(let i=0;i<count;i++)hues.push(i%2===0?baseHue:(baseHue+180)%360);break;
+case'triadic':for(let i=0;i<count;i++)hues.push((baseHue+i*120)%360);break;
+case'split':for(let i=0;i<count;i++)hues.push((baseHue+[0,150,210][i%3])%360);break;
+case'tetradic':for(let i=0;i<count;i++)hues.push((baseHue+i*90)%360);break;
+case'monochromatic':for(let i=0;i<count;i++)hues.push(baseHue);break;
+default:for(let i=0;i<count;i++)hues.push(Math.random()*360);
+}
+const el=document.getElementById('palette');
+el.innerHTML=hues.map((h,i)=>{
+const s=harmony==='monochromatic'?20+i*10:60+Math.random()*30;
+const l=30+i*(40/count);
+const[r,g,b]=hslToRgb(h,s,l);
+const hex=rgbToHex(r,g,b);
+const textColor=l>55?'#000000':'#ffffff';
+return`<div class="color" style="background:${hex};color:${textColor}" onclick="copyColor('${hex}')"><div class="hex">${hex.toUpperCase()}</div><div class="rgb">rgb(${r}, ${g}, ${b})</div></div>`;
+}).join('');
+document.getElementById('exportSection').innerHTML='';
+}
+function copyColor(hex){navigator.clipboard.writeText(hex);const t=document.getElementById('toast');t.textContent='Copied '+hex;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+function getColors(){return[...document.querySelectorAll('.color .hex')].map(el=>el.textContent)}
+function exportCSS(){const c=getColors();const css=`:root {\n${c.map((h,i)=>`  --color-${i+1}: ${h};`).join('\n')}\n}`;document.getElementById('exportSection').innerHTML=`<pre onclick="navigator.clipboard.writeText(this.textContent)">${css}</pre>`}
+function exportTailwind(){const c=getColors();const tc=c.map((h,i)=>`    '${i+100*(i+1)}': '${h}',`).join('\n');document.getElementById('exportSection').innerHTML=`<pre onclick="navigator.clipboard.writeText(this.textContent)">colors: {\n  brand: {\n${tc}\n  }\n}</pre>`}
+function exportJSON(){const c=getColors();document.getElementById('exportSection').innerHTML=`<pre onclick="navigator.clipboard.writeText(this.textContent)">${JSON.stringify(c,null,2)}</pre>`}
+generate();
+</script>
+</body>
+</html>

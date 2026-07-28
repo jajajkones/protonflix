@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stopwatch & Timer</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#3b82f6;--radius:6px;--mono:'SF Mono',Consolas,'Courier New',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}
+header h1{font-size:20px;font-weight:500}
+header a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+header a:hover{color:var(--text)}
+.content{flex:1;padding:40px;max-width:600px;width:100%;margin:0 auto;display:flex;flex-direction:column;align-items:center}
+.tabs{display:flex;gap:4px;margin-bottom:40px}
+.tab{background:var(--surface);color:var(--muted);border:1px solid var(--border);padding:8px 20px;border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;transition:all .2s}
+.tab.active{color:var(--text);border-color:var(--accent)}
+.clock{font-family:var(--mono);font-size:72px;font-weight:300;letter-spacing:4px;margin-bottom:40px;text-align:center}
+.clock .ms{font-size:36px;color:var(--muted)}
+.controls{display:flex;gap:16px;margin-bottom:40px}
+.btn{padding:14px 32px;border-radius:var(--radius);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;border:none;transition:all .2s}
+.btn-start{background:#22c55e;color:#000}
+.btn-start:hover{background:#16a34a}
+.btn-stop{background:#ef4444;color:#fff}
+.btn-stop:hover{background:#dc2626}
+.btn-lap{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn-lap:hover{border-color:#444}
+.btn-reset{background:var(--surface);color:var(--muted);border:1px solid var(--border)}
+.btn-reset:hover{color:var(--text);border-color:#444}
+.laps{width:100%;max-height:300px;overflow:auto}
+.lap{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:14px}
+.lap .num{color:var(--muted);min-width:40px}
+.timer-input{display:flex;gap:12px;align-items:center;margin-bottom:40px}
+.timer-input input{width:60px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:10px;font-family:var(--mono);font-size:24px;text-align:center;outline:none}
+.timer-input input:focus{border-color:var(--accent)}
+.timer-input span{color:var(--muted);font-size:24px}
+</style>
+</head>
+<body>
+<header><h1>Stopwatch & Timer</h1><a href="index.html">← Back to Tools</a></header>
+<div class="content">
+<div class="tabs">
+<div class="tab active" onclick="switchTab('sw')">Stopwatch</div>
+<div class="tab" onclick="switchTab('timer')">Timer</div>
+</div>
+<div id="swPanel">
+<div class="clock" id="swDisplay">00:00<span class="ms">.00</span></div>
+<div class="controls">
+<button class="btn btn-start" id="swStartBtn" onclick="swToggle()">Start</button>
+<button class="btn btn-lap" onclick="swLap()">Lap</button>
+<button class="btn btn-reset" onclick="swReset()">Reset</button>
+</div>
+<div class="laps" id="swLaps"></div>
+</div>
+<div id="timerPanel" style="display:none">
+<div class="timer-input" id="timerInput">
+<input type="number" id="tH" value="0" min="0" max="23">
+<span>:</span>
+<input type="number" id="tM" value="5" min="0" max="59">
+<span>:</span>
+<input type="number" id="tS" value="0" min="0" max="59">
+</div>
+<div class="clock" id="timerDisplay">00:05:00</div>
+<div class="controls">
+<button class="btn btn-start" id="timerStartBtn" onclick="timerToggle()">Start</button>
+<button class="btn btn-reset" onclick="timerReset()">Reset</button>
+</div>
+</div>
+</div>
+<script>
+let swRunning=false,swTime=0,swInterval=null,swLaps=[],swStart=0;
+let tRunning=false,tInterval=null,tRemaining=0;
+function switchTab(tab){document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===(tab==='sw'?0:1)));document.getElementById('swPanel').style.display=tab==='sw'?'':'none';document.getElementById('timerPanel').style.display=tab==='timer'?'':'none'}
+function formatSW(ms){const m=Math.floor(ms/60000);const s=Math.floor((ms%60000)/1000);const cs=Math.floor((ms%1000)/10);return`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}<span class="ms">.${String(cs).padStart(2,'0')}</span>`}
+function formatTimer(s){const h=Math.floor(s/3600);const m=Math.floor((s%3600)/60);const sec=s%60;return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`}
+function swToggle(){
+if(swRunning){clearInterval(swInterval);swRunning=false;document.getElementById('swStartBtn').textContent='Resume';document.getElementById('swStartBtn').className='btn btn-start'}
+else{swStart=Date.now()-swTime;swInterval=setInterval(()=>{swTime=Date.now()-swStart;document.getElementById('swDisplay').innerHTML=formatSW(swTime)},10);swRunning=true;document.getElementById('swStartBtn').textContent='Stop';document.getElementById('swStartBtn').className='btn btn-stop'}
+}
+function swLap(){if(!swRunning)return;swLaps.push(swTime);const last=swLaps.length>1?swLaps[swLaps.length-1]-swLaps[swLaps.length-2]:swLaps[0];document.getElementById('swLaps').innerHTML=swLaps.map((l,i)=>`<div class="lap"><span class="num">#${i+1}</span><span>${formatSW(l).replace(/<[^>]+>/g,'')}</span><span>+${formatSW(last).replace(/<[^>]+>/g,'')}</span></div>`).join('')}
+function swReset(){clearInterval(swInterval);swRunning=false;swTime=0;swLaps=[];document.getElementById('swDisplay').innerHTML=formatSW(0);document.getElementById('swStartBtn').textContent='Start';document.getElementById('swStartBtn').className='btn btn-start';document.getElementById('swLaps').innerHTML=''}
+function timerToggle(){
+if(tRunning){clearInterval(tInterval);tRunning=false;document.getElementById('timerStartBtn').textContent='Resume'}
+else{if(tRemaining<=0){const h=+document.getElementById('tH').value,m=+document.getElementById('tM').value,s=+document.getElementById('tS').value;tRemaining=h*3600+m*60+s}
+if(tRemaining<=0)return;
+tInterval=setInterval(()=>{tRemaining--;document.getElementById('timerDisplay').textContent=formatTimer(tRemaining);if(tRemaining<=0){clearInterval(tInterval);tRunning=false;document.getElementById('timerStartBtn').textContent='Start';document.getElementById('timerDisplay').style.color='#ef4444';setTimeout(()=>document.getElementById('timerDisplay').style.color='',2000);try{new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH+JkI2Gf3V3gYiOi4aBfHl8g4eKi4iFgXx6fYGFioqIhYF8eX2BhYqKiISBfHl9gYWKi4mEgXx5fYGFioqJhIF8eX2BhYqKiYSBfHl9gYWKiomEgXx5fYGFioqKhIF8eX2BhYqKioSBfHl9gYWKioqEgXx5fYGFioqKhIF8eX2B').play()}catch(e){}}
+},1000);tRunning=true;document.getElementById('timerStartBtn').textContent='Pause'}
+}
+function timerReset(){clearInterval(tInterval);tRunning=false;tRemaining=0;document.getElementById('timerDisplay').textContent='00:00:00';document.getElementById('timerStartBtn').textContent='Start'}
+document.querySelectorAll('.timer-input input').forEach(el=>el.addEventListener('input',()=>{if(!tRunning){const h=+document.getElementById('tH').value,m=+document.getElementById('tM').value,s=+document.getElementById('tS').value;document.getElementById('timerDisplay').textContent=formatTimer(h*3600+m*60+s)}}));
+</script>
+</body>
+</html>

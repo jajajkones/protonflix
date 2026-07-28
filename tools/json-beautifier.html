@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON Minifier / Beautifier</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#22c55e;--radius:6px;--mono:'SF Mono',Consolas,'Courier New',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}
+header h1{font-size:20px;font-weight:500}
+header a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+header a:hover{color:var(--text)}
+.toolbar{padding:16px 40px;display:flex;gap:12px;border-bottom:1px solid var(--border)}
+.btn{background:var(--surface);color:var(--text);border:1px solid var(--border);padding:8px 18px;border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;transition:all .2s}
+.btn:hover{border-color:#444}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#000}
+.container{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:0}
+.pane{display:flex;flex-direction:column;border-right:1px solid var(--border)}
+.pane:last-child{border-right:none}
+.pane-header{padding:12px 20px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border);display:flex;justify-content:space-between}
+textarea{flex:1;background:var(--bg);color:var(--text);border:none;padding:20px;font-family:var(--mono);font-size:13px;line-height:1.6;resize:none;outline:none}
+.output{flex:1;padding:20px;font-family:var(--mono);font-size:13px;line-height:1.6;overflow:auto;white-space:pre-wrap;word-break:break-all}
+.info{font-size:12px;color:var(--muted)}
+.error{color:#ef4444}
+@media(max-width:768px){.container{grid-template-columns:1fr}.pane{min-height:40vh}.pane:last-child{border-top:1px solid var(--border)}}
+</style>
+</head>
+<body>
+<header><h1>JSON Minifier / Beautifier</h1><a href="index.html">← Back to Tools</a></header>
+<div class="toolbar">
+<button class="btn primary" onclick="beautify()">Beautify</button>
+<button class="btn primary" onclick="minify()">Minify</button>
+<button class="btn" onclick="copyOutput()">Copy</button>
+<button class="btn" onclick="clearAll()">Clear</button>
+</div>
+<div class="container">
+<div class="pane">
+<div class="pane-header">Input <span class="info" id="inInfo"></span></div>
+<textarea id="input" placeholder="Paste JSON here..." spellcheck="false" oninput="updateInfo()"></textarea>
+</div>
+<div class="pane">
+<div class="pane-header">Output <span class="info" id="outInfo"></span></div>
+<div class="output" id="output"></div>
+</div>
+</div>
+<script>
+function beautify(){
+try{
+const obj=JSON.parse(document.getElementById('input').value);
+const formatted=JSON.stringify(obj,null,2);
+document.getElementById('output').innerHTML=highlightJson(formatted);
+document.getElementById('outInfo').textContent=`${formatted.length} chars, ${formatted.split('\n').length} lines`;
+}catch(e){document.getElementById('output').innerHTML=`<span class="error">Error: ${e.message}</span>`;document.getElementById('outInfo').textContent=''}
+}
+function minify(){
+try{
+const obj=JSON.parse(document.getElementById('input').value);
+const min=JSON.stringify(obj);
+document.getElementById('output').textContent=min;
+const orig=document.getElementById('input').value.length;
+document.getElementById('outInfo').textContent=`${min.length} chars (${((1-min.length/orig)*100).toFixed(1)}% saved)`;
+}catch(e){document.getElementById('output').innerHTML=`<span class="error">Error: ${e.message}</span>`}
+}
+function highlightJson(json){
+return json.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+.replace(/"([^"]+)"(?=\s*:)/g,'<span style="color:#3b82f6">"$1"</span>')
+.replace(/"([^"]*)"/g,'<span style="color:#22c55e">"$1"</span>')
+.replace(/\b(-?\d+\.?\d*)\b/g,'<span style="color:#f59e0b">$1</span>')
+.replace(/\b(true|false|null)\b/g,'<span style="color:#ec4899">$1</span>');
+}
+function copyOutput(){navigator.clipboard.writeText(document.getElementById('output').textContent)}
+function clearAll(){document.getElementById('input').value='';document.getElementById('output').textContent='';document.getElementById('inInfo').textContent='';document.getElementById('outInfo').textContent=''}
+function updateInfo(){const v=document.getElementById('input').value;document.getElementById('inInfo').textContent=v?`${v.length} chars`:''}
+</script>
+</body>
+</html>

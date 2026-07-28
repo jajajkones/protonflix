@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS Gradient Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#3b82f6;--radius:6px;--mono:'SF Mono',Consolas,'Courier New',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}
+header h1{font-size:20px;font-weight:500}
+header a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+header a:hover{color:var(--text)}
+.content{flex:1;padding:40px;max-width:800px;width:100%;margin:0 auto}
+.preview{width:100%;height:200px;border-radius:12px;border:1px solid var(--border);margin-bottom:24px;transition:background .3s}
+.controls{display:grid;gap:16px}
+.control-row{display:flex;gap:12px;align-items:center}
+.control-row label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);min-width:80px}
+.control-row select,.control-row input[type=number]{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;font-size:13px;font-family:inherit;outline:none}
+.color-stops{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.color-stop{display:flex;gap:6px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:8px}
+.color-stop input[type=color]{width:36px;height:36px;border:none;border-radius:4px;cursor:pointer}
+.color-stop input[type=number]{width:60px}
+.color-stop button{background:none;color:#ef4444;border:none;cursor:pointer;font-size:16px}
+.btn{background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:var(--radius);font-size:12px;font-family:inherit;cursor:pointer}
+.btn-outline{background:var(--surface);color:var(--text);border:1px solid var(--border);padding:8px 16px;border-radius:var(--radius);font-size:12px;font-family:inherit;cursor:pointer;transition:all .2s}
+.btn-outline:hover{border-color:#444}
+.output-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-top:20px;font-family:var(--mono);font-size:13px;position:relative;cursor:pointer;transition:border-color .2s}
+.output-box:hover{border-color:#444}
+.output-box .copy-hint{position:absolute;right:12px;top:12px;font-size:11px;color:var(--muted);opacity:0;transition:opacity .2s}
+.output-box:hover .copy-hint{opacity:1}
+.presets{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:20px}
+.preset{height:50px;border-radius:var(--radius);cursor:pointer;border:2px solid transparent;transition:border-color .2s}
+.preset:hover{border-color:var(--text)}
+</style>
+</head>
+<body>
+<header><h1>CSS Gradient Generator</h1><a href="index.html">← Back to Tools</a></header>
+<div class="content">
+<div class="preview" id="preview"></div>
+<div class="controls">
+<div class="control-row">
+<label>Type</label>
+<select id="type" onchange="update()">
+<option value="linear">Linear</option>
+<option value="radial">Radial</option>
+<option value="conic">Conic</option>
+</select>
+</div>
+<div class="control-row">
+<label>Angle</label>
+<input type="number" id="angle" value="135" min="0" max="360" onchange="update()" oninput="update()">
+<span style="color:var(--muted);font-size:13px">deg</span>
+</div>
+<div class="control-row">
+<label>Colors</label>
+</div>
+<div class="color-stops" id="colorStops"></div>
+<div style="display:flex;gap:8px">
+<button class="btn" onclick="addStop()">+ Add Color</button>
+<button class="btn-outline" onclick="randomGradient()">Random</button>
+</div>
+</div>
+<div class="output-box" id="output" onclick="copyCss()"><span class="copy-hint">Click to copy</span><div id="cssOutput"></div></div>
+<div class="presets" id="presets"></div>
+</div>
+<script>
+let stops=[{color:'#667eea',pos:0},{color:'#764ba2',pos:100}];
+const presets=[
+['#667eea','#764ba2'],['#f093fb','#f5576c'],['#4facfe','#00f2fe'],['#43e97b','#38f9d7'],
+['#fa709a','#fee140'],['#a18cd1','#fbc2eb'],['#ffecd2','#fcb69f'],['#ff9a9e','#fecfef'],
+['#89f7fe','#66a6ff'],['#fddb92','#d1fdff'],['#9890e3','#b1f4cf'],['#ebc0fd','#d9ded8'],
+['#f6d365','#fda085'],['#fbc2eb','#a6c1ee'],['#84fab0','#8fd3f4'],['#cfd9df','#e2ebf0']
+];
+function render(){const el=document.getElementById('colorStops');el.innerHTML=stops.map((s,i)=>`<div class="color-stop"><input type="color" value="${s.color}" onchange="stops[${i}].color=this.value;update()"><input type="number" value="${s.pos}" min="0" max="100" onchange="stops[${i}].pos=+this.value;update()" oninput="stops[${i}].pos=+this.value;update()"><span style="color:var(--muted);font-size:12px">%</span>${stops.length>2?`<button onclick="stops.splice(${i},1);render();update()">×</button>`:''}</div>`).join('')}
+function update(){
+const type=document.getElementById('type').value;
+const angle=document.getElementById('angle').value;
+const sorted=[...stops].sort((a,b)=>a.pos-b.pos);
+const colorStr=sorted.map(s=>`${s.color} ${s.pos}%`).join(', ');
+let css='';
+if(type==='linear')css=`linear-gradient(${angle}deg, ${colorStr})`;
+else if(type==='radial')css=`radial-gradient(circle, ${colorStr})`;
+else css=`conic-gradient(from ${angle}deg, ${colorStr})`;
+document.getElementById('preview').style.background=css;
+document.getElementById('cssOutput').textContent=`background: ${css};`;
+}
+function addStop(){stops.push({color:'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'),pos:50});render();update()}
+function copyCss(){navigator.clipboard.writeText(document.getElementById('cssOutput').textContent)}
+function randomGradient(){
+stops=[{color:'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'),pos:0},{color:'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'),pos:100}];
+if(Math.random()>0.5)stops.splice(1,0,{color:'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'),pos:50});
+document.getElementById('angle').value=Math.floor(Math.random()*360);
+render();update();
+}
+function renderPresets(){document.getElementById('presets').innerHTML=presets.map(p=>`<div class="preset" style="background:linear-gradient(135deg,${p[0]},${p[1]})" onclick="applyPreset('${p[0]}','${p[1]}')"></div>`).join('')}
+function applyPreset(c1,c2){stops=[{color:c1,pos:0},{color:c2,pos:100}];render();update()}
+render();update();renderPresets();
+</script>
+</body>
+</html>

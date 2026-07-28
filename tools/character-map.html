@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Character Map</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#ec4899;--radius:6px;--mono:'SF Mono',Consolas,'Courier New',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}
+header h1{font-size:20px;font-weight:500}
+header a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+header a:hover{color:var(--text)}
+.content{flex:1;padding:40px;max-width:1000px;width:100%;margin:0 auto}
+.search{width:100%;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;font-size:14px;font-family:inherit;outline:none;margin-bottom:16px}
+.search:focus{border-color:var(--accent)}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px}
+.tab{background:var(--surface);color:var(--muted);border:1px solid var(--border);padding:6px 12px;border-radius:var(--radius);font-size:11px;font-family:inherit;cursor:pointer;transition:all .2s}
+.tab.active{color:var(--text);border-color:var(--accent)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:4px}
+.char{width:48px;height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--border);border-radius:4px;cursor:pointer;transition:all .2s;font-size:20px}
+.char:hover{border-color:var(--accent);background:rgba(236,72,153,0.1)}
+.char .code{font-size:7px;color:var(--muted);font-family:var(--mono)}
+.selected{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 24px;display:none;align-items:center;gap:16px;z-index:100;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.selected.show{display:flex}
+.selected .big{font-size:48px}
+.selected .info{font-family:var(--mono);font-size:13px}
+.selected .info div{margin-bottom:4px}
+.selected .close{background:none;color:var(--muted);border:none;font-size:20px;cursor:pointer}
+.copied-toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#22c55e;color:#000;padding:10px 20px;border-radius:var(--radius);font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:101}
+.copied-toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header><h1>Character Map</h1><a href="index.html">← Back to Tools</a></header>
+<div class="content">
+<input class="search" id="search" placeholder="Search characters..." oninput="filterChars()">
+<div class="tabs" id="tabs"></div>
+<div class="grid" id="grid"></div>
+</div>
+<div class="selected" id="selected"><span class="big" id="selChar"></span><div class="info"><div id="selName"></div><div id="selCode"></div><div id="selHtml"></div></div><button class="close" onclick="closeSelected()">×</button></div>
+<div class="copied-toast" id="toast">Copied!</div>
+<script>
+const categories={
+'Arrows':{range:[0x2190,0x21FF]},
+'Math':{range:[0x2200,0x22FF]},
+'Technical':{range:[0x2300,0x23FF]},
+'Box Drawing':{range:[0x2500,0x257F]},
+'Block Elements':{range:[0x2580,0x259F]},
+'Geometric':{range:[0x25A0,0x25FF]},
+'Misc Symbols':{range:[0x2600,0x26FF]},
+'Dingbats':{range:[0x2700,0x27BF]},
+'Currency':{range:[0x20A0,0x20CF]},
+'Numbers':{range:[0x2150,0x218F]},
+'Latin':{range:[0x00A0,0x00FF]},
+'Greek':{range:[0x0370,0x03FF]},
+'Cyrillic':{range:[0x0400,0x04FF]},
+'Punctuation':{range:[0x2000,0x206F]},
+'Superscripts':{range:[0x2070,0x209F]},
+'Arabic':{range:[0x0600,0x06FF]},
+};
+let currentCat='Arrows';
+function init(){
+document.getElementById('tabs').innerHTML=Object.keys(categories).map(k=>`<div class="tab ${k===currentCat?'active':''}" onclick="switchCat('${k}')">${k}</div>`).join('');
+renderChars();
+}
+function switchCat(cat){currentCat=cat;document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.textContent===cat));renderChars()}
+function renderChars(filter=''){
+const c=categories[currentCat];
+const grid=document.getElementById('grid');let html='';
+for(let i=c.range[0];i<=c.range[1];i++){
+const ch=String.fromCodePoint(i);
+const name=ch;
+const code='U+'+i.toString(16).toUpperCase().padStart(4,'0');
+if(filter&&!ch.includes(filter)&&!code.toLowerCase().includes(filter.toLowerCase()))continue;
+html+=`<div class="char" onclick="selectChar(${i})"><span>${ch}</span><span class="code">${code}</span></div>`;
+}
+grid.innerHTML=html||'<div style="grid-column:1/-1;color:var(--muted);padding:40px;text-align:center">No characters found</div>';
+}
+function filterChars(){renderChars(document.getElementById('search').value)}
+function selectChar(codepoint){
+const ch=String.fromCodePoint(codepoint);
+const code='U+'+codepoint.toString(16).toUpperCase().padStart(4,'0');
+document.getElementById('selChar').textContent=ch;
+document.getElementById('selName').textContent=code;
+document.getElementById('selCode').textContent='Decimal: '+codepoint;
+document.getElementById('selHtml').textContent='HTML: &#'+codepoint+';';
+document.getElementById('selected').classList.add('show');
+navigator.clipboard.writeText(ch);
+const t=document.getElementById('toast');t.textContent='Copied '+ch;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500);
+}
+function closeSelected(){document.getElementById('selected').classList.remove('show')}
+init();
+</script>
+</body>
+</html>

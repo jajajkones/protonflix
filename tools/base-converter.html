@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Number Base Converter</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#06b6d4;--radius:6px;--mono:'SF Mono',Consolas,'Courier New',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}
+header h1{font-size:20px;font-weight:500}
+header a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+header a:hover{color:var(--text)}
+.content{flex:1;padding:40px;max-width:800px;width:100%;margin:0 auto}
+.main-input{display:flex;gap:12px;margin-bottom:24px}
+.main-input input{flex:1;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;font-family:var(--mono);font-size:18px;outline:none}
+.main-input input:focus{border-color:var(--accent)}
+.main-input select{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-size:14px;font-family:inherit;outline:none;min-width:140px}
+.results{display:grid;gap:10px}
+.result{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:all .2s}
+.result:hover{border-color:#444}
+.result .base{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);min-width:100px}
+.result .value{font-family:var(--mono);font-size:14px;word-break:break-all;text-align:right}
+.result.copied{border-color:#22c55e}
+</style>
+</head>
+<body>
+<header><h1>Number Base Converter</h1><a href="index.html">← Back to Tools</a></header>
+<div class="content">
+<div class="main-input">
+<input type="text" id="input" value="255" oninput="convert()">
+<select id="fromBase" onchange="convert()">
+<option value="2">Binary (2)</option>
+<option value="8">Octal (8)</option>
+<option value="10" selected>Decimal (10)</option>
+<option value="16">Hexadecimal (16)</option>
+</select>
+</div>
+<div class="results" id="results"></div>
+</div>
+<script>
+function convert(){
+const input=document.getElementById('input').value.trim();
+const fromBase=+document.getElementById('fromBase').value;
+if(!input){document.getElementById('results').innerHTML='';return}
+try{
+const num=parseInt(input,fromBase);
+if(isNaN(num))throw new Error('Invalid number');
+const bases=[
+{base:2,name:'Binary'},
+{base:8,name:'Octal'},
+{base:10,name:'Decimal'},
+{base:16,name:'Hexadecimal'},
+{base:32,name:'Base-32'},
+{base:64,name:'Base-64'},
+];
+document.getElementById('results').innerHTML=bases.map(b=>{
+const v=num.toString(b.base).toUpperCase();
+return`<div class="result" onclick="copyVal(this,'${v}')"><span class="base">${b.name} (${b.base})</span><span class="value">${v}</span></div>`;
+}).join('')+
+`<div class="result" onclick="copyVal(this,'${num.toString(2).padStart(8,'0')}')"><span class="base">Byte (8-bit)</span><span class="value">${num.toString(2).padStart(8,'0')}</span></div>`+
+`<div class="result" onclick="copyVal(this,'${num.toString(2).padStart(16,'0')}')"><span class="base">16-bit</span><span class="value">${num.toString(2).padStart(16,'0')}</span></div>`+
+`<div class="result" onclick="copyVal(this,'${num.toString(2).padStart(32,'0')}')"><span class="base">32-bit</span><span class="value">${num.toString(2).padStart(32,'0')}</span></div>`+
+`<div class="result" onclick="copyVal(this,'\\u00${num.toString(16).padStart(2,'0')}')"><span class="base">Unicode</span><span class="value">\\u00${num.toString(16).padStart(2,'0')} (${String.fromCharCode(num)})</span></div>`;
+}catch(e){document.getElementById('results').innerHTML='<div class="result"><span class="base" style="color:#ef4444">Error</span><span class="value">'+e.message+'</span></div>'}
+}
+function copyVal(el,v){navigator.clipboard.writeText(v);el.classList.add('copied');setTimeout(()=>el.classList.remove('copied'),1000)}
+convert();
+</script>
+</body>
+</html>

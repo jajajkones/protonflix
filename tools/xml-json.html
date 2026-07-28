@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XML / JSON Converter</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#06b6d4;--radius:6px;--mono:'SF Mono',Consolas,'Courier New',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}
+header h1{font-size:20px;font-weight:500}
+header a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+header a:hover{color:var(--text)}
+.toolbar{padding:16px 40px;display:flex;gap:12px;border-bottom:1px solid var(--border)}
+.btn{background:var(--surface);color:var(--text);border:1px solid var(--border);padding:8px 18px;border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;transition:all .2s}
+.btn:hover{border-color:#444}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#000}
+.container{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:0}
+.pane{display:flex;flex-direction:column;border-right:1px solid var(--border)}
+.pane:last-child{border-right:none}
+.pane-header{padding:12px 20px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border)}
+textarea{flex:1;background:var(--bg);color:var(--text);border:none;padding:20px;font-family:var(--mono);font-size:13px;line-height:1.6;resize:none;outline:none}
+.output{flex:1;padding:20px;font-family:var(--mono);font-size:13px;line-height:1.6;overflow:auto;white-space:pre-wrap;word-break:break-all}
+.error{color:#ef4444;font-size:13px;padding:10px 20px}
+@media(max-width:768px){.container{grid-template-columns:1fr}.pane{min-height:40vh}.pane:last-child{border-top:1px solid var(--border)}}
+</style>
+</head>
+<body>
+<header><h1>XML / JSON Converter</h1><a href="index.html">← Back to Tools</a></header>
+<div class="toolbar">
+<button class="btn primary" onclick="xmlToJson()">XML → JSON</button>
+<button class="btn primary" onclick="jsonToXml()">JSON → XML</button>
+<button class="btn" onclick="copyOutput()">Copy</button>
+<button class="btn" onclick="clearAll()">Clear</button>
+</div>
+<div class="container">
+<div class="pane">
+<div class="pane-header">Input</div>
+<textarea id="input" placeholder="Paste XML or JSON here..." spellcheck="false"></textarea>
+</div>
+<div class="pane">
+<div class="pane-header">Output</div>
+<div class="output" id="output"></div>
+</div>
+</div>
+<script>
+function xmlToJson(){
+const xml=document.getElementById('input').value.trim();
+if(!xml)return;
+try{
+const parser=new DOMParser();
+const doc=parser.parseFromString(xml,'text/xml');
+const err=doc.querySelector('parsererror');
+if(err){document.getElementById('output').textContent='XML Parse Error: '+err.textContent.substring(0,200);return}
+const json=JSON.stringify(nodeToObj(doc.documentElement),null,2);
+document.getElementById('output').textContent=json;
+}catch(e){document.getElementById('output').textContent='Error: '+e.message}
+}
+function nodeToObj(node){
+if(node.nodeType===3)return node.textContent.trim();
+if(node.nodeType!==1)return null;
+const obj={};
+if(node.attributes.length>0){obj['@attributes']={};for(const attr of node.attributes){obj['@attributes'][attr.name]=attr.value}}
+const children=[...node.childNodes].filter(n=>n.nodeType===1||(n.nodeType===3&&n.textContent.trim()));
+if(children.length===0)return obj['@attributes']||'';
+if(children.length===1&&children[0].nodeType===3){const v=children[0].textContent.trim();if(obj['@attributes']){obj['#text']=v;return obj}return isNaN(v)?v:Number(v)}
+const childMap={};
+for(const child of children){
+if(child.nodeType===3){obj['#text']=child.textContent.trim();continue}
+const name=child.tagName;
+const val=nodeToObj(child);
+if(childMap[name]){
+if(!Array.isArray(obj[name]))obj[name]=[obj[name]];
+obj[name].push(val);
+}else{obj[name]=val;childMap[name]=true}
+}
+return obj;
+}
+function jsonToXml(){
+const json=document.getElementById('input').value.trim();
+if(!json)return;
+try{
+const data=JSON.parse(json);
+const xml='<?xml version="1.0" encoding="UTF-8"?>\n'+objToXml(data,'root');
+document.getElementById('output').textContent=xml;
+}catch(e){document.getElementById('output').textContent='JSON Parse Error: '+e.message}
+}
+function objToXml(obj,tag,indent=''){
+let xml=indent+'<'+tag;
+if(obj&&typeof obj==='object'&&!Array.isArray(obj)){
+if(obj['@attributes']){for(const[k,v]of Object.entries(obj['@attributes'])){xml+=` ${k}="${v}"`}}
+xml+='>';
+for(const[k,v]of Object.entries(obj)){
+if(k==='@attributes')continue;
+if(k==='#text'){xml+=v;continue}
+if(Array.isArray(v)){v.forEach(item=>{xml+=objToXml(item,k,indent+'  ')})}
+else{xml+=objToXml(v,k,indent+'  ')}
+}
+xml+=indent+'</'+tag+'>';
+}else if(Array.isArray(obj)){
+xml+='>';
+obj.forEach(item=>{xml+=objToXml(item,tag.replace(/s$/,'')||'item',indent+'  ')});
+xml+=indent+'</'+tag+'>';
+}else{
+xml+='>'+(obj!=null?obj:'')+'</'+tag+'>';
+}
+return xml+'\n';
+}
+function copyOutput(){navigator.clipboard.writeText(document.getElementById('output').textContent)}
+function clearAll(){document.getElementById('input').value='';document.getElementById('output').textContent=''}
+</script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unit Converter</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#06b6d4;--radius:6px;--mono:'SF Mono',Consolas,'Courier New',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}
+header h1{font-size:20px;font-weight:500}
+header a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+header a:hover{color:var(--text)}
+.content{flex:1;padding:40px;max-width:700px;width:100%;margin:0 auto}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:24px}
+.tab{background:var(--surface);color:var(--muted);border:1px solid var(--border);padding:8px 16px;border-radius:var(--radius);font-size:12px;font-family:inherit;cursor:pointer;transition:all .2s}
+.tab.active{color:var(--text);border-color:var(--accent);background:rgba(6,182,212,0.1)}
+.converter{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px}
+.input-row{display:flex;gap:12px;align-items:center;margin-bottom:16px}
+.input-row input{flex:1;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-family:var(--mono);font-size:20px;outline:none;text-align:right}
+.input-row input:focus{border-color:var(--accent)}
+.input-row select{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-size:14px;font-family:inherit;outline:none;min-width:140px}
+.swap{display:flex;justify-content:center;margin:10px 0}
+.swap button{background:var(--bg);color:var(--muted);border:1px solid var(--border);width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:18px;transition:all .2s}
+.swap button:hover{color:var(--text);border-color:var(--accent)}
+.result-text{font-family:var(--mono);font-size:14px;color:var(--muted);text-align:center;padding:12px}
+</style>
+</head>
+<body>
+<header><h1>Unit Converter</h1><a href="index.html">← Back to Tools</a></header>
+<div class="content">
+<div class="tabs" id="tabs"></div>
+<div class="converter">
+<div class="input-row">
+<input type="number" id="fromVal" value="1" oninput="convert()">
+<select id="fromUnit" onchange="convert()"></select>
+</div>
+<div class="swap"><button onclick="swapUnits()">↕</button></div>
+<div class="input-row">
+<input type="number" id="toVal" readonly>
+<select id="toUnit" onchange="convert()"></select>
+</div>
+<div class="result-text" id="formula"></div>
+</div>
+</div>
+<script>
+const categories={
+Length:{units:['Meter','Kilometer','Centimeter','Millimeter','Mile','Yard','Foot','Inch'],factor:[1,1000,0.01,0.001,1609.344,0.9144,0.3048,0.0254]},
+Weight:{units:['Kilogram','Gram','Milligram','Pound','Ounce','Stone','Ton'],factor:[1,0.001,0.000001,0.453592,0.0283495,6.35029,1000]},
+Temperature:{units:['Celsius','Fahrenheit','Kelvin'],factor:null},
+Volume:{units:['Liter','Milliliter','Gallon (US)','Quart','Cup','Fluid Ounce','Tablespoon'],factor:[1,0.001,3.78541,0.946353,0.236588,0.0295735,0.0147868]},
+Speed:{units:['m/s','km/h','mph','knot','ft/s'],factor:[1,0.277778,0.44704,0.514444,0.3048]},
+Area:{units:['sq meter','sq km','sq mile','sq foot','acre','hectare'],factor:[1,1e6,2589988.11,0.092903,4046.86,10000]},
+Data:{units:['Byte','KB','MB','GB','TB','PB'],factor:[1,1024,1048576,1073741824,1099511627776,1125899906842624]}
+};
+let currentCat='Length';
+function init(){
+document.getElementById('tabs').innerHTML=Object.keys(categories).map(k=>`<div class="tab ${k===currentCat?'active':''}" onclick="switchCat('${k}')">${k}</div>`).join('');
+switchCat(currentCat);
+}
+function switchCat(cat){
+currentCat=cat;
+document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.textContent===cat));
+const c=categories[cat];
+const opts=c.units.map((u,i)=>`<option value="${i}">${u}</option>`).join('');
+document.getElementById('fromUnit').innerHTML=opts;
+document.getElementById('toUnit').innerHTML=opts;
+if(c.units.length>1)document.getElementById('toUnit').selectedIndex=1;
+convert();
+}
+function convert(){
+const c=categories[currentCat];
+const val=+document.getElementById('fromVal').value;
+const fi=+document.getElementById('fromUnit').value;
+const ti=+document.getElementById('toUnit').value;
+let result;
+if(currentCat==='Temperature'){
+const v=val;
+if(fi===0&&ti===1)result=v*9/5+32;
+else if(fi===0&&ti===2)result=v+273.15;
+else if(fi===1&&ti===0)result=(v-32)*5/9;
+else if(fi===1&&ti===2)result=(v-32)*5/9+273.15;
+else if(fi===2&&ti===0)result=v-273.15;
+else if(fi===2&&ti===1)result=(v-273.15)*9/5+32;
+else result=v;
+}else{
+result=val*c.factor[fi]/c.factor[ti];
+}
+document.getElementById('toVal').value=Number.isInteger(result)?result:result.toFixed(6);
+document.getElementById('formula').textContent=`${val} ${c.units[fi]} = ${Number.isInteger(result)?result:result.toFixed(6)} ${c.units[ti]}`;
+}
+function swapUnits(){const f=document.getElementById('fromUnit'),t=document.getElementById('toUnit');[f.selectedIndex,t.selectedIndex]=[t.selectedIndex,f.selectedIndex];convert()}
+init();
+</script>
+</body>
+</html>

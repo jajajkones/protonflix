@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML / Markdown Converter</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#ec4899;--radius:6px;--mono:'SF Mono',Consolas,'Courier New',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}
+header h1{font-size:20px;font-weight:500}
+header a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+header a:hover{color:var(--text)}
+.toolbar{padding:16px 40px;display:flex;gap:12px;border-bottom:1px solid var(--border)}
+.btn{background:var(--surface);color:var(--text);border:1px solid var(--border);padding:8px 18px;border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;transition:all .2s}
+.btn:hover{border-color:#444}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.container{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:0}
+.pane{display:flex;flex-direction:column;border-right:1px solid var(--border)}
+.pane:last-child{border-right:none}
+.pane-header{padding:12px 20px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border)}
+textarea{flex:1;background:var(--bg);color:var(--text);border:none;padding:20px;font-family:var(--mono);font-size:13px;line-height:1.6;resize:none;outline:none}
+.output{flex:1;padding:20px;font-family:var(--mono);font-size:13px;line-height:1.6;overflow:auto;white-space:pre-wrap;word-break:break-word}
+@media(max-width:768px){.container{grid-template-columns:1fr}.pane{min-height:40vh}.pane:last-child{border-top:1px solid var(--border)}}
+</style>
+</head>
+<body>
+<header><h1>HTML / Markdown Converter</h1><a href="index.html">← Back to Tools</a></header>
+<div class="toolbar">
+<button class="btn primary" onclick="htmlToMd()">HTML → Markdown</button>
+<button class="btn primary" onclick="mdToHtml()">Markdown → HTML</button>
+<button class="btn" onclick="copyOutput()">Copy</button>
+</div>
+<div class="container">
+<div class="pane">
+<div class="pane-header">Input</div>
+<textarea id="input" placeholder="Paste HTML or Markdown..." spellcheck="false"></textarea>
+</div>
+<div class="pane">
+<div class="pane-header">Output</div>
+<div class="output" id="output"></div>
+</div>
+</div>
+<script>
+function htmlToMd(){
+const html=document.getElementById('input').value;
+let md=html;
+md=md.replace(/<h1[^>]*>(.*?)<\/h1>/gi,'# $1\n\n');
+md=md.replace(/<h2[^>]*>(.*?)<\/h2>/gi,'## $1\n\n');
+md=md.replace(/<h3[^>]*>(.*?)<\/h3>/gi,'### $1\n\n');
+md=md.replace(/<h4[^>]*>(.*?)<\/h4>/gi,'#### $1\n\n');
+md=md.replace(/<h5[^>]*>(.*?)<\/h5>/gi,'##### $1\n\n');
+md=md.replace(/<h6[^>]*>(.*?)<\/h6>/gi,'###### $1\n\n');
+md=md.replace(/<strong[^>]*>(.*?)<\/strong>/gi,'**$1**');
+md=md.replace(/<b[^>]*>(.*?)<\/b>/gi,'**$1**');
+md=md.replace(/<em[^>]*>(.*?)<\/em>/gi,'*$1*');
+md=md.replace(/<i[^>]*>(.*?)<\/i>/gi,'*$1*');
+md=md.replace(/<a[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/gi,'[$2]($1)');
+md=md.replace(/<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*\/?>/gi,'![$2]($1)');
+md=md.replace(/<img[^>]*src="([^"]*)"[^>]*\/?>/gi,'![]($1)');
+md=md.replace(/<code[^>]*>(.*?)<\/code>/gi,'`$1`');
+md=md.replace(/<pre[^>]*><code[^>]*>([\s\S]*?)<\/code><\/pre>/gi,'```\n$1\n```');
+md=md.replace(/<pre[^>]*>([\s\S]*?)<\/pre>/gi,'```\n$1\n```');
+md=md.replace(/<blockquote[^>]*>([\s\S]*?)<\/blockquote>/gi,(m,c)=>'> '+c.replace(/<[^>]+>/g,'').trim().split('\n').join('\n> '));
+md=md.replace(/<li[^>]*>(.*?)<\/li>/gi,'- $1\n');
+md=md.replace(/<hr[^>]*\/?>/gi,'\n---\n');
+md=md.replace(/<br[^>]*\/?>/gi,'\n');
+md=md.replace(/<p[^>]*>([\s\S]*?)<\/p>/gi,'$1\n\n');
+md=md.replace(/<[^>]+>/g,'');
+md=md.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
+md=md.replace(/\n{3,}/g,'\n\n');
+document.getElementById('output').textContent=md.trim();
+}
+function mdToHtml(){
+const md=document.getElementById('input').value;
+let html=md;
+html=html.replace(/^###### (.+)$/gm,'<h6>$1</h6>');
+html=html.replace(/^##### (.+)$/gm,'<h5>$1</h5>');
+html=html.replace(/^#### (.+)$/gm,'<h4>$1</h4>');
+html=html.replace(/^### (.+)$/gm,'<h3>$1</h3>');
+html=html.replace(/^## (.+)$/gm,'<h2>$1</h2>');
+html=html.replace(/^# (.+)$/gm,'<h1>$1</h1>');
+html=html.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+html=html.replace(/\*(.+?)\*/g,'<em>$1</em>');
+html=html.replace(/`([^`]+)`/g,'<code>$1</code>');
+html=html.replace(/```(\w*)\n([\s\S]*?)```/g,'<pre><code>$2</code></pre>');
+html=html.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2">$1</a>');
+html=html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g,'<img src="$2" alt="$1">');
+html=html.replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>');
+html=html.replace(/^- (.+)$/gm,'<li>$1</li>');
+html=html.replace(/^---$/gm,'<hr>');
+html=html.replace(/\n\n/g,'</p>\n<p>');
+html='<p>'+html+'</p>';
+html=html.replace(/<p>\s*<(h[1-6]|blockquote|hr|pre)/g,'<$1');
+html=html.replace(/<\/(h[1-6]|blockquote|hr|pre)>\s*<\/p>/g,'</$1>');
+html=html.replace(/<p>\s*<\/p>/g,'');
+document.getElementById('output').textContent=html;
+}
+function copyOutput(){navigator.clipboard.writeText(document.getElementById('output').textContent)}
+</script>
+</body>
+</html>

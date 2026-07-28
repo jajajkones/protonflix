@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word & Character Counter</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#3b82f6;--radius:6px;--mono:'SF Mono',Consolas,'Courier New',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}
+header h1{font-size:20px;font-weight:500}
+header a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+header a:hover{color:var(--text)}
+.content{flex:1;padding:40px;max-width:900px;width:100%;margin:0 auto}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:24px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center}
+.stat .num{font-size:32px;font-weight:300;font-family:var(--mono);color:var(--accent)}
+.stat .label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-top:4px}
+textarea{width:100%;height:300px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:20px;font-size:15px;line-height:1.7;resize:vertical;outline:none}
+textarea:focus{border-color:#444}
+.reading-info{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.reading-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.reading-item .label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px}
+.reading-item .value{font-size:14px}
+</style>
+</head>
+<body>
+<header><h1>Word & Character Counter</h1><a href="index.html">← Back to Tools</a></header>
+<div class="content">
+<div class="stats">
+<div class="stat"><div class="num" id="chars">0</div><div class="label">Characters</div></div>
+<div class="stat"><div class="num" id="charsNoSpace">0</div><div class="label">No Spaces</div></div>
+<div class="stat"><div class="num" id="words">0</div><div class="label">Words</div></div>
+<div class="stat"><div class="num" id="sentences">0</div><div class="label">Sentences</div></div>
+<div class="stat"><div class="num" id="paragraphs">0</div><div class="label">Paragraphs</div></div>
+<div class="stat"><div class="num" id="lines">0</div><div class="label">Lines</div></div>
+</div>
+<textarea id="input" placeholder="Start typing or paste text here..." oninput="count()"></textarea>
+<div class="reading-info">
+<div class="reading-item"><div class="label">Reading Time</div><div class="value" id="readingTime">0 min</div></div>
+<div class="reading-item"><div class="label">Speaking Time</div><div class="value" id="speakingTime">0 min</div></div>
+<div class="reading-item"><div class="label">Pages (approx)</div><div class="value" id="pages">0</div></div>
+<div class="reading-item"><div class="label">Words per Sentence</div><div class="value" id="wps">0</div></div>
+</div>
+</div>
+<script>
+function count(){
+const t=document.getElementById('input').value;
+const c=t.length,cns=t.replace(/\s/g,'').length;
+const w=t.trim()?t.trim().split(/\s+/).length:0;
+const s=t.split(/[.!?]+/).filter(x=>x.trim()).length;
+const p=t.split(/\n\s*\n/).filter(x=>x.trim()).length;
+const l=t.split('\n').length;
+document.getElementById('chars').textContent=c;
+document.getElementById('charsNoSpace').textContent=cns;
+document.getElementById('words').textContent=w;
+document.getElementById('sentences').textContent=s;
+document.getElementById('paragraphs').textContent=p;
+document.getElementById('lines').textContent=l;
+document.getElementById('readingTime').textContent=Math.ceil(w/200)+' min';
+document.getElementById('speakingTime').textContent=Math.ceil(w/130)+' min';
+document.getElementById('pages').textContent=(w/250).toFixed(1);
+document.getElementById('wps').textContent=s?(w/s).toFixed(1):'0';
+}
+</script>
+</body>
+</html>

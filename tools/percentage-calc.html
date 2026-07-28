@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Percentage Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#f59e0b;--radius:6px;--mono:'SF Mono',Consolas,'Courier New',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}
+header h1{font-size:20px;font-weight:500}
+header a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+header a:hover{color:var(--text)}
+.content{flex:1;padding:40px;max-width:700px;width:100%;margin:0 auto}
+.calc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:20px}
+.calc h3{font-size:14px;font-weight:500;margin-bottom:16px;color:var(--accent)}
+.calc-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.calc-row input{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-family:var(--mono);font-size:14px;outline:none;width:120px;text-align:center}
+.calc-row input:focus{border-color:var(--accent)}
+.calc-row span{color:var(--muted);font-size:14px}
+.result{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-family:var(--mono);font-size:16px;text-align:center;color:var(--accent);min-width:120px}
+</style>
+</head>
+<body>
+<header><h1>Percentage Calculator</h1><a href="index.html">← Back to Tools</a></header>
+<div class="content">
+<div class="calc">
+<h3>What is X% of Y?</h3>
+<div class="calc-row">
+<input type="number" id="p1x" value="20" oninput="calc1()">
+<span>% of</span>
+<input type="number" id="p1y" value="150" oninput="calc1()">
+<span>=</span>
+<div class="result" id="r1">30</div>
+</div>
+</div>
+<div class="calc">
+<h3>X is what % of Y?</h3>
+<div class="calc-row">
+<input type="number" id="p2x" value="30" oninput="calc2()">
+<span>is what % of</span>
+<input type="number" id="p2y" value="150" oninput="calc2()">
+<span>=</span>
+<div class="result" id="r2">20%</div>
+</div>
+</div>
+<div class="calc">
+<h3>Percentage Change</h3>
+<div class="calc-row">
+<input type="number" id="p3x" value="100" oninput="calc3()">
+<span>→</span>
+<input type="number" id="p3y" value="150" oninput="calc3()">
+<span>=</span>
+<div class="result" id="r3">+50%</div>
+</div>
+</div>
+<div class="calc">
+<h3>Discount Calculator</h3>
+<div class="calc-row">
+<input type="number" id="p4price" value="99.99" oninput="calc4()">
+<span>with</span>
+<input type="number" id="p4disc" value="25" oninput="calc4()">
+<span>% off =</span>
+<div class="result" id="r4r">$74.99</div>
+</div>
+<div class="calc-row" style="justify-content:center">
+<span style="color:var(--muted)">You save:</span>
+<div class="result" id="r4s" style="color:#22c55e">$25.00</div>
+</div>
+</div>
+<div class="calc">
+<h3>Tip Calculator</h3>
+<div class="calc-row">
+<input type="number" id="p5bill" value="50" oninput="calc5()">
+<span>bill, tip</span>
+<input type="number" id="p5tip" value="20" oninput="calc5()">
+<span>%</span>
+<span>=</span>
+<div class="result" id="r5tip">$10.00</div>
+</div>
+<div class="calc-row" style="justify-content:center">
+<span style="color:var(--muted)">Total:</span>
+<div class="result" id="r5total">$60.00</div>
+</div>
+</div>
+</div>
+<script>
+function calc1(){const x=+document.getElementById('p1x').value,y=+document.getElementById('p1y').value;document.getElementById('r1').textContent=(x/100*y).toFixed(2)}
+function calc2(){const x=+document.getElementById('p2x').value,y=+document.getElementById('p2y').value;document.getElementById('r2').textContent=y?(x/y*100).toFixed(2)+'%':'0%'}
+function calc3(){const x=+document.getElementById('p3x').value,y=+document.getElementById('p3y').value;const pct=x?((y-x)/x*100).toFixed(2):'0';document.getElementById('r3').textContent=(pct>=0?'+':'')+pct+'%';document.getElementById('r3').style.color=pct>=0?'#22c55e':'#ef4444'}
+function calc4(){const p=+document.getElementById('p4price').value,d=+document.getElementById('p4disc').value;const saved=p*d/100;document.getElementById('r4r').textContent='$'+(p-saved).toFixed(2);document.getElementById('r4s').textContent='$'+saved.toFixed(2)}
+function calc5(){const b=+document.getElementById('p5bill').value,t=+document.getElementById('p5tip').value;const tip=b*t/100;document.getElementById('r5tip').textContent='$'+tip.toFixed(2);document.getElementById('r5total').textContent='$'+(b+tip).toFixed(2)}
+calc1();calc2();calc3();calc4();calc5();
+</script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IP Info Lookup</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#22c55e;--radius:6px;--mono:'SF Mono',Consolas,'Courier New',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}
+header h1{font-size:20px;font-weight:500}
+header a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+header a:hover{color:var(--text)}
+.content{flex:1;padding:40px;max-width:700px;width:100%;margin:0 auto}
+.btn{background:var(--accent);color:#000;border:none;padding:10px 20px;border-radius:var(--radius);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:24px}
+.info-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.info-card .label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px}
+.info-card .value{font-family:var(--mono);font-size:14px;word-break:break-all}
+.info-card.full{grid-column:1/-1}
+.loading{color:var(--muted);font-size:13px;padding:40px;text-align:center}
+</style>
+</head>
+<body>
+<header><h1>IP Info Lookup</h1><a href="index.html">← Back to Tools</a></header>
+<div class="content">
+<p style="color:var(--muted);margin-bottom:16px">Lookup your public IP address information</p>
+<button class="btn" onclick="lookup()">Lookup My IP</button>
+<div id="results"></div>
+</div>
+<script>
+async function lookup(){
+document.getElementById('results').innerHTML='<div class="loading">Loading...</div>';
+try{
+const res=await fetch('https://ipapi.co/json/');
+const data=await res.json();
+document.getElementById('results').innerHTML=`
+<div class="info-grid">
+<div class="info-card"><div class="label">IP Address</div><div class="value">${data.ip}</div></div>
+<div class="info-card"><div class="label">Type</div><div class="value">${data.version}</div></div>
+<div class="info-card"><div class="label">Country</div><div class="value">${data.country_name} (${data.country_code})</div></div>
+<div class="info-card"><div class="label">Region</div><div class="value">${data.region}</div></div>
+<div class="info-card"><div class="label">City</div><div class="value">${data.city}</div></div>
+<div class="info-card"><div class="label">Postal Code</div><div class="value">${data.postal || 'N/A'}</div></div>
+<div class="info-card"><div class="label">Latitude</div><div class="value">${data.latitude}</div></div>
+<div class="info-card"><div class="label">Longitude</div><div class="value">${data.longitude}</div></div>
+<div class="info-card"><div class="label">Timezone</div><div class="value">${data.timezone}</div></div>
+<div class="info-card"><div class="label">ISP</div><div class="value">${data.org}</div></div>
+<div class="info-card"><div class="label">ASN</div><div class="value">${data.asn || 'N/A'}</div></div>
+<div class="info-card"><div class="label">Currency</div><div class="value">${data.currency}</div></div>
+<div class="info-card full"><div class="label">Location</div><div class="value">${data.latitude}, ${data.longitude}</div></div>
+</div>`;
+}catch(e){document.getElementById('results').innerHTML='<div class="loading" style="color:#ef4444">Error: '+e.message+'</div>'}
+}
+</script>
+</body>
+</html>

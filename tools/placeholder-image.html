@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Placeholder Image Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#3b82f6;--radius:6px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}
+header h1{font-size:20px;font-weight:500}
+header a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+header a:hover{color:var(--text)}
+.content{flex:1;padding:40px;max-width:800px;width:100%;margin:0 auto}
+.controls{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.control{display:flex;flex-direction:column;gap:6px}
+.control label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.control input,.control select{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;font-size:13px;font-family:inherit;outline:none}
+.preview{display:flex;justify-content:center;margin-bottom:24px}
+.preview canvas{border-radius:12px;border:1px solid var(--border)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{background:var(--accent);color:#fff;border:none;padding:8px 18px;border-radius:var(--radius);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}
+.btn-outline{background:var(--surface);color:var(--text);border:1px solid var(--border);padding:8px 18px;border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;transition:all .2s}
+.btn-outline:hover{border-color:#444}
+.sizes{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.size-btn{background:var(--surface);color:var(--muted);border:1px solid var(--border);padding:6px 12px;border-radius:var(--radius);font-size:11px;font-family:inherit;cursor:pointer;transition:all .2s}
+.size-btn:hover,.size-btn.active{color:var(--text);border-color:var(--accent)}
+</style>
+</head>
+<body>
+<header><h1>Placeholder Image Generator</h1><a href="index.html">← Back to Tools</a></header>
+<div class="content">
+<div class="controls">
+<div class="control"><label>Width</label><input type="number" id="width" value="400" onchange="draw()"></div>
+<div class="control"><label>Height</label><input type="number" id="height" value="300" onchange="draw()"></div>
+<div class="control"><label>Background</label><input type="color" id="bgColor" value="#1a1a2e" onchange="draw()"></div>
+<div class="control"><label>Text Color</label><input type="color" id="textColor" value="#ffffff" onchange="draw()"></div>
+<div class="control"><label>Font Size</label><input type="number" id="fontSize" value="24" onchange="draw()"></div>
+<div class="control"><label>Text</label><input type="text" id="text" value="400 × 300" oninput="draw()"></div>
+</div>
+<div class="sizes">
+<button class="size-btn" onclick="setSize(100,100)">100×100</button>
+<button class="size-btn" onclick="setSize(200,200)">200×200</button>
+<button class="size-btn" onclick="setSize(300,250)">300×250</button>
+<button class="size-btn" onclick="setSize(400,300)" >400×300</button>
+<button class="size-btn" onclick="setSize(640,480)">640×480</button>
+<button class="size-btn" onclick="setSize(800,600)">800×600</button>
+<button class="size-btn" onclick="setSize(1280,720)">1280×720</button>
+<button class="size-btn" onclick="setSize(1920,1080)">1920×1080</button>
+</div>
+<div class="preview"><canvas id="canvas"></canvas></div>
+<div class="btn-row">
+<button class="btn" onclick="download('png')">Download PNG</button>
+<button class="btn-outline" onclick="download('jpg')">Download JPG</button>
+<button class="btn-outline" onclick="download('webp')">Download WebP</button>
+<button class="btn-outline" onclick="copyDataUrl()">Copy Data URL</button>
+</div>
+</div>
+<script>
+const canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d');
+function draw(){
+const w=+document.getElementById('width').value,h=+document.getElementById('height').value;
+const maxW=Math.min(800,window.innerWidth-120);
+const scale=maxW<w?maxW/w:1;
+canvas.width=w;canvas.height=h;
+canvas.style.width=w*scale+'px';canvas.style.height=h*scale+'px';
+ctx.fillStyle=document.getElementById('bgColor').value;
+ctx.fillRect(0,0,w,h);
+// Grid pattern
+ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=1;
+for(let x=0;x<w;x+=20){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}
+for(let y=0;y<h;y+=20){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
+// Cross
+ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=2;
+ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(w,h);ctx.moveTo(w,0);ctx.lineTo(0,h);ctx.stroke();
+// Text
+const text=document.getElementById('text').value||`${w} × ${h}`;
+const fs=+document.getElementById('fontSize').value;
+ctx.fillStyle=document.getElementById('textColor').value;
+ctx.font=`${fs}px Outfit, sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+ctx.fillText(text,w/2,h/2);
+}
+function setSize(w,h){document.getElementById('width').value=w;document.getElementById('height').value=h;document.getElementById('text').value=`${w} × ${h}`;draw()}
+function download(type){const mime={png:'image/png',jpg:'image/jpeg',webp:'image/webp'}[type];const a=document.createElement('a');a.download=`placeholder.${type}`;a.href=canvas.toDataURL(mime,0.9);a.click()}
+function copyDataUrl(){navigator.clipboard.writeText(canvas.toDataURL('image/png'))}
+draw();
+</script>
+</body>
+</html>

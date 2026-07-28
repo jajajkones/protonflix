@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON Formatter & Validator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#3b82f6;--radius:6px;--mono:'SF Mono',Consolas,'Courier New',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}
+header h1{font-size:20px;font-weight:500}
+header a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+header a:hover{color:var(--text)}
+.toolbar{padding:16px 40px;display:flex;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.btn{background:var(--surface);color:var(--text);border:1px solid var(--border);padding:8px 18px;border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;transition:all .2s}
+.btn:hover{border-color:#444;background:#1a1a1a}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:#2563eb}
+.container{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:0}
+.pane{display:flex;flex-direction:column;border-right:1px solid var(--border)}
+.pane:last-child{border-right:none}
+.pane-header{padding:12px 20px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+textarea{flex:1;background:var(--bg);color:var(--text);border:none;padding:20px;font-family:var(--mono);font-size:14px;line-height:1.6;resize:none;outline:none;tab-size:2}
+.output{flex:1;padding:20px;font-family:var(--mono);font-size:14px;line-height:1.6;overflow:auto;white-space:pre-wrap;word-break:break-word}
+.status{padding:10px 20px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);display:flex;justify-content:space-between}
+.error{color:#ef4444}
+.success{color:#22c55e}
+@media(max-width:768px){.container{grid-template-columns:1fr}.pane{min-height:40vh}.pane:last-child{border-right:none;border-top:1px solid var(--border)}}
+</style>
+</head>
+<body>
+<header>
+<h1>JSON Formatter</h1>
+<a href="index.html">← Back to Tools</a>
+</header>
+<div class="toolbar">
+<button class="btn primary" onclick="format()">Format</button>
+<button class="btn" onclick="minify()">Minify</button>
+<button class="btn" onclick="escapeJson()">Escape</button>
+<button class="btn" onclick="unescapeJson()">Unescape</button>
+<button class="btn" onclick="sortKeys()">Sort Keys</button>
+<button class="btn" onclick="copyOutput()">Copy</button>
+<button class="btn" onclick="clearAll()">Clear</button>
+</div>
+<div class="container">
+<div class="pane">
+<div class="pane-header">Input</div>
+<textarea id="input" placeholder="Paste your JSON here..." spellcheck="false"></textarea>
+</div>
+<div class="pane">
+<div class="pane-header">Output <span id="status-text"></span></div>
+<div class="output" id="output"></div>
+</div>
+</div>
+<div class="status">
+<span id="status">Ready</span>
+<span id="info"></span>
+</div>
+<script>
+const input=document.getElementById('input'),output=document.getElementById('output'),status=document.getElementById('status'),statusText=document.getElementById('status-text'),info=document.getElementById('info');
+function format(){try{const d=JSON.parse(input.value);const f=JSON.stringify(d,null,2);output.textContent=f;status.className='success';status.textContent='Valid JSON';statusText.textContent='Formatted';info.textContent=`${f.split('\n').length} lines`}catch(e){output.textContent=e.message;status.className='error';status.textContent='Invalid JSON';statusText.textContent='Error'}}
+function minify(){try{const d=JSON.parse(input.value);output.textContent=JSON.stringify(d);status.className='success';status.textContent='Valid JSON';statusText.textContent='Minified';info.textContent=`${JSON.stringify(d).length} chars`}catch(e){output.textContent=e.message;status.className='error';status.textContent='Invalid JSON'}}
+function escapeJson(){output.textContent=JSON.stringify(input.value);statusText.textContent='Escaped'}
+function unescapeJson(){try{output.textContent=JSON.parse(input.value)}catch(e){output.textContent=e.message;status.className='error'}}
+function sortKeys(){try{const d=JSON.parse(input.value);const s=JSON.stringify(d,(k,v)=>{if(v&&typeof v==='object'&&!Array.isArray(v))return Object.keys(v).sort().reduce((o,key)=>{o[key]=v[key];return o},{});return v},2);output.textContent=s;status.className='success';status.textContent='Sorted';statusText.textContent='Keys Sorted'}catch(e){output.textContent=e.message;status.className='error'}}
+function copyOutput(){navigator.clipboard.writeText(output.textContent).then(()=>{statusText.textContent='Copied!';setTimeout(()=>statusText.textContent='',1500)})}
+function clearAll(){input.value='';output.textContent='';status.textContent='Ready';status.className='';statusText.textContent='';info.textContent=''}
+input.addEventListener('input',()=>{if(input.value.trim())format()});
+</script>
+</body>
+</html>

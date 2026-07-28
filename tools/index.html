@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevTools Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--surface2:#1a1a1a;--border:#222;--text:#fff;--muted:#737373;--radius:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.hero{text-align:center;padding:80px 40px 40px}
+.hero h1{font-size:48px;font-weight:700;letter-spacing:-1.5px;margin-bottom:12px}
+.hero h1 span{background:linear-gradient(135deg,#3b82f6,#8b5cf6,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{font-size:16px;color:var(--muted);max-width:500px;margin:0 auto}
+.search{max-width:500px;margin:30px auto 0;position:relative}
+.search input{width:100%;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:50px;padding:14px 20px 14px 44px;font-size:15px;font-family:inherit;outline:none;transition:border-color .2s}
+.search input:focus{border-color:#444}
+.search svg{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.categories{max-width:1200px;margin:0 auto;padding:20px 40px 80px}
+.category{margin-bottom:40px}
+.category h2{font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:16px;padding-left:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.tool{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-decoration:none;color:var(--text);transition:all .2s;display:flex;flex-direction:column;gap:8px}
+.tool:hover{border-color:#444;transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.tool .icon{font-size:24px;margin-bottom:4px}
+.tool .name{font-size:15px;font-weight:500}
+.tool .desc{font-size:13px;color:var(--muted);line-height:1.4}
+.tool .tag{display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:2px 10px;font-size:10px;color:var(--muted);margin-top:4px;width:fit-content}
+footer{text-align:center;padding:40px;color:#333;font-size:12px;text-transform:uppercase;letter-spacing:2px;border-top:1px solid var(--border)}
+@media(max-width:768px){.hero{padding:60px 20px 20px}.hero h1{font-size:32px}.categories{padding:20px}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="hero">
+<h1><span>DevTools</span> Hub</h1>
+<p>40+ free, fast, and privacy-first browser tools for developers. No sign-up, no tracking.</p>
+<div class="search">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+<input type="text" id="searchInput" placeholder="Search tools..." oninput="filterTools()">
+</div>
+</div>
+<div class="categories" id="categories"></div>
+<footer>Data never leaves your browser. All tools run locally.</footer>
+<script>
+const tools=[
+{cat:'Text & String',name:'JSON Formatter',desc:'Format, minify, validate, and sort JSON',icon:'{ }',file:'json-formatter.html',tags:['json','format','validate']},
+{cat:'Text & String',name:'JSON Minifier / Beautifier',desc:'Beautify or minify JSON with syntax highlighting',icon:'✨',file:'json-beautifier.html',tags:['json','minify','beautify']},
+{cat:'Text & String',name:'Word & Character Counter',desc:'Count words, characters, sentences, and reading time',icon:'🔢',file:'word-counter.html',tags:['words','characters','count']},
+{cat:'Text & String',name:'Text Case Converter',desc:'Convert between camelCase, snake_case, UPPER, and more',icon:'Aa',file:'text-case.html',tags:['case','convert','text']},
+{cat:'Text & String',name:'Find & Replace',desc:'Search and replace text with regex support',icon:'🔍',file:'find-replace.html',tags:['find','replace','regex']},
+{cat:'Text & String',name:'Lorem Ipsum Generator',desc:'Generate placeholder text in words, sentences, or paragraphs',icon:'📄',file:'lorem-ipsum.html',tags:['lorem','placeholder','text']},
+{cat:'Text & String',name:'Whitespace Editor',desc:'Show, remove, and convert whitespace characters',icon:'␣',file:'whitespace-editor.html',tags:['whitespace','tabs','spaces']},
+{cat:'Text & String',name:'Character Map',desc:'Browse and copy special characters and symbols',icon:'Ω',file:'character-map.html',tags:['unicode','symbols','characters']},
+{cat:'Encoding',name:'Base64 Encoder / Decoder',desc:'Encode text to Base64 or decode Base64 strings',icon:'🔐',file:'base64.html',tags:['base64','encode','decode']},
+{cat:'Encoding',name:'URL Encoder / Decoder',desc:'Encode and decode URLs and URL components',icon:'🔗',file:'url-encoder.html',tags:['url','encode','decode']},
+{cat:'Encoding',name:'HTML Entity Encoder',desc:'Encode and decode HTML entities',icon:'&amp;',file:'html-entity-encoder.html',tags:['html','entities','encode']},
+{cat:'Encoding',name:'JWT Decoder',desc:'Decode and inspect JSON Web Tokens',icon:'🎫',file:'jwt-decoder.html',tags:['jwt','token','decode']},
+{cat:'Encoding',name:'Hash Generator',desc:'Generate MD5, SHA-1, SHA-256, SHA-512 hashes',icon:'#',file:'hash-generator.html',tags:['hash','md5','sha','crypto']},
+{cat:'Conversion',name:'CSV to JSON',desc:'Convert between CSV and JSON formats',icon:'📊',file:'csv-json.html',tags:['csv','json','convert']},
+{cat:'Conversion',name:'XML to JSON',desc:'Convert between XML and JSON formats',icon:'📰',file:'xml-json.html',tags:['xml','json','convert']},
+{cat:'Conversion',name:'HTML to Markdown',desc:'Convert between HTML and Markdown',icon:'📝',file:'html-markdown.html',tags:['html','markdown','convert']},
+{cat:'Conversion',name:'Markdown to HTML',desc:'Convert Markdown to styled HTML',icon:'📋',file:'markdown-html.html',tags:['markdown','html','convert']},
+{cat:'Conversion',name:'Number Base Converter',desc:'Convert between binary, octal, decimal, hex, and more',icon:'🔢',file:'base-converter.html',tags:['binary','hex','decimal','convert']},
+{cat:'Conversion',name:'Unit Converter',desc:'Convert length, weight, temperature, speed, and more',icon:'⚖️',file:'unit-converter.html',tags:['unit','convert','measurement']},
+{cat:'Conversion',name:'Timestamp Converter',desc:'Convert between Unix timestamps and date formats',icon:'⏰',file:'timestamp-converter.html',tags:['timestamp','unix','date']},
+{cat:'Conversion',name:'Percentage Calculator',desc:'Calculate percentages, discounts, and tips',icon:'%',file:'percentage-calc.html',tags:['percentage','calculator','math']},
+{cat:'Design',name:'Color Picker & Converter',desc:'Pick colors and convert between HEX, RGB, HSL',icon:'🎨',file:'color-picker.html',tags:['color','picker','hex','rgb']},
+{cat:'Design',name:'Color Converter',desc:'Convert between HEX, RGB, HSL color formats',icon:'🔄',file:'color-converter.html',tags:['color','convert','hex','rgb','hsl']},
+{cat:'Design',name:'Color Palette Generator',desc:'Generate harmonious color palettes',icon:'🎭',file:'color-palette.html',tags:['color','palette','design']},
+{cat:'Design',name:'Color Shades Generator',desc:'Generate shades and tints from any color',icon:'🌗',file:'color-shades.html',tags:['color','shades','tints']},
+{cat:'Design',name:'CSS Gradient Generator',desc:'Create linear, radial, and conic gradients',icon:'🌈',file:'css-gradient.html',tags:['css','gradient','design']},
+{cat:'Design',name:'Box Shadow Generator',desc:'Generate CSS box shadows visually',icon:'⬜',file:'box-shadow.html',tags:['css','shadow','box']},
+{cat:'Design',name:'Favicon Generator',desc:'Generate favicons in multiple sizes from text',icon:'🏷️',file:'favicon-generator.html',tags:['favicon','icon','generate']},
+{cat:'Design',name:'Placeholder Image Generator',desc:'Generate placeholder images in any size',icon:'🖼️',file:'placeholder-image.html',tags:['placeholder','image','generate']},
+{cat:'Code',name:'Regex Tester',desc:'Test regular expressions with live matching',icon:'.*',file:'regex-tester.html',tags:['regex','pattern','test']},
+{cat:'Code',name:'Regex Cheat Sheet',desc:'Quick reference for regular expression patterns',icon:'📖',file:'regex-cheatsheet.html',tags:['regex','cheatsheet','reference']},
+{cat:'Code',name:'Cron Expression Parser',desc:'Parse and visualize cron expressions',icon:'⏰',file:'cron-parser.html',tags:['cron','schedule','parser']},
+{cat:'Code',name:'CSS Minifier / Beautifier',desc:'Minify or beautify CSS code',icon:'🎨',file:'css-minifier.html',tags:['css','minify','beautify']},
+{cat:'Code',name:'JS Minifier / Beautifier',desc:'Minify or beautify JavaScript code',icon:'⚡',file:'js-minifier.html',tags:['javascript','minify','beautify']},
+{cat:'Code',name:'HTML Minifier / Beautifier',desc:'Minify or beautify HTML code',icon:'🌐',file:'html-minifier.html',tags:['html','minify','beautify']},
+{cat:'Code',name:'Text Diff Checker',desc:'Compare two texts and highlight differences',icon:'📊',file:'text-diff.html',tags:['diff','compare','text']},
+{cat:'Code',name:'Markdown Preview',desc:'Live Markdown preview with syntax highlighting',icon:'📝',file:'markdown-preview.html',tags:['markdown','preview','editor']},
+{cat:'Utility',name:'Password Generator',desc:'Generate secure passwords with strength analysis',icon:'🔑',file:'password-generator.html',tags:['password','security','generate']},
+{cat:'Utility',name:'QR Code Generator',desc:'Generate QR codes from text or URLs',icon:'📱',file:'qr-code.html',tags:['qr','code','generate']},
+{cat:'Utility',name:'UUID Generator',desc:'Generate v4 and v1 UUIDs',icon:'🆔',file:'uuid-generator.html',tags:['uuid','generate','id']},
+{cat:'Utility',name:'Image to Base64',desc:'Convert images to Base64 data URLs',icon:'🖼️',file:'image-to-base64.html',tags:['image','base64','convert']},
+{cat:'Utility',name:'IP Info Lookup',desc:'Look up public IP address information',icon:'🌍',file:'ip-lookup.html',tags:['ip','address','lookup']},
+{cat:'Utility',name:'Stopwatch & Timer',desc:'Stopwatch with laps and countdown timer',icon:'⏱️',file:'stopwatch.html',tags:['stopwatch','timer','clock']},
+];
+function render(filter=''){
+const cats={};
+tools.forEach(t=>{
+const match=!filter||t.name.toLowerCase().includes(filter)||t.desc.toLowerCase().includes(filter)||t.tags.some(tag=>tag.includes(filter));
+if(!match)return;
+if(!cats[t.cat])cats[t.cat]=[];
+cats[t.cat].push(t);
+});
+const el=document.getElementById('categories');
+el.innerHTML=Object.entries(cats).map(([cat,items])=>`
+<div class="category"><h2>${cat}</h2><div class="grid">
+${items.map(t=>`<a class="tool" href="${t.file}"><div class="icon">${t.icon}</div><div class="name">${t.name}</div><div class="desc">${t.desc}</div></a>`).join('')}
+</div></div>`).join('');
+}
+function filterTools(){render(document.getElementById('searchInput').value.toLowerCase())}
+render();
+</script>
+</body>
+</html>

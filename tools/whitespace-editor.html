@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Whitespace / Tab Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#f59e0b;--radius:6px;--mono:'SF Mono',Consolas,'Courier New',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}
+header h1{font-size:20px;font-weight:500}
+header a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+header a:hover{color:var(--text)}
+.toolbar{padding:16px 40px;display:flex;gap:12px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.btn{background:var(--surface);color:var(--text);border:1px solid var(--border);padding:8px 18px;border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;transition:all .2s}
+.btn:hover{border-color:#444}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#000}
+.container{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:0}
+.pane{display:flex;flex-direction:column;border-right:1px solid var(--border)}
+.pane:last-child{border-right:none}
+.pane-header{padding:12px 20px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border)}
+textarea{flex:1;background:var(--bg);color:var(--text);border:none;padding:20px;font-family:var(--mono);font-size:13px;line-height:1.6;resize:none;outline:none}
+.output{flex:1;padding:20px;font-family:var(--mono);font-size:13px;line-height:1.6;overflow:auto;white-space:pre;word-break:break-all}
+.output .ws-space{background:rgba(245,158,11,0.2);border-radius:2px}
+.output .ws-tab{background:rgba(59,130,246,0.2);border-radius:2px}
+.output .ws-nl{color:#ef4444}
+.stats{padding:10px 20px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);display:flex;gap:16px}
+@media(max-width:768px){.container{grid-template-columns:1fr}.pane{min-height:40vh}.pane:last-child{border-top:1px solid var(--border)}}
+</style>
+</head>
+<body>
+<header><h1>Whitespace / Tab Editor</h1><a href="index.html">← Back to Tools</a></header>
+<div class="toolbar">
+<button class="btn" onclick="showWhitespace()">Show Whitespace</button>
+<button class="btn" onclick="removeTrailing()">Remove Trailing Spaces</button>
+<button class="btn" onclick="tabsToSpaces()">Tabs → Spaces</button>
+<button class="btn" onclick="spacesToTabs()">Spaces → Tabs</button>
+<button class="btn" onclick="removeEmptyLines()">Remove Empty Lines</button>
+<button class="btn" onclick="sortLines()">Sort Lines</button>
+<button class="btn" onclick="uniqueLines()">Unique Lines</button>
+<button class="btn" onclick="trimLines()">Trim All Lines</button>
+<button class="btn" onclick="copyOutput()">Copy</button>
+</div>
+<div class="container">
+<div class="pane">
+<div class="pane-header">Input</div>
+<textarea id="input" placeholder="Paste text with whitespace issues..." oninput="analyze()" spellcheck="false"></textarea>
+</div>
+<div class="pane">
+<div class="pane-header">Output / Visualization</div>
+<div class="output" id="output"></div>
+</div>
+</div>
+<div class="stats" id="stats"></div>
+<script>
+function analyze(){
+const t=document.getElementById('input').value;
+const spaces=(t.match(/ /g)||[]).length;
+const tabs=(t.match(/\t/g)||[]).length;
+const newlines=(t.match(/\n/g)||[]).length;
+const trailing=(t.match(/[ \t]+$/gm)||[]).length;
+document.getElementById('stats').innerHTML=`<span>Spaces: ${spaces}</span><span>Tabs: ${tabs}</span><span>Newlines: ${newlines}</span><span>Trailing whitespace lines: ${trailing}</span><span>Lines: ${newlines+1}</span>`;
+}
+function showWhitespace(){
+const t=document.getElementById('input').value;
+const out=t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+.replace(/ /g,'<span class="ws-space">·</span>')
+.replace(/\t/g,'<span class="ws-tab">→   </span>')
+.replace(/\n/g,'<span class="ws-nl">↵\n</span>');
+document.getElementById('output').innerHTML=out;
+}
+function removeTrailing(){document.getElementById('output').textContent=document.getElementById('input').value.replace(/[ \t]+$/gm,'');analyze()}
+function tabsToSpaces(){const ts=+prompt('Spaces per tab:','4')||4;document.getElementById('output').textContent=document.getElementById('input').value.replace(/\t/g,' '.repeat(ts));analyze()}
+function spacesToTabs(){const ts=+prompt('Spaces per tab:','4')||4;const re=new RegExp(' {'+ts+'}','g');document.getElementById('output').textContent=document.getElementById('input').value.replace(re,'\t');analyze()}
+function removeEmptyLines(){document.getElementById('output').textContent=document.getElementById('input').value.replace(/^\n/gm,'');analyze()}
+function sortLines(){document.getElementById('output').textContent=document.getElementById('input').value.split('\n').sort().join('\n');analyze()}
+function uniqueLines(){document.getElementById('output').textContent=[...new Set(document.getElementById('input').value.split('\n'))].join('\n');analyze()}
+function trimLines(){document.getElementById('output').textContent=document.getElementById('input').value.split('\n').map(l=>l.trim()).join('\n');analyze()}
+function copyOutput(){navigator.clipboard.writeText(document.getElementById('output').textContent)}
+analyze();
+</script>
+</body>
+</html>

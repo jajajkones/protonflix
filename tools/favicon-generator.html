@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Favicon Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#8b5cf6;--radius:6px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}
+header h1{font-size:20px;font-weight:500}
+header a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+header a:hover{color:var(--text)}
+.content{flex:1;padding:40px;max-width:800px;width:100%;margin:0 auto}
+.preview-area{display:flex;gap:20px;justify-content:center;align-items:center;margin-bottom:24px;flex-wrap:wrap}
+.preview-item{text-align:center}
+.preview-item canvas{border:1px solid var(--border);border-radius:8px}
+.preview-item .label{font-size:11px;color:var(--muted);margin-top:6px}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.control{display:flex;flex-direction:column;gap:6px}
+.control label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.control input{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;font-size:13px;font-family:inherit;outline:none}
+.btn{background:var(--accent);color:#fff;border:none;padding:10px 20px;border-radius:var(--radius);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}
+.btn-row{display:flex;gap:8px;margin-top:16px}
+</style>
+</head>
+<body>
+<header><h1>Favicon Generator</h1><a href="index.html">← Back to Tools</a></header>
+<div class="content">
+<div class="controls">
+<div class="control"><label>Letter / Emoji</label><input type="text" id="letter" value="F" maxlength="2" oninput="draw()"></div>
+<div class="control"><label>Background Color</label><input type="color" id="bgColor" value="#6366f1" onchange="draw()"></div>
+<div class="control"><label>Text Color</label><input type="color" id="textColor" value="#ffffff" onchange="draw()"></div>
+<div class="control"><label>Border Radius</label><input type="range" id="radius" min="0" max="50" value="15" oninput="draw()"><span id="radiusVal" style="font-size:12px;color:var(--muted)">15px</span></div>
+<div class="control"><label>Font Size</label><input type="range" id="fontSize" min="20" max="80" value="48" oninput="draw()"><span id="fontSizeVal" style="font-size:12px;color:var(--muted)">48px</span></div>
+<div class="control"><label>Font Weight</label><select id="fontWeight" onchange="draw()"><option value="400">Regular</option><option value="500">Medium</option><option value="600" selected>Semi Bold</option><option value="700">Bold</option></select></div>
+</div>
+<div class="preview-area" id="previews"></div>
+<div class="btn-row">
+<button class="btn" onclick="downloadAll()">Download All Sizes</button>
+</div>
+</div>
+<script>
+const sizes=[16,32,48,64,128,180,192,256,512];
+function draw(){
+const letter=document.getElementById('letter').value||'F';
+const bg=document.getElementById('bgColor').value;
+const fg=document.getElementById('textColor').value;
+const r=+document.getElementById('radius').value;
+const fs=+document.getElementById('fontSize').value;
+const fw=document.getElementById('fontWeight').value;
+document.getElementById('radiusVal').textContent=r+'px';
+document.getElementById('fontSizeVal').textContent=fs+'px';
+const el=document.getElementById('previews');
+el.innerHTML=sizes.map(s=>`<div class="preview-item"><canvas id="c${s}" width="${s}" height="${s}" style="width:${Math.min(s,80)}px;height:${Math.min(s,80)}px"></canvas><div class="label">${s}×${s}</div></div>`).join('');
+sizes.forEach(s=>{
+const c=document.getElementById('c'+s);const ctx=c.getContext('2d');
+const scale=s/256;
+ctx.fillStyle=bg;
+ctx.beginPath();ctx.moveTo(r*scale,0);ctx.lineTo((s-r)*scale,0);ctx.quadraticCurveTo(s,0,s,r*scale);ctx.lineTo(s,(s-r)*scale);ctx.quadraticCurveTo(s,s,(s-r)*scale,s);ctx.lineTo(r*scale,s);ctx.quadraticCurveTo(0,s,0,(s-r)*scale);ctx.lineTo(0,r*scale);ctx.quadraticCurveTo(0,0,r*scale,0);ctx.fill();
+ctx.fillStyle=fg;ctx.font=`${fw} ${fs*scale}px Outfit, sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+ctx.fillText(letter,s/2,s/2+s*0.02);
+});
+}
+function downloadAll(){
+sizes.forEach(s=>{
+const c=document.getElementById('c'+s);
+const a=document.createElement('a');
+a.download=`favicon-${s}x${s}.png`;a.href=c.toDataURL('image/png');a.click();
+});
+}
+draw();
+</script>
+</body>
+</html>

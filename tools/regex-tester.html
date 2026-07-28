@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regex Tester</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#ec4899;--radius:6px;--mono:'SF Mono',Consolas,'Courier New',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}
+header h1{font-size:20px;font-weight:500}
+header a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+header a:hover{color:var(--text)}
+.content{flex:1;padding:40px;max-width:900px;width:100%;margin:0 auto}
+label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:block;margin-bottom:8px;margin-top:20px}
+label:first-child{margin-top:0}
+.regex-input{width:100%;background:var(--surface);color:var(--accent);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;font-family:var(--mono);font-size:16px;outline:none}
+.regex-input:focus{border-color:#444}
+.flags{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.flag-btn{background:var(--surface);color:var(--muted);border:1px solid var(--border);padding:6px 14px;border-radius:var(--radius);font-size:12px;font-family:var(--mono);cursor:pointer;transition:all .2s}
+.flag-btn.active{color:var(--accent);border-color:var(--accent);background:rgba(236,72,153,0.1)}
+textarea{width:100%;height:200px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-family:var(--mono);font-size:14px;line-height:1.6;resize:vertical;outline:none;margin-top:8px}
+textarea:focus{border-color:#444}
+.results{margin-top:20px}
+.match{background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.3);border-radius:var(--radius);padding:10px 14px;margin-bottom:8px;font-family:var(--mono);font-size:13px}
+.match-header{font-size:11px;color:var(--muted);margin-bottom:4px}
+.match-value{color:var(--accent)}
+.no-match{color:var(--muted);font-size:13px;padding:20px;text-align:center}
+.info{font-size:12px;color:var(--muted);margin-top:12px}
+</style>
+</head>
+<body>
+<header>
+<h1>Regex Tester</h1>
+<a href="index.html">← Back to Tools</a>
+</header>
+<div class="content">
+<label>Regular Expression</label>
+<input class="regex-input" id="pattern" placeholder="/pattern/" value="(\w+)@(\w+\.com)" oninput="test()">
+<div class="flags">
+<button class="flag-btn active" onclick="toggleFlag(this,'g')">g</button>
+<button class="flag-btn" onclick="toggleFlag(this,'i')">i</button>
+<button class="flag-btn" onclick="toggleFlag(this,'m')">m</button>
+<button class="flag-btn" onclick="toggleFlag(this,'s')">s</button>
+<button class="flag-btn" onclick="toggleFlag(this,'u')">u</button>
+</div>
+<label>Test String</label>
+<textarea id="testStr" oninput="test()">hello@world.com and test@example.com</textarea>
+<div class="results" id="results"></div>
+<div class="info" id="info"></div>
+</div>
+<script>
+let flags='g';
+function toggleFlag(el,f){el.classList.toggle('active');flags=[...'gimsuy'].filter(x=>document.querySelector(`.flag-btn:nth-child(${[...'gimsuy'].indexOf(x)+1})`.replace(`:nth-child(${[...'gimsuy'].indexOf(x)+1})`,` .flag-btn`)))?.join('')||'';flags=[...document.querySelectorAll('.flag-btn.active')].map(b=>b.textContent).join('');test()}
+function test(){
+const p=document.getElementById('pattern').value,s=document.getElementById('testStr').value,r=document.getElementById('results'),info=document.getElementById('info');
+if(!p){r.innerHTML='';info.textContent='';return}
+try{
+const re=new RegExp(p,flags);
+let m,matches=[],html='';
+if(flags.includes('g')){while((m=re.exec(s))!==null){matches.push({match:m[0],index:m.index,groups:m.slice(1)});if(!m[0])break}}
+else{m=re.exec(s);if(m)matches=[{match:m[0],index:m.index,groups:m.slice(1)}]}
+if(matches.length===0){r.innerHTML='<div class="no-match">No matches found</div>';info.textContent='0 matches'}
+else{html=matches.map((m,i)=>{
+let highlighted=s.substring(0,m.index)+'<span style="background:rgba(236,72,153,0.3);padding:2px 0;border-radius:2px">'+escapeHtml(m.match)+'</span>'+s.substring(m.index+m.match.length);
+return`<div class="match"><div class="match-header">Match ${i+1} at index ${m.index}${m.groups.length?' — Groups: '+m.groups.map((g,j)=>`$${j+1}="${g}"`).join(', '):''}</div><div class="match-value">${escapeHtml(m.match)}</div></div>`}).join('');r.innerHTML=html;info.textContent=`${matches.length} match${matches.length!==1?'es':''}`}
+}catch(e){r.innerHTML=`<div class="match" style="border-color:#ef4444"><div class="match-header" style="color:#ef4444">Error</div><div class="match-value">${e.message}</div></div>`;info.textContent=''}
+}
+function escapeHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+document.querySelectorAll('.flag-btn').forEach(b=>b.addEventListener('click',()=>test()));
+test();
+</script>
+</body>
+</html>
