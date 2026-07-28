@@ -3,7 +3,7 @@
 > 200+ free, fast, and privacy-first browser tools for developers. No sign-up, no tracking. Everything runs locally in your browser.
 
 **Live:** [jajajkones.github.io/protontools/tools/](https://jajajkones.github.io/protontools/tools/)
-**Root:** [jajajkones.github.io/protontools/](https://jajajkones.github.io/protontools/)
+**Root (ProtonFlix):** [jajajkones.github.io/protontools/](https://jajajkones.github.io/protontools/)
 
 ---
 
