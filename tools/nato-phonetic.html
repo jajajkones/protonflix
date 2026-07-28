@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NATO Phonetic Alphabet Converter | ProtonFlix</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#e0e0e0;min-height:100vh}
+a{color:#6cf;text-decoration:none}a:hover{text-decoration:underline}
+.header{background:#111;border-bottom:1px solid #222;padding:16px 32px;display:flex;align-items:center;gap:16px}
+.header h1{font-size:1.2rem;font-weight:600}
+.container{max-width:1000px;margin:0 auto;padding:24px}
+.panel{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:20px}
+.panel h2{font-size:1rem;font-weight:500;margin-bottom:12px;color:#aaa}
+textarea,input[type="text"]{width:100%;background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:14px;color:#e0e0e0;font-family:'Fira Code',monospace;font-size:13px;resize:vertical;outline:none}
+textarea:focus,input[type="text"]:focus{border-color:#6cf}
+textarea{height:120px}
+input[type="text"]{height:48px}
+.controls{display:flex;gap:10px;margin:16px 0;flex-wrap:wrap}
+button{background:#6cf;color:#0a0a0a;border:none;padding:10px 20px;border-radius:8px;font-family:'Outfit',sans-serif;font-weight:500;font-size:14px;cursor:pointer;transition:opacity .2s}
+button:hover{opacity:.85}
+button.secondary{background:#222;color:#e0e0e0}
+.output-box{background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:14px;min-height:60px;font-family:'Fira Code',monospace;font-size:13px;color:#6cf;white-space:pre-wrap;word-break:break-all;margin-top:12px}
+.ref-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}
+.ref-table th,.ref-table td{padding:6px 12px;text-align:left;border-bottom:1px solid #222}
+.ref-table th{color:#6cf;font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:0.05em}
+.ref-table td:first-child{color:#e0e0e0;font-weight:600;width:50px}
+.ref-table td:nth-child(2){color:#aaa;font-weight:500}
+.ref-table td:last-child{color:#888;font-family:'Fira Code',monospace;font-size:12px}
+.ref-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px;margin-top:12px;max-height:300px;overflow-y:auto}
+.ref-item{display:flex;gap:12px;padding:4px 8px;border-radius:4px;font-size:13px}
+.ref-item:hover{background:#1a1a1a}
+.ref-item .letter{color:#6cf;font-weight:600;width:20px}
+.ref-item .word{color:#e0e0e0;font-weight:500;width:80px}
+.ref-item .morse{color:#888;font-family:'Fira Code',monospace;font-size:12px}
+.tabs{display:flex;gap:0;margin-bottom:16px}
+.tab{padding:10px 20px;background:#1a1a1a;border:1px solid #222;cursor:pointer;font-family:'Outfit',sans-serif;font-size:14px;color:#888;transition:all .2s}
+.tab:first-child{border-radius:8px 0 0 8px}
+.tab:last-child{border-radius:0 8px 8px 0}
+.tab.active{background:#6cf;color:#0a0a0a;border-color:#6cf;font-weight:500}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.toast{position:fixed;bottom:24px;right:24px;background:#6cf;color:#0a0a0a;padding:12px 24px;border-radius:8px;font-weight:500;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+.instructions{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:20px}
+.instructions h3{font-size:1rem;margin-bottom:10px;color:#6cf}
+.instructions ul{padding-left:20px;line-height:1.8;color:#999;font-size:14px}
+.separator{display:flex;align-items:center;gap:12px;margin:16px 0;color:#555;font-size:13px}
+.separator::before,.separator::after{content:'';flex:1;height:1px;background:#222}
+</style>
+</head>
+<body>
+<div class="header">
+  <a href="index.html">&larr; Back</a>
+  <h1>NATO Phonetic Alphabet Converter</h1>
+</div>
+<div class="container">
+  <div class="instructions">
+    <h3>Features</h3>
+    <ul>
+      <li>Convert text to NATO phonetic alphabet (Alpha, Bravo, Charlie...)</li>
+      <li>Convert NATO phonetic back to text</li>
+      <li>Morse code equivalents for each character</li>
+      <li>Supports all 26 letters (A-Z) and digits (0-9)</li>
+      <li>Separators for readability (comma, dash, space, pipe)</li>
+    </ul>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('textToNato')">Text → NATO</div>
+    <div class="tab" onclick="switchTab('natoToText')">NATO → Text</div>
+    <div class="tab" onclick="switchTab('reference')">Reference Table</div>
+  </div>
+  <div id="textToNato" class="tab-content active">
+    <div class="panel">
+      <h2>Input Text</h2>
+      <input type="text" id="textInput" placeholder="Type or paste text here...">
+      <div class="controls">
+        <button onclick="textToNato()">Convert to NATO</button>
+        <button class="secondary" onclick="copyOutput('natoOutput')">Copy Output</button>
+        <button class="secondary" onclick="document.getElementById('textInput').value='';document.getElementById('natoOutput').textContent=''">Clear</button>
+      </div>
+      <div style="margin-bottom:8px;color:#888;font-size:13px">Separator:</div>
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button class="secondary" onclick="setSep(',')" id="sep-comma" style="background:#333">Comma</button>
+        <button class="secondary" onclick="setSep(' - ')" id="sep-dash">Dash</button>
+        <button class="secondary" onclick="setSep(' ')" id="sep-space">Space</button>
+        <button class="secondary" onclick="setSep(' | ')" id="sep-pipe">Pipe</button>
+      </div>
+      <div class="output-box" id="natoOutput">NATO phonetic output will appear here...</div>
+      <div class="separator">Morse Code</div>
+      <div class="output-box" id="morseOutput">Morse code output will appear here...</div>
+    </div>
+  </div>
+  <div id="natoToText" class="tab-content">
+    <div class="panel">
+      <h2>Input NATO Phonetic</h2>
+      <textarea id="natoInput" placeholder="Alpha Bravo Charlie Delta&#10;or&#10;ALPHA BRAVO CHARLIE DELTA"></textarea>
+      <div class="controls">
+        <button onclick="natoToText()">Convert to Text</button>
+        <button class="secondary" onclick="copyOutput('textResult')">Copy Output</button>
+        <button class="secondary" onclick="document.getElementById('natoInput').value='';document.getElementById('textResult').textContent=''">Clear</button>
+        <button class="secondary" onclick="loadNatoSample()">Load Sample</button>
+      </div>
+      <div class="output-box" id="textResult">Converted text will appear here...</div>
+    </div>
+  </div>
+  <div id="reference" class="tab-content">
+    <div class="panel">
+      <h2>NATO Phonetic Alphabet Reference</h2>
+      <div class="ref-grid" id="refGrid"></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const natoMap={
+  'A':'Alpha','B':'Bravo','C':'Charlie','D':'Delta','E':'Echo','F':'Foxtrot','G':'Golf','H':'Hotel','I':'India','J':'Juliet','K':'Kilo','L':'Lima','M':'Mike','N':'November','O':'Oscar','P':'Papa','Q':'Quebec','R':'Romeo','S':'Sierra','T':'Tango','U':'Uniform','V':'Victor','W':'Whiskey','X':'X-ray','Y':'Yankee','Z':'Zulu',
+  '0':'Zero','1':'One','2':'Two','3':'Three','4':'Four','5':'Five','6':'Six','7':'Seven','8':'Eight','9':'Niner'
+};
+const morseMap={
+  'A':'.-','B':'-...','C':'-.-.','D':'-..','E':'.','F':'..-.','G':'--.','H':'....','I':'..','J':'.---','K':'-.-','L':'.-..','M':'--','N':'-.','O':'---','P':'.--.','Q':'--.-','R':'.-.','S':'...','T':'-','U':'..-','V':'...-','W':'.--','X':'-..-','Y':'-.--','Z':'--..',
+  '0':'-----','1':'.----','2':'..---','3':'...--','4':'....-','5':'.....','6':'-....','7':'--...','8':'---..','9':'----.',
+  '.':'.-.-.-',',':'--..--','?':'..--..','!':'-.-.--',' ':'/'
+};
+let separator=', ';
+function setSep(s){
+  separator=s;
+  document.querySelectorAll('[id^="sep-"]').forEach(b=>b.style.background='#222');
+  const id=s===','?'comma':s===' - '?'dash':s===' '?'space':'pipe';
+  document.getElementById('sep-'+id).style.background='#333';
+}
+function textToNato(){
+  const text=document.getElementById('textInput').value.toUpperCase();
+  if(!text.trim()){showToast('Please enter some text');return}
+  const nato=[];
+  const morse=[];
+  for(const ch of text){
+    if(natoMap[ch]){
+      nato.push(natoMap[ch]);
+      morse.push(morseMap[ch]||'');
+    }else if(ch===' '){
+      nato.push('/');
+      morse.push('/');
+    }else if(morseMap[ch]){
+      nato.push(ch);
+      morse.push(morseMap[ch]);
+    }
+  }
+  document.getElementById('natoOutput').textContent=nato.join(separator);
+  document.getElementById('morseOutput').textContent=morse.join(' ');
+  showToast('Converted '+text.length+' characters');
+}
+function natoToText(){
+  const input=document.getElementById('natoInput').value.trim();
+  if(!input){showToast('Please enter NATO phonetic text');return}
+  const reverse={};
+  Object.entries(natoMap).forEach(([k,v])=>{reverse[v.toUpperCase()]=k;reverse[v.split('-')[0].toUpperCase()]=k});
+  const words=input.split(/[\s,;|\/]+/).filter(Boolean);
+  const result=words.map(w=>{
+    const clean=w.replace(/[^A-Za-z0-9]/g,'').toUpperCase();
+    return reverse[clean]||'['+w+']';
+  }).join('');
+  document.getElementById('textResult').textContent=result;
+  showToast('Converted '+words.length+' words');
+}
+function copyOutput(id){
+  const el=document.getElementById(id);
+  const text=el.textContent;
+  if(!text||text.includes('will appear')){showToast('Nothing to copy');return}
+  navigator.clipboard.writeText(text).then(()=>showToast('Copied to clipboard!'));
+}
+function loadNatoSample(){
+  document.getElementById('natoInput').value='Alpha Bravo Charlie Delta Echo Foxtrot Golf Hotel India Juliet Kilo Lima Mike November Oscar Papa Quebec Romeo Sierra Tango Uniform Victor Whiskey X-ray Yankee Zulu';
+  natoToText();
+}
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+function buildRefTable(){
+  const grid=document.getElementById('refGrid');
+  const letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  const digits='0123456789'.split('');
+  let html='';
+  [...letters,...digits].forEach(ch=>{
+    const word=natoMap[ch]||ch;
+    const morse=morseMap[ch]||'';
+    html+=`<div class="ref-item"><span class="letter">${ch}</span><span class="word">${word}</span><span class="morse">${morse}</span></div>`;
+  });
+  grid.innerHTML=html;
+}
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+buildRefTable();
+</script>
+</body>
+</html>

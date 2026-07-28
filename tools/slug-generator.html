@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slug Generator - ProtonFlix Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#e0e0e0;--text-dim:#888;--accent-start:#3b82f6;--accent-mid:#8b5cf6;--accent-end:#ec4899}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
+a{color:var(--accent-mid);text-decoration:none;transition:opacity .2s}a:hover{opacity:.8}
+.header{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.header .back{font-size:14px;padding:6px 14px;border-radius:8px;border:1px solid var(--border);transition:all .2s}
+.header .back:hover{border-color:var(--accent-mid)}
+.header h1{font-size:22px;font-weight:600;background:linear-gradient(90deg,var(--accent-start),var(--accent-mid),var(--accent-end));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.container{max-width:800px;margin:0 auto}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
+.panel h2{font-size:14px;font-weight:500;color:var(--text-dim);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
+textarea{width:100%;min-height:100px;background:#0d0d0d;border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:13px;padding:12px;resize:vertical;outline:none;transition:border-color .2s}
+textarea:focus{border-color:var(--accent-mid)}
+.options{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.option{display:flex;align-items:center;gap:8px;padding:8px 14px;background:#0d0d0d;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .2s;font-size:13px;user-select:none}
+.option:hover{border-color:var(--accent-mid)}
+.option.active{border-color:var(--accent-mid);background:rgba(139,92,246,.1)}
+.option input{display:none}
+.toggle{width:36px;height:20px;background:var(--border);border-radius:10px;position:relative;transition:background .2s}
+.toggle::after{content:'';width:16px;height:16px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:transform .2s}
+.option.active .toggle{background:var(--accent-mid)}
+.option.active .toggle::after{transform:translateX(16px)}
+.result{background:#0d0d0d;border:1px solid var(--border);border-radius:8px;padding:14px;font-family:'Courier New',monospace;font-size:14px;word-break:break-all;min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.result .slug{flex:1;color:var(--accent-mid);font-weight:500}
+.actions{display:flex;gap:10px;margin-top:16px}
+button{font-family:'Outfit',sans-serif;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:500;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,var(--accent-start),var(--accent-mid),var(--accent-end));color:#fff}
+.btn-primary:hover{opacity:.85;transform:translateY(-1px)}
+.btn-secondary{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent-mid)}
+.batch-results{margin-top:16px}
+.batch-item{display:flex;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px}
+.batch-item:last-child{border-bottom:none}
+.batch-original{flex:1;color:var(--text-dim);font-family:'Courier New',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.batch-arrow{color:var(--text-dim);flex-shrink:0}
+.batch-slug{flex:1;color:var(--accent-mid);font-family:'Courier New',monospace;word-break:break-all}
+.copy-btn{background:none;border:none;color:var(--text-dim);cursor:pointer;padding:4px;border-radius:4px;transition:all .2s;font-size:16px}
+.copy-btn:hover{color:var(--accent-mid);background:rgba(255,255,255,.05)}
+.empty{text-align:center;color:var(--text-dim);padding:20px;font-size:14px}
+.copied-toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--accent-mid);color:#fff;padding:8px 20px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:100}
+.copied-toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html" class="back">&larr; Back</a>
+<h1>Slug Generator</h1>
+</div>
+<div class="panel">
+<h2>Input</h2>
+<textarea id="input" placeholder="Type or paste text to convert to a URL slug..." oninput="generateSlug()"></textarea>
+</div>
+<div class="options">
+<div class="option active" onclick="toggleOption(this,'lowercase')"><div class="toggle"></div>Lowercase</div>
+<div class="option" onclick="toggleOption(this,'removeSpecial')"><div class="toggle"></div>Remove Special</div>
+<div class="option" onclick="toggleOption(this,'transliterate')"><div class="toggle"></div>Transliterate Unicode</div>
+<div class="option active" onclick="toggleOption(this,'separatorHyphen')"><div class="toggle"></div>Separator: -</div>
+<div class="option" onclick="toggleOption(this,'separatorUnderscore')"><div class="toggle"></div>Separator: _</div>
+</div>
+<div class="result">
+<span class="slug" id="slugOutput">Enter text above to generate a slug</span>
+<button class="copy-btn" onclick="copySlug()" title="Copy slug">&#128203;</button>
+</div>
+<div class="panel" id="batchPanel" style="margin-top:16px">
+<h2>Batch Mode (one per line)</h2>
+<textarea id="batchInput" placeholder="Hello World&#10;This is a Test&#10;Another Line..." oninput="generateBatch()"></textarea>
+<div class="batch-results" id="batchResults"></div>
+</div>
+</div>
+<div class="copied-toast" id="toast">Copied!</div>
+<script>
+const opts={lowercase:true,removeSpecial:false,transliterate:false,separatorHyphen:true,separatorUnderscore:false};
+const unicodeMap={'À':'A','Á':'A','Â':'A','Ã':'A','Ä':'A','Å':'A','Æ':'AE','Ç':'C','È':'E','É':'E','Ê':'E','Ë':'E','Ì':'I','Í':'I','Î':'I','Ï':'I','Ð':'D','Ñ':'N','Ò':'O','Ó':'O','Ô':'O','Õ':'O','Ö':'O','Ø':'O','Ù':'U','Ú':'U','Û':'U','Ü':'U','Ý':'Y','Þ':'TH','ß':'ss','à':'a','á':'a','â':'a','ã':'a','ä':'a','å':'a','æ':'ae','ç':'c','è':'e','é':'e','ê':'e','ë':'e','ì':'i','í':'i','î':'i','ï':'i','ð':'d','ñ':'n','ò':'o','ó':'o','ô':'o','õ':'o','ö':'o','ø':'o','ù':'u','ú':'u','û':'u','ü':'u','ý':'y','þ':'th','ÿ':'y','ō':'o','ē':'e','ā':'a','ī':'i','ū':'u','ę':'e','ą':'a','ć':'c','ń':'n','ł':'l','ś':'s','ź':'z','ż':'z','ő':'o','ű':'u'};
+function transliterate(s){return s.split('').map(c=>unicodeMap[c]||c).join('')}
+function makeSlug(text){
+let s=text;if(opts.transliterate)s=transliterate(s);
+if(opts.removeSpecial)s=s.replace(/[^\w\s-]/g,' ');
+const sep=opts.separatorUnderscore?'_':'-';
+s=s.trim().replace(/[\s_]+/g,sep).replace(new RegExp('\\'+sep+'+','g'),sep).replace(new RegExp('^[\\'+sep']+|[\\'+sep']+$','g'),'');
+if(opts.lowercase)s=s.toLowerCase();return s}
+function generateSlug(){const v=document.getElementById('input').value;document.getElementById('slugOutput').textContent=v?makeSlug(v):'Enter text above to generate a slug'}
+function generateBatch(){
+const lines=document.getElementById('batchInput').value.split('\n').filter(l=>l.trim());
+if(!lines.length){document.getElementById('batchResults').innerHTML='';return}
+let html='';lines.forEach(l=>{
+const slug=makeSlug(l);
+html+='<div class="batch-item"><span class="batch-original" title="'+escapeHtml(l)+'">'+escapeHtml(l)+'</span><span class="batch-arrow">&rarr;</span><span class="batch-slug">'+escapeHtml(slug)+'</span><button class="copy-btn" onclick="copyText(\''+escapeHtml(slug).replace(/'/g,"\\'")+'\')" title="Copy">&copy;</button></div>'});
+document.getElementById('batchResults').innerHTML=html}
+function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function toggleOption(el,key){
+if(key==='separatorHyphen'||key==='separatorUnderscore'){
+document.querySelectorAll('.option').forEach(o=>{const t=o.textContent.includes('Separator');if(t)o.classList.remove('active')});
+el.classList.add('active');opts.separatorHyphen=key==='separatorHyphen';opts.separatorUnderscore=key==='separatorUnderscore'}
+else{el.classList.toggle('active');opts[key]=el.classList.contains('active')}generateSlug();generateBatch()}
+function copySlug(){copyText(document.getElementById('slugOutput').textContent)}
+function copyText(t){navigator.clipboard.writeText(t).then(showToast)}
+function showToast(){const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+</script>
+</body>
+</html>

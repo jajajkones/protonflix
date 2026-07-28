@@ -1,6 +1,6 @@
 # DevTools Hub
 
-> 140+ free, fast, and privacy-first browser tools for developers. No sign-up, no tracking. Everything runs locally in your browser.
+> 170+ free, fast, and privacy-first browser tools for developers. No sign-up, no tracking. Everything runs locally in your browser.
 
 **Live:** [jajajkones.github.io/protonflix/tools/](https://jajajkones.github.io/protonflix/tools/)
 **Root:** [jajajkones.github.io/protonflix/](https://jajajkones.github.io/protonflix/)
@@ -28,6 +28,8 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 | [HTML Cleaner](tools/html-cleaner.html) | Clean and format HTML code |
 | [Password Generator](tools/password-generator.html) | Secure passwords with strength meter and entropy analysis |
 | [Password Pattern Generator](tools/password-pattern.html) | Create custom password patterns |
+| [Slug Generator](tools/slug-generator.html) | Generate URL slugs from text |
+| [Sort Lines](tools/sort-lines.html) | Sort lines of text in ascending or descending order |
 
 ### Encoding & Decoding
 | Tool | Description |
@@ -44,6 +46,7 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 | [Unicode Text Encoder](tools/text-encoder.html) | Encode and decode Unicode text representations |
 | [Hash ID Generator](tools/hashids.html) | Generate short hash IDs from text or numbers |
 | [Ciphers Toolkit](tools/ciphers.html) | Multiple cipher encoding/decoding tools |
+| [Encryption / Decryption](tools/encryption-decryption.html) | Encrypt and decrypt text with AES, DES, and more |
 
 ### Conversion Tools
 | Tool | Description |
@@ -65,6 +68,10 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 | [Color Converter](tools/color-converter.html) | Convert between HEX, RGB, HSL |
 | [Date Difference Calculator](tools/date-diff.html) | Calculate the difference between two dates |
 | [Timezone Converter](tools/timezone-converter.html) | Convert times between world timezones |
+| [CSV to SQL](tools/csv-to-sql.html) | Convert CSV data to SQL INSERT statements |
+| [JSON to Types](tools/json-to-types.html) | Generate TypeScript types from JSON data |
+| [HTML to JSX](tools/html-to-jsx.html) | Convert HTML to JSX syntax |
+| [CSS to Tailwind](tools/css-to-tailwind.html) | Convert CSS to Tailwind CSS classes |
 
 ### Design Tools
 | Tool | Description |
@@ -99,6 +106,8 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 | [SVG Viewer / Editor](tools/svg-viewer.html) | View and edit SVG code with live preview |
 | [Font Pairing Tool](tools/font-pairing.html) | Discover beautiful Google Font pairings |
 | [Viewport Resizer](tools/viewport-resizer.html) | Test responsive layouts at any viewport size |
+| [SVG Pattern Generator](tools/svg-pattern-generator.html) | Generate SVG patterns and backgrounds |
+| [Barcode Generator](tools/barcode-generator.html) | Generate barcodes in various formats |
 
 ### Code Tools
 | Tool | Description |
@@ -136,6 +145,8 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 | [PWA Manifest Generator](tools/pwa-manifest.html) | Generate web app manifests |
 | [SVG Sprite Generator](tools/svg-sprite.html) | Combine SVGs into sprite sheets |
 | [HTML/CSS/JS Playground](tools/html-prototype.html) | Live HTML, CSS, and JavaScript playground |
+| [NATO Phonetic Alphabet](tools/nato-phonetic.html) | Convert text to NATO phonetic alphabet |
+| [Env Editor](tools/env-editor.html) | Edit and validate .env files |
 
 ### API & Auth
 | Tool | Description |
@@ -149,6 +160,8 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 | [OAuth URL Builder](tools/oauth-url-builder.html) | Build OAuth authorization URLs |
 | [Hash Calculator](tools/hash-calculator.html) | Calculate multiple hash algorithms |
 | [Entropy Calculator](tools/entropy-calculator.html) | Calculate password entropy and strength |
+| [OTP Generator](tools/otp-generator.html) | Generate one-time passwords |
+| [Webhook Verifier](tools/webhook-verifier.html) | Verify webhook signatures and payloads |
 
 ### Developer Tools
 | Tool | Description |
@@ -165,6 +178,41 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 | [Accessibility Checker](tools/accessibility-checker.html) | Check HTML for accessibility issues |
 | [SEO Analyzer](tools/seo-analyzer.html) | Analyze HTML for SEO best practices |
 | [Data URI Generator](tools/data-uri-generator.html) | Convert files to data URIs |
+| [JSON Diff](tools/json-diff.html) | Compare two JSON objects and highlight differences |
+| [JSON Tree Viewer](tools/json-tree-viewer.html) | Visualize JSON as an expandable tree |
+| [Chmod Calculator](tools/chmod-calculator.html) | Calculate Unix file permissions |
+| [Aspect Ratio Calculator](tools/aspect-ratio-calculator.html) | Calculate and compare aspect ratios |
+| [User Agent Parser](tools/user-agent-parser.html) | Parse and identify user agent strings |
+| [HTTP Headers Analyzer](tools/http-headers-analyzer.html) | Analyze HTTP request and response headers |
+| [MAC Lookup](tools/mac-lookup.html) | Look up device manufacturer from MAC address |
+| [PII Redactor](tools/pii-redactor.html) | Redact personally identifiable information from text |
+
+### DevOps & Network
+| Tool | Description |
+|------|-------------|
+| [Dockerfile Generator](tools/dockerfile-generator.html) | Generate Dockerfiles for various languages |
+| [SQL Query Builder](tools/sql-query-builder.html) | Build SQL queries with a visual interface |
+| [Curl Builder](tools/curl-builder.html) | Build and export curl commands |
+| [Subnet Calculator](tools/subnet-calculator.html) | Calculate subnet ranges and CIDR notation |
+| [IP Geolocation](tools/ip-geolocation.html) | Look up geographic location of IP addresses |
+| [DNS Lookup](tools/dns-lookup.html) | Query DNS records for any domain |
+| [IP Lookup](tools/ip-lookup.html) | Look up public IP address info |
+
+### Media & Design
+| Tool | Description |
+|------|-------------|
+| [Mermaid Viewer](tools/mermaid-viewer.html) | Render and preview Mermaid diagrams |
+| [Image Compressor](tools/image-compressor.html) | Compress images with quality control |
+| [Markdown to PDF](tools/markdown-to-pdf.html) | Convert Markdown to downloadable PDF |
+| [Webpage Screenshot](tools/webpage-screenshot.html) | Capture web pages as screenshots |
+
+### Security
+| Tool | Description |
+|------|-------------|
+| [OTP Generator](tools/otp-generator.html) | Generate one-time passwords |
+| [Webhook Verifier](tools/webhook-verifier.html) | Verify webhook signatures and payloads |
+| [PII Redactor](tools/pii-redactor.html) | Redact personally identifiable information from text |
+| [Encryption / Decryption](tools/encryption-decryption.html) | Encrypt and decrypt text with AES, DES, and more |
 
 ### Calculators
 | Tool | Description |
@@ -181,7 +229,6 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 |------|-------------|
 | [QR Code Generator](tools/qr-code.html) | Generate QR codes with custom colors and sizes |
 | [Image to Base64](tools/image-to-base64.html) | Convert images to Base64 data URLs |
-| [IP Info Lookup](tools/ip-lookup.html) | Look up public IP address info |
 | [Stopwatch & Timer](tools/stopwatch.html) | Stopwatch with laps and countdown timer |
 | [Pomodoro Timer](tools/pomodoro.html) | Pomodoro productivity timer with sessions |
 | [Typing Speed Test](tools/typing-test.html) | Test your typing speed and accuracy |

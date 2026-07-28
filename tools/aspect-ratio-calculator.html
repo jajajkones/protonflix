@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aspect Ratio Calculator - ProtonFlix Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#e0e0e0;--text-dim:#888;--accent-start:#3b82f6;--accent-mid:#8b5cf6;--accent-end:#ec4899}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
+a{color:var(--accent-mid);text-decoration:none;transition:opacity .2s}a:hover{opacity:.8}
+.header{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.header .back{font-size:14px;padding:6px 14px;border-radius:8px;border:1px solid var(--border);transition:all .2s}
+.header .back:hover{border-color:var(--accent-mid)}
+.header h1{font-size:22px;font-weight:600;background:linear-gradient(90deg,var(--accent-start),var(--accent-mid),var(--accent-end));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.container{max-width:900px;margin:0 auto}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+.panel h2{font-size:14px;font-weight:500;color:var(--text-dim);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px}
+.input-group{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.input-group label{font-size:13px;color:var(--text-dim);width:60px;flex-shrink:0}
+.input-group input{flex:1;background:#0d0d0d;border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:14px;padding:10px 12px;outline:none;transition:border-color .2s}
+.input-group input:focus{border-color:var(--accent-mid)}
+.result-box{background:#0d0d0d;border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:12px}
+.ratio-display{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px}
+.ratio-num{font-size:36px;font-weight:700;background:linear-gradient(135deg,var(--accent-start),var(--accent-mid),var(--accent-end));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.ratio-colon{font-size:36px;font-weight:300;color:var(--text-dim)}
+.ratio-label{font-size:13px;color:var(--text-dim);text-align:center;margin-bottom:4px}
+.ratio-decimal{font-size:14px;color:var(--text-dim);text-align:center}
+.common-ratios{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.ratio-chip{padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;font-family:'Courier New',monospace;font-size:13px;transition:all .2s}
+.ratio-chip:hover{border-color:var(--accent-mid);background:rgba(139,92,246,.1)}
+.ratio-chip.active{border-color:var(--accent-mid);background:rgba(139,92,246,.15);color:var(--accent-mid)}
+.resize-section{margin-top:16px}
+.input-row{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.input-row input{background:#0d0d0d;border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:14px;padding:10px 12px;outline:none;width:120px;transition:border-color .2s;text-align:center}
+.input-row input:focus{border-color:var(--accent-mid)}
+.input-row span{color:var(--text-dim)}
+.css-output{background:#0d0d0d;border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'Courier New',monospace;font-size:13px;color:var(--accent-mid);margin-top:8px;cursor:pointer;transition:all .2s;word-break:break-all}
+.css-output:hover{border-color:var(--accent-mid)}
+.resolutions-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}
+.resolutions-table th{text-align:left;padding:8px;color:var(--text-dim);border-bottom:1px solid var(--border);font-weight:500}
+.resolutions-table td{padding:8px;border-bottom:1px solid rgba(255,255,255,.03)}
+.resolutions-table tr:hover td{background:rgba(255,255,255,.02)}
+.res-name{color:var(--text)}
+.res-dim{color:var(--text-dim);font-family:'Courier New',monospace}
+.res-ratio{color:var(--accent-mid);font-family:'Courier New',monospace}
+.actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+button{font-family:'Outfit',sans-serif;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:500;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,var(--accent-start),var(--accent-mid),var(--accent-end));color:#fff}
+.btn-primary:hover{opacity:.85;transform:translateY(-1px)}
+.btn-secondary{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent-mid)}
+.copied-toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--accent-mid);color:#fff;padding:8px 20px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:100}
+.copied-toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html" class="back">&larr; Back</a>
+<h1>Aspect Ratio Calculator</h1>
+</div>
+<div class="grid">
+<div class="panel">
+<h2>Calculate Ratio</h2>
+<div class="input-group">
+<label>Width</label>
+<input type="number" id="width" placeholder="1920" oninput="calcRatio()">
+</div>
+<div class="input-group">
+<label>Height</label>
+<input type="number" id="height" placeholder="1080" oninput="calcRatio()">
+</div>
+<div class="result-box" id="ratioResult">
+<div class="ratio-label">Aspect Ratio</div>
+<div class="ratio-display">
+<span class="ratio-num" id="ratioW">-</span>
+<span class="ratio-colon">:</span>
+<span class="ratio-num" id="ratioH">-</span>
+</div>
+<div class="ratio-decimal" id="ratioDecimal"></div>
+<div class="css-output" id="cssOutput" onclick="copyCSS()" title="Click to copy">aspect-ratio: auto;</div>
+</div>
+</div>
+<div class="panel">
+<h2>Common Ratios</h2>
+<div class="common-ratios">
+<div class="ratio-chip" onclick="setRatio(16,9,this)">16:9</div>
+<div class="ratio-chip" onclick="setRatio(4,3,this)">4:3</div>
+<div class="ratio-chip" onclick="setRatio(21,9,this)">21:9</div>
+<div class="ratio-chip" onclick="setRatio(1,1,this)">1:1</div>
+<div class="ratio-chip" onclick="setRatio(3,2,this)">3:2</div>
+<div class="ratio-chip" onclick="setRatio(5,4,this)">5:4</div>
+<div class="ratio-chip" onclick="setRatio(2,3,this)">2:3</div>
+<div class="ratio-chip" onclick="setRatio(9,16,this)">9:16</div>
+<div class="ratio-chip" onclick="setRatio(32,9,this)">32:9</div>
+</div>
+<div class="resize-section">
+<h2>Resize Calculator</h2>
+<div class="input-row">
+<input type="number" id="newW" placeholder="New width" oninput="calcResize('w')">
+<span>&rarr;</span>
+<span id="calcH" style="color:var(--accent-mid);font-family:'Courier New',monospace;min-width:80px;text-align:center">-</span>
+</div>
+<div class="input-row">
+<input type="number" id="newH" placeholder="New height" oninput="calcResize('h')">
+<span>&rarr;</span>
+<span id="calcW" style="color:var(--accent-mid);font-family:'Courier New',monospace;min-width:80px;text-align:center">-</span>
+</div>
+</div>
+</div>
+</div>
+<div class="panel">
+<h2>Common Resolutions</h2>
+<table class="resolutions-table">
+<thead><tr><th>Name</th><th>Resolution</th><th>Ratio</th></tr></thead>
+<tbody id="resolutionsBody"></tbody>
+</table>
+</div>
+<div class="actions">
+<button class="btn-primary" onclick="copyCSS()">Copy CSS</button>
+<button class="btn-secondary" onclick="clearAll()">Clear</button>
+</div>
+</div>
+<div class="copied-toast" id="toast">Copied!</div>
+<script>
+let currentRatio=null;
+const resolutions=[
+{name:'4K UHD',w:3840,h:2160},{name:'1440p QHD',w:2560,h:1440},{name:'1080p FHD',w:1920,h:1080},
+{name:'720p HD',w:1280,h:720},{name:'480p SD',w:854,h:480},{name:'iPhone 15 Pro',w:393,h:852},
+{name:'iPad Pro 12.9"',w:2048,h:2732},{name:'Instagram Post',w:1080,h:1080},{name:'YouTube Thumb',w:1280,h:720},
+{name:'Twitter Header',w:1500,h:500},{name:'Facebook Cover',w:820,h:312},{name:'UltraWide',w:3440,h:1440}
+];
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a}
+function calcRatio(){
+const w=parseInt(document.getElementById('width').value);const h=parseInt(document.getElementById('height').value);
+if(!w||!h||w<=0||h<=0){document.getElementById('ratioW').textContent='-';document.getElementById('ratioH').textContent='-';
+document.getElementById('ratioDecimal').textContent='';document.getElementById('cssOutput').textContent='aspect-ratio: auto;';currentRatio=null;return}
+const g=gcd(w,h);const rw=w/g;const rh=h/g;currentRatio={w:rw,h:rh};
+document.getElementById('ratioW').textContent=rw;document.getElementById('ratioH').textContent=rh;
+document.getElementById('ratioDecimal').textContent='≈ '+(rw/rh).toFixed(4);
+document.getElementById('cssOutput').textContent='aspect-ratio: '+rw+' / '+rh+';';
+document.querySelectorAll('.ratio-chip').forEach(c=>c.classList.remove('active'));
+document.querySelectorAll('.ratio-chip').forEach(c=>{const[tw,th]=c.textContent.split(':').map(Number);if(tw===rw&&th===rh)c.classList.add('active')})}
+function setRatio(w,h,el){
+document.querySelectorAll('.ratio-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');
+currentRatio={w,h};const existingW=parseInt(document.getElementById('width').value);
+if(existingW){document.getElementById('height').value=Math.round(existingW*h/w);calcRatio()}
+else{document.getElementById('ratioW').textContent=w;document.getElementById('ratioH').textContent=h;
+document.getElementById('ratioDecimal').textContent='≈ '+(w/h).toFixed(4);
+document.getElementById('cssOutput').textContent='aspect-ratio: '+w+' / '+h+';'}}
+function calcResize(from){
+if(!currentRatio)return;const{w:rw,h:rh}=currentRatio;
+if(from==='w'){const nw=parseInt(document.getElementById('newW').value);
+document.getElementById('calcH').textContent=nw?Math.round(nw*rh/rw)+'px':'-'}
+else{const nh=parseInt(document.getElementById('newH').value);
+document.getElementById('calcW').textContent=nh?Math.round(nh*rw/rh)+'px':'-'}}
+function copyCSS(){navigator.clipboard.writeText(document.getElementById('cssOutput').textContent).then(showToast)}
+function clearAll(){
+document.getElementById('width').value='';document.getElementById('height').value='';
+document.getElementById('newW').value='';document.getElementById('newH').value='';
+document.getElementById('ratioW').textContent='-';document.getElementById('ratioH').textContent='-';
+document.getElementById('ratioDecimal').textContent='';document.getElementById('cssOutput').textContent='aspect-ratio: auto;';
+document.getElementById('calcH').textContent='-';document.getElementById('calcW').textContent='-';
+document.querySelectorAll('.ratio-chip').forEach(c=>c.classList.remove('active'));currentRatio=null}
+function renderResolutions(){
+const tbody=document.getElementById('resolutionsBody');let html='';
+resolutions.forEach(r=>{const g=gcd(r.w,r.h);
+html+='<tr onclick="setResFromTable('+r.w+','+r.h+')" style="cursor:pointer"><td class="res-name">'+r.name+'</td><td class="res-dim">'+r.w+'×'+r.h+'</td><td class="res-ratio">'+(r.w/g)+':'+(r.h/g)+'</td></tr>'});
+tbody.innerHTML=html}
+function setResFromTable(w,h){document.getElementById('width').value=w;document.getElementById('height').value=h;calcRatio()}
+function showToast(){const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+renderResolutions();
+</script>
+</body>
+</html>

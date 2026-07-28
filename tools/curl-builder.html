@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cURL Command Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#e0e0e0;min-height:100vh;padding:20px}
+.header{max-width:1200px;margin:0 auto 20px;display:flex;align-items:center;gap:15px}
+.header a{color:#60a5fa;text-decoration:none;font-size:14px;font-weight:500;transition:color .2s}
+.header a:hover{color:#93c5fd}
+.header h1{font-size:22px;font-weight:600;color:#fff}
+.container{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.panel{background:#111;border:1px solid #222;border-radius:12px;padding:20px}
+.panel h2{font-size:16px;font-weight:600;margin-bottom:15px;color:#fff}
+label{display:block;font-size:13px;color:#999;margin-bottom:5px;font-weight:500}
+select,input[type="text"],textarea{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:10px 12px;color:#fff;font-family:'Outfit',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+select:focus,input:focus,textarea:focus{border-color:#60a5fa}
+textarea{resize:vertical;min-height:80px;font-family:'Fira Code',monospace;font-size:13px}
+.btn{padding:8px 16px;border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-weight:500;font-size:13px;cursor:pointer;transition:all .2s}
+.btn-primary{background:#60a5fa;color:#000}.btn-primary:hover{background:#93c5fd}
+.btn-secondary{background:#333;color:#fff}.btn-secondary:hover{background:#444}
+.btn-success{background:#22c55e;color:#000}.btn-success:hover{background:#4ade80}
+.btn-danger{background:#ef4444;color:#fff}.btn-danger:hover{background:#f87171}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-group{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.form-group{margin-bottom:12px}
+.method-badge{display:inline-block;padding:4px 12px;border-radius:6px;font-weight:600;font-size:12px;font-family:'Fira Code',monospace}
+.method-GET{background:#22c55e20;color:#22c55e}.method-POST{background:#60a5fa20;color:#60a5fa}
+.method-PUT{background:#f59e0b20;color:#f59e0b}.method-PATCH{background:#a855f720;color:#a855f7}
+.method-DELETE{background:#ef444420;color:#ef4444}.method-HEAD{background:#06b6d420;color:#06b6d4}
+.method-OPTIONS{background:#64748b20;color:#64748b}
+.header-row{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:8px 12px;margin-bottom:6px;display:flex;gap:6px;align-items:center}
+.header-row input{flex:1}
+.preview{background:#0d0d0d;border:1px solid #222;border-radius:8px;padding:15px;font-family:'Fira Code',monospace;font-size:13px;white-space:pre-wrap;line-height:1.6;color:#e0e0e0;min-height:300px;overflow:auto}
+.import-area{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:12px;margin-bottom:12px}
+.checkbox-group{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px}
+.checkbox-group label{display:flex;align-items:center;gap:6px;font-size:13px;color:#ccc;cursor:pointer}
+.checkbox-group input[type="checkbox"]{accent-color:#60a5fa}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+body-type-tabs{display:flex;gap:8px;margin-bottom:10px}
+.body-tab{padding:6px 14px;background:#1a1a1a;border:1px solid #333;border-radius:20px;color:#ccc;font-size:12px;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif}
+.body-tab:hover,.body-tab.active{background:#60a5fa;color:#000;border-color:#60a5fa}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#111}::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
+@media(max-width:900px){.container{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+  <a href="index.html">← Back</a>
+  <h1>cURL Command Builder</h1>
+</div>
+<div class="container">
+  <div class="panel">
+    <h2>Configuration</h2>
+    <div class="import-area">
+      <label>Import cURL Command</label>
+      <textarea id="importCurl" rows="3" placeholder="Paste a cURL command here to import..."></textarea>
+      <button class="btn btn-primary btn-sm" onclick="importCurl()" style="margin-top:6px">Import</button>
+    </div>
+    <div class="form-group">
+      <label>Method</label>
+      <select id="method">
+        <option value="GET">GET</option>
+        <option value="POST">POST</option>
+        <option value="PUT">PUT</option>
+        <option value="PATCH">PATCH</option>
+        <option value="DELETE">DELETE</option>
+        <option value="HEAD">HEAD</option>
+        <option value="OPTIONS">OPTIONS</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>URL</label>
+      <input type="text" id="url" placeholder="https://api.example.com/endpoint">
+    </div>
+    <div class="form-group">
+      <label>Headers</label>
+      <div id="headersContainer"></div>
+      <button class="btn btn-secondary btn-sm" onclick="addHeader()" style="margin-top:6px">+ Add Header</button>
+    </div>
+    <div class="form-group">
+      <label>Authentication</label>
+      <div class="grid-2">
+        <select id="authType" onchange="toggleAuth()">
+          <option value="">None</option>
+          <option value="basic">Basic Auth</option>
+          <option value="bearer">Bearer Token</option>
+        </select>
+        <input type="text" id="authValue" placeholder="Token or user:pass" style="display:none">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Body Type</label>
+      <div class="body-type-tabs" id="bodyTypeTabs">
+        <div class="body-tab active" data-type="none">None</div>
+        <div class="body-tab" data-type="json">JSON</div>
+        <div class="body-tab" data-type="form">Form Data</div>
+        <div class="body-tab" data-type="raw">Raw</div>
+      </div>
+      <textarea id="bodyContent" rows="5" style="display:none" placeholder='{"key": "value"}'></textarea>
+      <div id="formDataContainer" style="display:none"></div>
+    </div>
+    <div class="form-group">
+      <label>Flags</label>
+      <div class="checkbox-group">
+        <label><input type="checkbox" id="flagK"> -k (insecure)</label>
+        <label><input type="checkbox" id="flagL"> -L (follow redirects)</label>
+        <label><input type="checkbox" id="flagV"> -v (verbose)</label>
+        <label><input type="checkbox" id="flagCompressed"> --compressed</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Output File (-o)</label>
+      <input type="text" id="outputFile" placeholder="e.g. response.json">
+    </div>
+    <div class="form-group">
+      <label>Custom Flags (one per line)</label>
+      <textarea id="customFlags" rows="2" placeholder="--connect-timeout 10&#10;-H 'Accept: text/html'"></textarea>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>Generated Command</h2>
+    <div class="btn-group" style="margin-bottom:15px">
+      <button class="btn btn-success" onclick="copyCommand()">Copy</button>
+      <button class="btn btn-secondary" onclick="clearAll()">Clear</button>
+    </div>
+    <div class="preview" id="preview">curl -X GET 'https://api.example.com/endpoint'</div>
+  </div>
+</div>
+<script>
+let headers = [];
+let bodyType = 'none';
+let headerId = 0;
+
+document.getElementById('method').addEventListener('change', generateCommand);
+document.getElementById('url').addEventListener('input', generateCommand);
+document.getElementById('authType').addEventListener('change', generateCommand);
+document.getElementById('authValue').addEventListener('input', generateCommand);
+document.getElementById('flagK').addEventListener('change', generateCommand);
+document.getElementById('flagL').addEventListener('change', generateCommand);
+document.getElementById('flagV').addEventListener('change', generateCommand);
+document.getElementById('flagCompressed').addEventListener('change', generateCommand);
+document.getElementById('outputFile').addEventListener('input', generateCommand);
+document.getElementById('customFlags').addEventListener('input', generateCommand);
+document.getElementById('bodyContent').addEventListener('input', generateCommand);
+
+document.querySelectorAll('.body-tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.body-tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+    bodyType = this.dataset.type;
+    document.getElementById('bodyContent').style.display = (bodyType === 'json' || bodyType === 'raw') ? 'block' : 'none';
+    document.getElementById('formDataContainer').style.display = bodyType === 'form' ? 'block' : 'none';
+    if (bodyType === 'json') document.getElementById('bodyContent').placeholder = '{"key": "value"}';
+    if (bodyType === 'raw') document.getElementById('bodyContent').placeholder = 'Raw body content...';
+    generateCommand();
+  });
+});
+
+function addHeader() {
+  headers.push({ id: headerId++, key: '', value: '' });
+  renderHeaders();
+}
+
+function renderHeaders() {
+  document.getElementById('headersContainer').innerHTML = headers.map(h => `
+    <div class="header-row">
+      <input type="text" placeholder="Key" value="${h.key}" onchange="updateHeader(${h.id},'key',this.value)">
+      <input type="text" placeholder="Value" value="${h.value}" onchange="updateHeader(${h.id},'value',this.value)">
+      <button class="btn btn-danger btn-sm" onclick="removeHeader(${h.id})">&times;</button>
+    </div>
+  `).join('');
+}
+
+function updateHeader(id, field, val) {
+  const h = headers.find(x => x.id === id);
+  if (h) { h[field] = val; generateCommand(); }
+}
+
+function removeHeader(id) {
+  headers = headers.filter(h => h.id !== id);
+  renderHeaders();
+  generateCommand();
+}
+
+function toggleAuth() {
+  const authType = document.getElementById('authType').value;
+  document.getElementById('authValue').style.display = authType ? 'block' : 'none';
+  if (authType === 'basic') document.getElementById('authValue').placeholder = 'username:password';
+  if (authType === 'bearer') document.getElementById('authValue').placeholder = 'your-token-here';
+  generateCommand();
+}
+
+function escapeShell(s) {
+  return s.replace(/'/g, "'\\''");
+}
+
+function generateCommand() {
+  const method = document.getElementById('method').value;
+  const url = document.getElementById('url').value.trim() || 'https://example.com';
+  const authType = document.getElementById('authType').value;
+  const authValue = document.getElementById('authValue').value.trim();
+  const flagK = document.getElementById('flagK').checked;
+  const flagL = document.getElementById('flagL').checked;
+  const flagV = document.getElementById('flagV').checked;
+  const flagCompressed = document.getElementById('flagCompressed').checked;
+  const outputFile = document.getElementById('outputFile').value.trim();
+  const customFlags = document.getElementById('customFlags').value.trim();
+
+  let parts = ['curl'];
+
+  if (method !== 'GET') parts.push(`-X ${method}`);
+
+  headers.forEach(h => {
+    if (h.key) parts.push(`-H '${escapeShell(h.key)}: ${escapeShell(h.value)}'`);
+  });
+
+  if (authType === 'basic' && authValue) {
+    parts.push(`-u '${escapeShell(authValue)}'`);
+  } else if (authType === 'bearer' && authValue) {
+    parts.push(`-H 'Authorization: Bearer ${escapeShell(authValue)}'`);
+  }
+
+  if (bodyType === 'json' || bodyType === 'raw') {
+    const body = document.getElementById('bodyContent').value.trim();
+    if (body) {
+      if (bodyType === 'json' && !headers.find(h => h.key.toLowerCase() === 'content-type')) {
+        parts.push(`-H 'Content-Type: application/json'`);
+      }
+      parts.push(`-d '${escapeShell(body)}'`);
+    }
+  } else if (bodyType === 'form') {
+    document.querySelectorAll('#formDataContainer .form-item').forEach(item => {
+      const inputs = item.querySelectorAll('input');
+      if (inputs[0].value) parts.push(`-F '${escapeShell(inputs[0].value)}=${escapeShell(inputs[1].value)}'`);
+    });
+  }
+
+  if (flagK) parts.push('-k');
+  if (flagL) parts.push('-L');
+  if (flagV) parts.push('-v');
+  if (flagCompressed) parts.push('--compressed');
+  if (outputFile) parts.push(`-o '${escapeShell(outputFile)}'`);
+  if (customFlags) {
+    customFlags.split('\n').filter(Boolean).forEach(f => {
+      const trimmed = f.trim();
+      if (trimmed) parts.push(trimmed);
+    });
+  }
+
+  parts.push(`'${escapeShell(url)}'`);
+  document.getElementById('preview').textContent = parts.join(' \\\n  ');
+}
+
+function importCurl() {
+  const raw = document.getElementById('importCurl').value.trim();
+  if (!raw) return;
+
+  const clean = raw.replace(/\\\n/g, ' ').replace(/\s+/g, ' ').trim();
+
+  const methodMatch = clean.match(/-X\s+(\w+)/);
+  if (methodMatch) {
+    document.getElementById('method').value = methodMatch[1];
+  }
+
+  const urlMatch = clean.match(/'([^']+)'/g) || clean.match(/"([^"]+)"/g);
+  if (urlMatch) {
+    const url = urlMatch[urlMatch.length - 1].replace(/^['"]|['"]$/g, '');
+    if (url.startsWith('http')) document.getElementById('url').value = url;
+  }
+
+  const headerMatches = [...clean.matchAll(/-H\s+'([^']+)'/g), ...clean.matchAll(/-H\s+"([^"]+)"/g)];
+  headers = [];
+  headerMatches.forEach(m => {
+    const [key, ...rest] = m[1].split(':');
+    headers.push({ id: headerId++, key: key.trim(), value: rest.join(':').trim() });
+  });
+  renderHeaders();
+
+  const bodyMatch = clean.match(/-d\s+'([^']+)'/);
+  if (bodyMatch) {
+    document.getElementById('bodyContent').value = bodyMatch[1];
+    bodyType = 'json';
+    document.querySelectorAll('.body-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('[data-type="json"]').classList.add('active');
+    document.getElementById('bodyContent').style.display = 'block';
+  }
+
+  document.getElementById('flagK').checked = clean.includes(' -k ');
+  document.getElementById('flagL').checked = clean.includes(' -L ');
+  document.getElementById('flagV').checked = clean.includes(' -v ');
+  document.getElementById('flagCompressed').checked = clean.includes('--compressed');
+
+  generateCommand();
+}
+
+function copyCommand() {
+  navigator.clipboard.writeText(document.getElementById('preview').textContent);
+  const btn = event.target; btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1500);
+}
+
+function clearAll() {
+  headers = [];
+  document.querySelectorAll('input[type="text"], textarea').forEach(el => el.value = '');
+  document.getElementById('method').value = 'GET';
+  document.getElementById('authType').value = '';
+  document.getElementById('authValue').style.display = 'none';
+  document.getElementById('bodyContent').style.display = 'none';
+  document.getElementById('formDataContainer').style.display = 'none';
+  document.getElementById('flagK').checked = false;
+  document.getElementById('flagL').checked = false;
+  document.getElementById('flagV').checked = false;
+  document.getElementById('flagCompressed').checked = false;
+  bodyType = 'none';
+  document.querySelectorAll('.body-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('[data-type="none"]').classList.add('active');
+  renderHeaders();
+  generateCommand();
+}
+
+addHeader();
+generateCommand();
+</script>
+</body>
+</html>

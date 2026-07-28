@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON to TypeScript/Go/Rust/Python Converter</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#e0e0e0;min-height:100vh;padding:20px}
+.header{max-width:1100px;margin:0 auto 24px;display:flex;align-items:center;gap:12px}
+.header a{color:#6ee7b7;text-decoration:none;font-weight:500;font-size:14px}
+.header a:hover{text-decoration:underline}
+.header h1{font-size:22px;font-weight:600;color:#fff}
+.container{max-width:1100px;margin:0 auto}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:24px;margin-bottom:20px}
+.card h2{font-size:16px;font-weight:600;margin-bottom:16px;color:#6ee7b7}
+label{display:block;font-size:13px;color:#999;margin-bottom:6px;font-weight:500}
+textarea{width:100%;padding:12px 14px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#e0e0e0;font-family:'Outfit',monospace;font-size:13px;outline:none;resize:vertical;transition:border-color .2s;line-height:1.6}
+textarea:focus{border-color:#6ee7b7}
+textarea{min-height:220px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:#6ee7b7;color:#0a0a0a;border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-weight:600;font-size:14px;cursor:pointer;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:6px}
+.btn-outline{background:transparent;color:#6ee7b7;border:1px solid #6ee7b7}
+.btn-outline:hover{background:rgba(110,231,183,.1)}
+.tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+.tab{padding:8px 16px;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#999;font-size:13px;font-family:'Outfit',sans-serif;cursor:pointer;font-weight:500;transition:all .2s}
+.tab.active{background:#6ee7b7;color:#0a0a0a;border-color:#6ee7b7}
+.tab:hover:not(.active){border-color:#444;color:#fff}
+.output-actions{display:flex;gap:8px;margin-bottom:10px}
+.error{color:#f87171;font-size:13px;margin-top:8px}
+.copied{position:fixed;top:20px;right:20px;background:#6ee7b7;color:#0a0a0a;padding:10px 20px;border-radius:8px;font-weight:600;font-size:13px;opacity:0;transition:opacity .3s;z-index:999}
+.copied.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html">&larr; Back</a>
+<h1>JSON to TypeScript / Go / Rust / Python Converter</h1>
+</div>
+
+<div class="card">
+<h2>Paste JSON</h2>
+<textarea id="jsonInput" placeholder='{"name": "John", "age": 30, "address": {"street": "123 Main St", "city": "NYC"}, "tags": ["admin", "user"], "active": true}'></textarea>
+<div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+<button class="btn" onclick="convert()">Convert</button>
+<label>Root Name:</label>
+<input type="text" id="rootName" value="Root" style="width:160px;padding:8px 12px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:13px;outline:none">
+</div>
+<div class="error" id="error"></div>
+</div>
+
+<div class="card" id="outputCard" style="display:none">
+<h2>Output</h2>
+<div class="tabs" id="tabs">
+<div class="tab active" data-tab="ts" onclick="switchTab('ts')">TypeScript</div>
+<div class="tab" data-tab="go" onclick="switchTab('go')">Go</div>
+<div class="tab" data-tab="rust" onclick="switchTab('rust')">Rust</div>
+<div class="tab" data-tab="py" onclick="switchTab('py')">Python</div>
+</div>
+<div class="output-actions">
+<button class="btn btn-sm" onclick="copyOutput()">Copy</button>
+</div>
+<textarea id="outputArea" rows="24" readonly></textarea>
+</div>
+</div>
+
+<div class="copied" id="copiedMsg">Copied!</div>
+
+<script>
+let currentTab='ts';
+let outputs={};
+
+function switchTab(tab){
+currentTab=tab;
+document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
+document.getElementById('outputArea').value=outputs[tab]||'';
+}
+
+function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+function snakeToPascal(s){return s.split(/[_\- ]+/).map(capitalize).join('')}
+
+function typeScript(name,obj,indent){
+const lines=[];const pad='  '.repeat(indent);
+lines.push(`${pad}export interface ${name} {`);
+for(const[key,val]of Object.entries(obj)){
+const k=/[^a-zA-Z0-9_]/.test(key)?`"${key}"`:key;
+lines.push(`${pad}  ${k}: ${tsType(val,indent+1)};`);
+}
+lines.push(`${pad}}`);return lines.join('\n');
+}
+
+function tsType(val,indent){
+if(val===null)return'any';
+if(typeof val==='boolean')return'boolean';
+if(typeof val==='number')return'number';
+if(typeof val==='string')return'string';
+if(Array.isArray(val)){
+if(val.length===0)return'any[]';
+return`${tsType(val[0],indent)}[]`;
+}
+if(typeof val==='object'){
+const lines=[];lines.push('{');
+for(const[k,v]of Object.entries(val)){
+const key=/[^a-zA-Z0-9_]/.test(k)?`"${k}"`:k;
+lines.push(`${'  '.repeat(indent)}  ${key}: ${tsType(v,indent+1)};`);
+}
+lines.push(`${'  '.repeat(indent)}}`);return lines.join('\n');
+}
+return'any';
+}
+
+function goStruct(name,obj,indent){
+const lines=[];const pad='  '.repeat(indent);
+lines.push(`${pad}type ${name} struct {`);
+for(const[key,val]of Object.entries(obj)){
+const pascal=snakeToPascal(key);
+lines.push(`${pad}  ${pascal} ${goType(val,indent+1)} \`json:"${key}"\``);
+}
+lines.push(`${pad}}`);return lines.join('\n');
+}
+
+function goType(val,indent){
+if(val===null)return'interface{}';
+if(typeof val==='boolean')return'bool';
+if(typeof val==='number')return'float64';
+if(typeof val==='string')return'string';
+if(Array.isArray(val)){
+if(val.length===0)return'[]interface{}';
+return`[]${goType(val[0],indent)}`;
+}
+if(typeof val==='object'){
+const inner=[];inner.push('struct {');
+for(const[k,v]of Object.entries(val)){
+inner.push(`${'  '.repeat(indent)}  ${snakeToPascal(k)} ${goType(v,indent+1)} \`json:"${k}"\``);
+}
+inner.push(`${'  '.repeat(indent)}}`);return inner.join('\n');
+}
+return'interface{}';
+}
+
+function rustStruct(name,obj,indent){
+const lines=[];const pad='  '.repeat(indent);
+lines.push(`${pad}#[derive(Debug, Serialize, Deserialize)]`);
+lines.push(`${pad}pub struct ${name} {`);
+for(const[key,val]of Object.entries(obj)){
+const snake=key.replace(/([A-Z])/g,'_$1').toLowerCase();
+lines.push(`${pad}  pub ${snake}: ${rustType(val,indent+1)},`);
+}
+lines.push(`${pad}}`);return lines.join('\n');
+}
+
+function rustType(val,indent){
+if(val===null)return'Option<serde_json::Value>';
+if(typeof val==='boolean')return'bool';
+if(typeof val==='number')return'f64';
+if(typeof val==='string')return'String';
+if(Array.isArray(val)){
+if(val.length===0)return'Vec<serde_json::Value>';
+return`Vec<${rustType(val[0],indent)}>`;
+}
+if(typeof val==='object'){
+const inner=[];inner.push('{');
+for(const[k,v]of Object.entries(val)){
+const snake=k.replace(/([A-Z])/g,'_$1').toLowerCase();
+inner.push(`${'  '.repeat(indent)}  pub ${snake}: ${rustType(v,indent+1)},`);
+}
+inner.push(`${'  '.repeat(indent)}}`);return inner.join('\n');
+}
+return'serde_json::Value';
+}
+
+function pythonDataclass(name,obj,indent){
+const lines=[];const pad='  '.repeat(indent);
+lines.push(`${pad}@dataclass`);
+lines.push(`${pad}class ${name}:`);
+for(const[key,val]of Object.entries(obj)){
+const snake=key.replace(/([A-Z])/g,'_$1').toLowerCase();
+lines.push(`${pad}  ${snake}: ${pyType(val,indent+1)}`);
+}
+return lines.join('\n');
+}
+
+function pyType(val,indent){
+if(val===null)return'Optional[Any]';
+if(typeof val==='boolean')return'bool';
+if(typeof val==='number')return'float';
+if(typeof val==='string')return'str';
+if(Array.isArray(val)){
+if(val.length===0)return'List[Any]';
+return`List[${pyType(val[0],indent)}]`;
+}
+if(typeof val==='object'){
+const inner=[];inner.push('(');
+const entries=Object.entries(val);
+entries.forEach(([k,v],i)=>{
+const snake=k.replace(/([A-Z])/g,'_$1').toLowerCase();
+inner.push(`${'  '.repeat(indent+1)}${snake}: ${pyType(v,indent+2)}${i<entries.length-1?',':''}`);
+});
+inner.push(`${'  '.repeat(indent)})`);return inner.join('\n');
+}
+return'Any';
+}
+
+function convert(){
+const raw=document.getElementById('jsonInput').value.trim();
+const rootName=document.getElementById('rootName').value.trim()||'Root';
+const errEl=document.getElementById('error');
+errEl.textContent='';
+if(!raw){errEl.textContent='Paste JSON data first';return}
+let data;
+try{data=JSON.parse(raw)}catch(e){errEl.textContent='Invalid JSON: '+e.message;return}
+
+const generateTypes=(obj,prefix)=>{
+const types={};
+const process=(name,val)=>{
+if(Array.isArray(val)){
+if(val.length>0&&typeof val[0]==='object'&&val[0]!==null&&!Array.isArray(val[0]))process(name+'Item',val[0]);
+}
+else if(typeof val==='object'&&val!==null){
+types[name]=val;
+for(const[k,v]of Object.entries(val))process(snakeToPascal(name+'_'+k),v);
+}
+};
+process(rootName,data);
+return types;
+};
+
+const types=generateTypes(data,rootName);
+outputs.ts='';outputs.go='';outputs.rust='';outputs.py='';
+
+const tsInterfaces=[];
+for(const[name,obj]of Object.entries(types)){
+tsInterfaces.push(typeScript(name,obj,0));
+}
+outputs.ts=tsInterfaces.join('\n\n');
+outputs.ts=`// Generated TypeScript interfaces\n// Requires: npm install -D @types/node (if needed)\n\n${outputs.ts}`;
+
+const goStructs=[];
+for(const[name,obj]of Object.entries(types)){
+goStructs.push(goStruct(name,obj,0));
+}
+outputs.go=`// Generated Go structs\npackage models\n\nimport "encoding/json"\n\n${goStructs.join('\n\n')}`;
+
+const rustStructs=[];
+for(const[name,obj]of Object.entries(types)){
+rustStructs.push(rustStruct(name,obj,0));
+}
+outputs.rust=`// Generated Rust structs\nuse serde::{Serialize, Deserialize};\n\n${rustStructs.join('\n\n')}`;
+
+const pyClasses=[];
+pyClasses.push('from dataclasses import dataclass, field\nfrom typing import List, Optional, Any\n');
+for(const[name,obj]of Object.entries(types)){
+pyClasses.push(pythonDataclass(name,obj,0));
+}
+outputs.py=pyClasses.join('\n\n');
+
+document.getElementById('outputArea').value=outputs[currentTab];
+document.getElementById('outputCard').style.display='block';
+}
+
+function copyOutput(){
+navigator.clipboard.writeText(document.getElementById('outputArea').value).then(()=>{const m=document.getElementById('copiedMsg');m.classList.add('show');setTimeout(()=>m.classList.remove('show'),1500)});
+}
+</script>
+</body>
+</html>

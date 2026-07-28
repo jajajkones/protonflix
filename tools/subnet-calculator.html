@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subnet Calculator / CIDR Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#e0e0e0;min-height:100vh;padding:20px}
+.header{max-width:900px;margin:0 auto 24px;display:flex;align-items:center;gap:12px}
+.header a{color:#6ee7b7;text-decoration:none;font-weight:500;font-size:14px}
+.header a:hover{text-decoration:underline}
+.header h1{font-size:22px;font-weight:600;color:#fff}
+.container{max-width:900px;margin:0 auto}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:24px;margin-bottom:20px}
+.card h2{font-size:16px;font-weight:600;margin-bottom:16px;color:#6ee7b7}
+label{display:block;font-size:13px;color:#999;margin-bottom:6px;font-weight:500}
+input[type="text"],select{width:100%;padding:10px 14px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+input:focus,select:focus{border-color:#6ee7b7}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:#6ee7b7;color:#0a0a0a;border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-weight:600;font-size:14px;cursor:pointer;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:6px}
+.btn-outline{background:transparent;color:#6ee7b7;border:1px solid #6ee7b7}
+.btn-outline:hover{background:rgba(110,231,183,.1)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.result-item{background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:12px}
+.result-item .lbl{font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.result-item .val{font-size:15px;font-weight:500;color:#fff;word-break:break-all;font-family:'Outfit',monospace}
+.binary-row{margin-top:10px;padding:12px;background:#0a0a0a;border:1px solid #222;border-radius:8px}
+.binary-row .lbl{font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.binary-row code{font-size:12px;color:#a5b4fc;line-height:1.8;display:block;word-break:break-all}
+.subnet-list{margin-top:12px;max-height:300px;overflow-y:auto}
+.subnet-list::-webkit-scrollbar{width:6px}
+.subnet-list::-webkit-scrollbar-track{background:#0a0a0a}
+.subnet-list::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
+.subnet-item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#0a0a0a;border:1px solid #222;border-radius:6px;margin-bottom:6px;font-size:13px;font-family:'Outfit',monospace}
+.subnet-item .range{color:#999}
+.copied{position:fixed;top:20px;right:20px;background:#6ee7b7;color:#0a0a0a;padding:10px 20px;border-radius:8px;font-weight:600;font-size:13px;opacity:0;transition:opacity .3s;z-index:999}
+.copied.show{opacity:1}
+@media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}.result-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html">&larr; Back</a>
+<h1>Subnet Calculator / CIDR Calculator</h1>
+</div>
+
+<div class="card">
+<h2>Calculate Subnet</h2>
+<div class="grid2">
+<div>
+<label>IP Address</label>
+<input type="text" id="ipInput" placeholder="192.168.1.0" value="192.168.1.0">
+</div>
+<div>
+<label>CIDR Notation</label>
+<input type="text" id="cidrInput" placeholder="/24" value="24">
+</div>
+</div>
+<div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+<button class="btn" onclick="calculate()">Calculate</button>
+<button class="btn btn-outline" onclick="copyResults()">Copy Results</button>
+</div>
+</div>
+
+<div class="card" id="resultsCard" style="display:none">
+<h2>Results</h2>
+<div class="result-grid">
+<div class="result-item"><div class="lbl">Network Address</div><div class="val" id="rNetwork">-</div></div>
+<div class="result-item"><div class="lbl">Broadcast Address</div><div class="val" id="rBroadcast">-</div></div>
+<div class="result-item"><div class="lbl">Subnet Mask</div><div class="val" id="rMask">-</div></div>
+<div class="result-item"><div class="lbl">Wildcard Mask</div><div class="val" id="rWildcard">-</div></div>
+<div class="result-item"><div class="lbl">Total Hosts</div><div class="val" id="rTotal">-</div></div>
+<div class="result-item"><div class="lbl">Usable Hosts</div><div class="val" id="rUsable">-</div></div>
+<div class="result-item"><div class="lbl">First Usable IP</div><div class="val" id="rFirst">-</div></div>
+<div class="result-item"><div class="lbl">Last Usable IP</div><div class="val" id="rLast">-</div></div>
+</div>
+<div class="result-item" style="margin-top:10px"><div class="lbl">Classful Notation</div><div class="val" id="rClass">-</div></div>
+
+<div class="binary-row">
+<div class="lbl">Binary Representation</div>
+<code id="rBinary">-</code>
+</div>
+</div>
+
+<div class="card" id="subnetCard" style="display:none">
+<h2>Subnet List</h2>
+<div class="grid2" style="margin-bottom:12px">
+<div>
+<label>Split into (number of subnets)</label>
+<input type="text" id="subnetCount" placeholder="4">
+</div>
+<div style="display:flex;align-items:flex-end">
+<button class="btn" onclick="generateSubnets()">Generate Subnets</button>
+</div>
+</div>
+<div class="subnet-list" id="subnetList"></div>
+</div>
+</div>
+
+<div class="copied" id="copiedMsg">Copied!</div>
+
+<script>
+function ipToInt(ip){const p=ip.split('.').map(Number);return((p[0]<<24)|(p[1]<<16)|(p[2]<<8)|p[3])>>>0}
+function intToIp(n){return[(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255].join('.')}
+function intToBin(n){return[(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255].map(x=>x.toString(2).padStart(8,'0')).join('.')}
+function getClass(ip){const p=ip.split('.').map(Number);if(p[0]>=1&&p[0]<=126)return'A';if(p[0]>=128&&p[0]<=191)return'B';if(p[0]>=192&&p[0]<=223)return'C';if(p[0]>=224&&p[0]<=239)return'D (Multicast)';return'E (Reserved)'}
+
+let lastResults='';
+function calculate(){
+const ip=document.getElementById('ipInput').value.trim();
+const cidr=parseInt(document.getElementById('cidrInput').value.replace('/',''));
+if(!/^(\d{1,3}\.){3}\d{1,3}$/.test(ip)||cidr<0||cidr>32){alert('Enter valid IP and CIDR (0-32)');return}
+const ipInt=ipToInt(ip);
+const mask=cidr===0?0:(~0<<(32-cidr))>>>0;
+const network=(ipInt&mask)>>>0;
+const broadcast=(network|(~mask>>>0))>>>0;
+const total=cidr===32?1:Math.pow(2,32-cidr);
+const usable=cidr>=31?(cidr===32?1:0):total-2;
+const first=usable>0?(network+1)>>>0:network;
+const last=usable>0?(broadcast-1)>>>0:broadcast;
+
+document.getElementById('rNetwork').textContent=intToIp(network);
+document.getElementById('rBroadcast').textContent=intToIp(broadcast);
+document.getElementById('rMask').textContent=intToIp(mask);
+document.getElementById('rWildcard').textContent=intToIp(~mask>>>0);
+document.getElementById('rTotal').textContent=total.toLocaleString();
+document.getElementById('rUsable').textContent=usable.toLocaleString();
+document.getElementById('rFirst').textContent=intToIp(first);
+document.getElementById('rLast').textContent=intToIp(last);
+document.getElementById('rClass').textContent=`Class ${getClass(ip)} — ${ip}/${cidr}`;
+document.getElementById('rBinary').textContent=`IP:       ${intToBin(ipInt)}\nMask:     ${intToBin(mask)}\nNetwork:  ${intToBin(network)}\nBroadc.:  ${intToBin(broadcast)}`;
+
+lastResults=`IP: ${ip}/${cidr}\nNetwork: ${intToIp(network)}\nBroadcast: ${intToIp(broadcast)}\nMask: ${intToIp(mask)}\nWildcard: ${intToIp(~mask>>>0)}\nTotal: ${total}\nUsable: ${usable}\nFirst: ${intToIp(first)}\nLast: ${intToIp(last)}\nClass: ${getClass(ip)}`;
+
+document.getElementById('resultsCard').style.display='block';
+document.getElementById('subnetCard').style.display='block';
+}
+
+function generateSubnets(){
+const ip=document.getElementById('ipInput').value.trim();
+const cidr=parseInt(document.getElementById('cidrInput').value.replace('/',''));
+const count=parseInt(document.getElementById('subnetCount').value);
+if(!count||count<1){alert('Enter valid subnet count');return}
+const bits=Math.log2(count);
+if(!Number.isInteger(bits)){alert('Subnet count must be a power of 2');return}
+const newCidr=cidr+bits;
+if(newCidr>30){alert('Too many subnets for this CIDR');return}
+const ipInt=ipToInt(ip);
+const mask=(~0<<(32-cidr))>>>0;
+const network=(ipInt&mask)>>>0;
+const newMask=(~0<<(32-newCidr))>>>0;
+const step=~newMask>>>0;
+let html='';
+for(let i=0;i<count;i++){
+const subNet=(network+(i*(step+1)))>>>0;
+const subBroad=(subNet|~newMask>>>0)>>>0;
+html+=`<div class="subnet-item"><span>${intToIp(subNet)}/${newCidr}</span><span class="range">${intToIp(subNet)} — ${intToIp(subBroad)}</span></div>`;
+}
+document.getElementById('subnetList').innerHTML=html;
+}
+
+function copyResults(){
+navigator.clipboard.writeText(lastResults).then(()=>{const m=document.getElementById('copiedMsg');m.classList.add('show');setTimeout(()=>m.classList.remove('show'),1500)});
+}
+
+document.getElementById('ipInput').addEventListener('keydown',e=>{if(e.key==='Enter')calculate()});
+document.getElementById('cidrInput').addEventListener('keydown',e=>{if(e.key==='Enter')calculate()});
+</script>
+</body>
+</html>

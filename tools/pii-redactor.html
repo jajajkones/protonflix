@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PII Redactor – ProtonFlix Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#e0e0e0;font-family:'Outfit',sans-serif;min-height:100vh}
+.header{padding:20px 32px;border-bottom:1px solid #222;display:flex;align-items:center;gap:16px}
+.header a{color:#8b5cf6;text-decoration:none;font-weight:500;font-size:14px;transition:color .2s}
+.header a:hover{color:#a78bfa}
+.header h1{font-size:20px;font-weight:600;color:#fff}
+.container{max-width:960px;margin:0 auto;padding:32px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:24px;margin-bottom:24px}
+.card h2{font-size:16px;font-weight:600;margin-bottom:16px;color:#fff}
+label{display:block;font-size:13px;color:#999;margin-bottom:6px;font-weight:500}
+textarea{width:100%;padding:12px 14px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#e0e0e0;font-family:'Outfit',sans-serif;font-size:14px;outline:none;transition:border .2s;resize:vertical;min-height:120px}
+textarea:focus{border-color:#8b5cf6}
+input[type=text]{width:100%;padding:12px 14px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#e0e0e0;font-family:'Outfit',sans-serif;font-size:14px;outline:none;transition:border .2s}
+input:focus{border-color:#8b5cf6}
+button{padding:10px 20px;border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s}
+.btn-primary{background:#8b5cf6;color:#fff}
+.btn-primary:hover{background:#7c3aed}
+.btn-secondary{background:#222;color:#e0e0e0;border:1px solid #333}
+.btn-secondary:hover{background:#333}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.pill-group{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.pill{padding:6px 14px;background:#1a1a2e;border:1px solid #333;border-radius:20px;color:#a78bfa;font-size:13px;cursor:pointer;transition:all .2s;user-select:none}
+.pill.active{background:#8b5cf6;color:#fff;border-color:#8b5cf6}
+.pill:hover{border-color:#8b5cf6}
+.pill input{display:none}
+.method-group{display:flex;gap:8px;margin-bottom:16px}
+.method-btn{padding:8px 16px;background:#1a1a2e;border:1px solid #333;border-radius:6px;color:#a78bfa;font-size:13px;cursor:pointer;transition:all .2s}
+.method-btn.active{background:#8b5cf6;color:#fff;border-color:#8b5cf6}
+.preview-box{background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:16px;font-family:monospace;font-size:13px;white-space:pre-wrap;word-break:break-all;max-height:300px;overflow-y:auto;line-height:1.6}
+.redacted{background:#dc2626;color:#fff;padding:1px 4px;border-radius:3px;font-weight:600}
+.stat{display:inline-block;padding:4px 10px;background:#1a1a2e;border-radius:6px;font-size:12px;margin:4px}
+.stat .count{color:#8b5cf6;font-weight:600}
+.custom-pattern{margin-top:12px}
+.custom-pattern input{margin-bottom:8px}
+.results-summary{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+</style>
+</head>
+<body>
+<div class="header">
+  <a href="index.html">← Back</a>
+  <h1>PII Redactor</h1>
+</div>
+<div class="container">
+  <div class="card">
+    <h2>Input Text</h2>
+    <textarea id="inputText" placeholder="Paste text containing PII to redact...">Contact John Smith at john.smith@email.com or call (555) 123-4567. His SSN is 123-45-6789 and credit card is 4111-1111-1111-1111. Server IP: 192.168.1.100. Ship to 123 Main St, Springfield, IL 62704.</textarea>
+  </div>
+
+  <div class="card">
+    <h2>PII Types to Redact</h2>
+    <div class="pill-group" id="piiTypes">
+      <label class="pill active" data-type="email"><input type="checkbox" checked>Email</label>
+      <label class="pill active" data-type="phone"><input type="checkbox" checked>Phone</label>
+      <label class="pill active" data-type="ssn"><input type="checkbox" checked>SSN</label>
+      <label class="pill active" data-type="creditcard"><input type="checkbox" checked>Credit Card</label>
+      <label class="pill active" data-type="ip"><input type="checkbox" checked>IP Address</label>
+      <label class="pill active" data-type="address"><input type="checkbox" checked>Address</label>
+      <label class="pill" data-type="name"><input type="checkbox">Name (Basic)</label>
+    </div>
+
+    <h2>Redaction Method</h2>
+    <div class="method-group">
+      <div class="method-btn active" data-method="mask" onclick="setMethod('mask')">Mask (***)</div>
+      <div class="method-btn" data-method="hash" onclick="setMethod('hash')">Hash</div>
+      <div class="method-btn" data-method="replace" onclick="setMethod('replace')">[REDACTED]</div>
+    </div>
+
+    <h2>Custom Regex Patterns</h2>
+    <div class="custom-pattern">
+      <input type="text" id="customPattern" placeholder="Additional regex pattern (e.g., AK-[0-9]{6})">
+      <input type="text" id="customLabel" placeholder="Label for matches (e.g., API Key)" style="margin-bottom:0">
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+      <h2 style="margin:0">Redacted Output</h2>
+      <div style="display:flex;gap:8px">
+        <button class="btn-primary" onclick="redactText()">Redact</button>
+        <button class="btn-secondary" onclick="copyResult()">Copy</button>
+      </div>
+    </div>
+    <div class="results-summary" id="stats"></div>
+    <div class="preview-box" id="outputText">Click "Redact" to process</div>
+  </div>
+
+  <div class="card">
+    <h2>Before / After Comparison</h2>
+    <div class="grid-2">
+      <div>
+        <label>Original</label>
+        <div class="preview-box" id="beforeText" style="max-height:200px"></div>
+      </div>
+      <div>
+        <label>Redacted</label>
+        <div class="preview-box" id="afterText" style="max-height:200px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let selectedMethod = 'mask';
+
+document.querySelectorAll('.pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    pill.classList.toggle('active');
+    pill.querySelector('input').checked = pill.classList.contains('active');
+  });
+});
+
+function setMethod(m) {
+  selectedMethod = m;
+  document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.method-btn[data-method="${m}"]`).classList.add('active');
+}
+
+function getActiveTypes() {
+  return Array.from(document.querySelectorAll('.pill.active')).map(p => p.dataset.type);
+}
+
+const patterns = {
+  email: { regex: /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g, label: 'Email' },
+  phone: { regex: /(\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g, label: 'Phone' },
+  ssn: { regex: /\b\d{3}[-.\s]?\d{2}[-.\s]?\d{4}\b/g, label: 'SSN' },
+  creditcard: { regex: /\b(?:\d{4}[-.\s]?){3}\d{4}\b/g, label: 'Credit Card' },
+  ip: { regex: /\b(?:\d{1,3}\.){3}\d{1,3}\b/g, label: 'IP Address' },
+  address: { regex: /\d{1,5}\s+[\w\s]+(?:St|Street|Ave|Avenue|Blvd|Boulevard|Dr|Drive|Ln|Lane|Rd|Road|Way|Ct|Court|Pl|Place)\b[\w\s,]*\d{5}(?:-\d{4})?/gi, label: 'Address' },
+  name: { regex: /\b[A-Z][a-z]+\s+[A-Z][a-z]+\b/g, label: 'Name' }
+};
+
+function redactValue(value, method, type) {
+  if (method === 'mask') {
+    if (type === 'email') {
+      const [user, domain] = value.split('@');
+      return user[0] + '*'.repeat(Math.max(user.length - 2, 1)) + user.slice(-1) + '@' + domain;
+    }
+    if (type === 'phone') {
+      return value.replace(/\d(?=\d{4})/g, '*');
+    }
+    return value.replace(/./g, '*').slice(0, Math.max(value.length, 4));
+  }
+  if (method === 'hash') {
+    let hash = 0;
+    for (let i = 0; i < value.length; i++) {
+      hash = ((hash << 5) - hash) + value.charCodeAt(i);
+      hash |= 0;
+    }
+    return `[HASH:${Math.abs(hash).toString(16).slice(0, 8)}]`;
+  }
+  return `[REDACTED]`;
+}
+
+function redactText() {
+  const input = document.getElementById('inputText').value;
+  const types = getActiveTypes();
+  let text = input;
+  const counts = {};
+  const matches = [];
+
+  types.forEach(type => {
+    const pattern = patterns[type];
+    if (!pattern) return;
+    const localRegex = new RegExp(pattern.regex.source, pattern.regex.flags);
+    let m;
+    while ((m = localRegex.exec(text)) !== null) {
+      matches.push({ start: m.index, end: m.index + m[0].length, value: m[0], type });
+    }
+  });
+
+  const customPattern = document.getElementById('customPattern').value.trim();
+  const customLabel = document.getElementById('customLabel').value.trim() || 'Custom';
+  if (customPattern) {
+    try {
+      const cr = new RegExp(customPattern, 'g');
+      let m;
+      while ((m = cr.exec(text)) !== null) {
+        matches.push({ start: m.index, end: m.index + m[0].length, value: m[0], type: 'custom' });
+      }
+    } catch (e) {}
+  }
+
+  matches.sort((a, b) => a.start - b.start);
+  const merged = [];
+  for (const m of matches) {
+    if (merged.length && m.start < merged[merged.length - 1].end) continue;
+    merged.push(m);
+  }
+
+  let result = '';
+  let lastEnd = 0;
+  merged.forEach(m => {
+    result += text.slice(lastEnd, m.start);
+    const redacted = redactValue(m.value, selectedMethod, m.type);
+    result += `<span class="redacted">${redacted}</span>`;
+    counts[m.type] = (counts[m.type] || 0) + 1;
+    lastEnd = m.end;
+  });
+  result += text.slice(lastEnd);
+
+  document.getElementById('outputText').innerHTML = result;
+
+  let statsHtml = '';
+  for (const [type, count] of Object.entries(counts)) {
+    statsHtml += `<span class="stat">${type}: <span class="count">${count}</span></span>`;
+  }
+  if (!statsHtml) statsHtml = '<span class="stat">No PII detected</span>';
+  document.getElementById('stats').innerHTML = statsHtml;
+
+  document.getElementById('beforeText').textContent = input;
+
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = result;
+  document.getElementById('afterText').textContent = tempDiv.textContent;
+}
+
+function copyResult() {
+  const el = document.getElementById('outputText');
+  const text = el.textContent || el.innerText;
+  navigator.clipboard.writeText(text);
+}
+
+redactText();
+</script>
+</body>
+</html>

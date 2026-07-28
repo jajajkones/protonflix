@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON Tree Viewer - ProtonFlix Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#e0e0e0;--text-dim:#888;--accent-start:#3b82f6;--accent-mid:#8b5cf6;--accent-end:#ec4899;--type-str:#f472b6;--type-num:#60a5fa;--type-bool:#a78bfa;--type-null:#f87171;--type-key:#34d399}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
+a{color:var(--accent-mid);text-decoration:none;transition:opacity .2s}a:hover{opacity:.8}
+.header{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.header .back{font-size:14px;padding:6px 14px;border-radius:8px;border:1px solid var(--border);transition:all .2s}
+.header .back:hover{border-color:var(--accent-mid)}
+.header h1{font-size:22px;font-weight:600;background:linear-gradient(90deg,var(--accent-start),var(--accent-mid),var(--accent-end));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.container{max-width:1000px;margin:0 auto}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
+.panel h2{font-size:14px;font-weight:500;color:var(--text-dim);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
+textarea{width:100%;min-height:120px;background:#0d0d0d;border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:13px;padding:12px;resize:vertical;outline:none;transition:border-color .2s}
+textarea:focus{border-color:var(--accent-mid)}
+.actions{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+input[type=text]{background:#0d0d0d;border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;padding:8px 12px;outline:none;width:200px;transition:border-color .2s}
+input[type=text]:focus{border-color:var(--accent-mid)}
+button{font-family:'Outfit',sans-serif;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:500;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,var(--accent-start),var(--accent-mid),var(--accent-end));color:#fff}
+.btn-primary:hover{opacity:.85;transform:translateY(-1px)}
+.btn-secondary{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent-mid)}
+.tree-container{background:#0d0d0d;border:1px solid var(--border);border-radius:8px;padding:16px;max-height:600px;overflow:auto;font-family:'Courier New',monospace;font-size:13px;line-height:1.7}
+.tree-node{position:relative;padding-left:20px;cursor:default}
+.tree-node::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:1px;background:var(--border)}
+.tree-toggle{cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:4px;padding:1px 4px;border-radius:4px;transition:background .15s}
+.tree-toggle:hover{background:rgba(255,255,255,.05)}
+.tree-toggle::before{content:'▶';font-size:10px;transition:transform .2s;display:inline-block}
+.tree-toggle.open::before{transform:rotate(90deg)}
+.tree-key{color:var(--type-key);font-weight:500}
+.tree-str{color:var(--type-str)}
+.tree-num{color:var(--type-num)}
+.tree-bool{color:var(--type-bool)}
+.tree-null{color:var(--type-null);font-style:italic}
+.tree-bracket{color:var(--text-dim)}
+.tree-toggle-child{display:none}
+.tree-toggle.open+.tree-toggle-child{display:block}
+.tree-leaf{padding-left:20px;position:relative}
+.tree-leaf::before{content:'';position:absolute;left:6px;top:12px;width:12px;height:1px;background:var(--border)}
+.type-badge{font-size:10px;color:var(--text-dim);padding:1px 6px;border-radius:4px;background:rgba(255,255,255,.05);margin-left:6px;opacity:0;transition:opacity .2s}
+.tree-toggle:hover .type-badge,.tree-leaf:hover .type-badge{opacity:1}
+.copy-path{position:fixed;background:var(--surface);border:1px solid var(--accent-mid);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--text);cursor:pointer;z-index:10;display:none;font-family:'Outfit',sans-serif}
+.copy-path:hover{background:var(--accent-mid);color:#fff}
+.empty{text-align:center;color:var(--text-dim);padding:40px;font-size:14px}
+.copied-toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--accent-mid);color:#fff;padding:8px 20px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:100}
+.copied-toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html" class="back">&larr; Back</a>
+<h1>JSON Tree Viewer</h1>
+</div>
+<div class="panel">
+<h2>Input</h2>
+<textarea id="jsonInput" placeholder="Paste JSON here..." spellcheck="false"></textarea>
+</div>
+<div class="actions">
+<button class="btn-primary" onclick="parseJSON()">Parse</button>
+<button class="btn-secondary" onclick="expandAll()">Expand All</button>
+<button class="btn-secondary" onclick="collapseAll()">Collapse All</button>
+<button class="btn-secondary" onclick="copySelected()">Copy Subtree</button>
+<input type="text" id="searchInput" placeholder="Search values..." oninput="searchTree()">
+</div>
+<div class="panel" id="treePanel">
+<div class="tree-container" id="treeContainer">
+<div class="empty">Paste JSON and click Parse to visualize.</div>
+</div>
+</div>
+</div>
+<div class="copy-path" id="copyPath"></div>
+<div class="copied-toast" id="toast">Path copied!</div>
+<script>
+let jsonData=null;let selectedNode=null;
+function parseJSON(){
+try{jsonData=JSON.parse(document.getElementById('jsonInput').value);
+document.getElementById('treeContainer').innerHTML=renderNode(jsonData,'$',true);expandAll()}
+catch(e){document.getElementById('treeContainer').innerHTML='<div class="empty" style="color:var(--red)">Invalid JSON: '+e.message+'</div>'}}
+function getType(v){if(v===null)return'null';if(Array.isArray(v))return'array';return typeof v}
+function getTypeLabel(v){const t=getType(v);return t==='array'?'array['+v.length+']':t==='object'?'object{'+(v?Object.keys(v).length:0)+'}':t}
+function renderNode(val,path,open){
+if(val===null)return renderLeaf('null','null',path);
+if(typeof val==='string')return renderLeaf('"'+escapeHtml(val)+'','str',path);
+if(typeof val==='number')return renderLeaf(String(val),'num',path);
+if(typeof val==='boolean')return renderLeaf(String(val),'bool',path);
+const isArr=Array.isArray(val);const entries=isArr?val.map((v,i)=>[i,v]):Object.entries(val);
+const bracket=isArr?['[',']']:['{','}'];
+let html='<div class="tree-node">';
+html+='<div class="tree-toggle '+(open?'open':'')+'" onclick="toggleNode(this)" data-path="'+escapeHtml(path)+'">';
+html+='<span class="tree-key">'+escapeHtml(path==='$'?'root':path.split('.').pop())+'</span>';
+html+='<span class="type-badge">'+getTypeLabel(val)+'</span></div>';
+html+='<div class="tree-toggle-child">';
+html+='<span class="tree-bracket">'+bracket[0]+'</span>';
+entries.forEach(([k,v],i)=>{
+const childPath=path+'.'+k;
+if(typeof v==='object'&&v!==null){html+=renderNode(v,childPath,false)}
+else{html+=renderLeaf(v===null?'null':typeof v==='string'?'"'+escapeHtml(v)+'"':String(v),getType(v),childPath,typeof k==='number'?k:k)}});
+html+='<span class="tree-bracket">'+bracket[1]+'</span></div></div>';return html}
+function renderLeaf(val,type,path,label){
+const key=label!==undefined?String(label)+': ':'';
+return'<div class="tree-leaf" data-path="'+escapeHtml(path)+'" oncontextmenu="showCopyPath(event,\''+escapeHtml(path)+'\')" onclick="showCopyPath(event,\''+escapeHtml(path)+'\')"><span class="tree-key">'+escapeHtml(String(key))+'</span><span class="tree-'+type+'">'+val+'</span><span class="type-badge">'+type+'</span></div>'}
+function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function toggleNode(el){el.classList.toggle('open')}
+function expandAll(){document.querySelectorAll('.tree-toggle:not(.open)').forEach(t=>t.classList.add('open'))}
+function collapseAll(){document.querySelectorAll('.tree-toggle.open').forEach(t=>t.classList.remove('open'))}
+function showCopyPath(e,path){
+e.preventDefault();e.stopPropagation();
+const cp=document.getElementById('copyPath');cp.style.left=e.clientX+'px';cp.style.top=e.clientY+'px';
+cp.textContent='Copy: '+path;cp.style.display='block';
+cp.onclick=()=>{navigator.clipboard.writeText(path);cp.style.display='none';showToast()};
+setTimeout(()=>cp.style.display='none',3000)}
+function showToast(){const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+function copySelected(){
+if(!jsonData){return}const path=prompt('Enter JSON path (e.g. $.users.0.name):');if(!path)return;
+try{const keys=path.replace(/^\$\.?/,'').split('.').filter(Boolean);let v=jsonData;
+for(const k of keys){if(v===null||typeof v!=='object')throw new Error('Invalid path');v=v[k]}
+navigator.clipboard.writeText(JSON.stringify(v,null,2));showToast()}
+catch(e){alert('Invalid path: '+e.message)}}
+function searchTree(){
+const q=document.getElementById('searchInput').value.toLowerCase();
+document.querySelectorAll('.tree-leaf').forEach(el=>{
+if(!q){el.style.background='';el.style.color='';return}
+const text=el.textContent.toLowerCase();
+el.style.background=text.includes(q)?'rgba(139,92,246,.15)':''})}
+</script>
+</body>
+</html>

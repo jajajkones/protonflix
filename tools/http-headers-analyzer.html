@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTTP Headers Analyzer</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#e0e0e0;min-height:100vh;padding:20px}
+.header{max-width:1000px;margin:0 auto 20px;display:flex;align-items:center;gap:15px}
+.header a{color:#60a5fa;text-decoration:none;font-size:14px;font-weight:500;transition:color .2s}
+.header a:hover{color:#93c5fd}
+.header h1{font-size:22px;font-weight:600;color:#fff}
+.container{max-width:1000px;margin:0 auto}
+.panel{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:20px}
+.panel h2{font-size:16px;font-weight:600;margin-bottom:15px;color:#fff}
+label{display:block;font-size:13px;color:#999;margin-bottom:5px;font-weight:500}
+textarea{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:10px 12px;color:#fff;font-family:'Fira Code',monospace;font-size:13px;outline:none;transition:border-color .2s;resize:vertical;min-height:120px}
+textarea:focus{border-color:#60a5fa}
+.btn{padding:8px 16px;border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-weight:500;font-size:13px;cursor:pointer;transition:all .2s}
+.btn-primary{background:#60a5fa;color:#000}.btn-primary:hover{background:#93c5fd}
+.btn-secondary{background:#333;color:#fff}.btn-secondary:hover{background:#444}
+.btn-success{background:#22c55e;color:#000}.btn-success:hover{background:#4ade80}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-group{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:15px}
+.preset-btn{padding:6px 12px;background:#1a1a1a;border:1px solid #333;border-radius:20px;color:#ccc;font-size:12px;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif}
+.preset-btn:hover{background:#60a5fa;color:#000;border-color:#60a5fa}
+.status-badge{display:inline-block;padding:4px 12px;border-radius:6px;font-weight:600;font-size:14px;font-family:'Fira Code',monospace}
+.status-2xx{background:#22c55e20;color:#22c55e}.status-3xx{background:#60a5fa20;color:#60a5fa}
+.status-4xx{background:#f59e0b20;color:#f59e0b}.status-5xx{background:#ef444420;color:#ef4444}
+.headers-table{width:100%;border-collapse:collapse;margin-top:10px}
+.headers-table th,.headers-table td{text-align:left;padding:10px 12px;border-bottom:1px solid #222;font-size:13px}
+.headers-table th{color:#999;font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:0.5px}
+.headers-table td:first-child{font-family:'Fira Code',monospace;color:#60a5fa;font-weight:500;white-space:nowrap}
+.headers-table td:last-child{word-break:break-all}
+.sec-secure{border-left:3px solid #22c55e}.sec-warning{border-left:3px solid #f59e0b}
+.sec-insecure{border-left:3px solid #ef4444}.sec-missing{border-left:3px solid #666}
+.score-ring{width:100px;height:100px;margin:0 auto 15px}
+.score-text{font-size:28px;font-weight:700;text-anchor:middle;fill:#fff}
+.score-label{font-size:12px;fill:#999;text-anchor:middle}
+.missing-headers{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:12px;margin-top:10px}
+.missing-item{padding:6px 0;border-bottom:1px solid #222;font-size:13px;display:flex;justify-content:space-between;align-items:center}
+.missing-item:last-child{border-bottom:none}
+.severity-high{color:#ef4444}.severity-medium{color:#f59e0b}.severity-low{color:#60a5fa}
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.summary-card{background:#1a1a1a;border:1px solid #333;border-radius:10px;padding:15px;text-align:center}
+.summary-card .count{font-size:28px;font-weight:700}
+.summary-card .label{font-size:12px;color:#999;margin-top:4px}
+.summary-secure .count{color:#22c55e}.summary-warning .count{color:#f59e0b}
+.summary-insecure .count{color:#ef4444}.summary-missing .count{color:#666}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#111}::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
+@media(max-width:600px){.summary-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+  <a href="index.html">← Back</a>
+  <h1>HTTP Headers Analyzer</h1>
+</div>
+<div class="container">
+  <div class="panel">
+    <h2>Input</h2>
+    <div class="form-group">
+      <label>Paste raw HTTP response headers</label>
+      <textarea id="headersInput" rows="8" placeholder="HTTP/1.1 200 OK&#10;Content-Type: text/html; charset=UTF-8&#10;Server: nginx/1.24.0&#10;X-Frame-Options: DENY&#10;Content-Security-Policy: default-src 'self'&#10;Strict-Transport-Security: max-age=31536000"></textarea>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="analyzeHeaders()">Analyze</button>
+      <button class="btn btn-success" onclick="copyAnalysis()">Copy Analysis</button>
+      <button class="btn btn-secondary" onclick="clearAll()">Clear</button>
+    </div>
+    <h2 style="margin-top:15px">Presets</h2>
+    <div class="presets">
+      <button class="preset-btn" onclick="setPreset('secure')">Secure Headers</button>
+      <button class="preset-btn" onclick="setPreset('typical')">Typical Web Server</button>
+      <button class="preset-btn" onclick="setPreset('insecure')">Insecure Headers</button>
+      <button class="preset-btn" onclick="setPreset('api')">REST API</button>
+    </div>
+  </div>
+  <div class="panel" id="resultsPanel" style="display:none">
+    <div id="resultsContent"></div>
+  </div>
+</div>
+<script>
+const securityHeaders = {
+  'strict-transport-security': { name: 'Strict-Transport-Security (HSTS)', severity: 'high', check: v => v && v.includes('max-age=') ? 'secure' : 'warning' },
+  'content-security-policy': { name: 'Content-Security-Policy (CSP)', severity: 'high', check: v => v && v.length > 10 ? 'secure' : v ? 'warning' : 'missing' },
+  'x-frame-options': { name: 'X-Frame-Options', severity: 'high', check: v => v && (v === 'DENY' || v === 'SAMEORIGIN') ? 'secure' : v ? 'warning' : 'missing' },
+  'x-content-type-options': { name: 'X-Content-Type-Options', severity: 'medium', check: v => v === 'nosniff' ? 'secure' : v ? 'warning' : 'missing' },
+  'x-xss-protection': { name: 'X-XSS-Protection', severity: 'medium', check: v => v && v !== '0' ? 'secure' : v === '0' ? 'warning' : 'missing' },
+  'referrer-policy': { name: 'Referrer-Policy', severity: 'medium', check: v => v && v !== 'unsafe-url' && v !== 'no-referrer-when-downgrade' ? 'secure' : v ? 'warning' : 'missing' },
+  'permissions-policy': { name: 'Permissions-Policy', severity: 'medium', check: v => v ? 'secure' : 'missing' },
+  'access-control-allow-origin': { name: 'CORS (Access-Control-Allow-Origin)', severity: 'medium', check: v => v && v !== '*' ? 'secure' : v ? 'warning' : 'missing' },
+  'x-permitted-cross-domain-policies': { name: 'X-Permitted-Cross-Domain-Policies', severity: 'low', check: v => v === 'none' ? 'secure' : v ? 'warning' : 'missing' },
+  'cross-origin-opener-policy': { name: 'Cross-Origin-Opener-Policy (COOP)', severity: 'low', check: v => v && v.includes('same-origin') ? 'secure' : v ? 'warning' : 'missing' },
+  'cross-origin-resource-policy': { name: 'Cross-Origin-Resource-Policy (CORP)', severity: 'low', check: v => v && v !== 'cross-origin' ? 'secure' : v ? 'warning' : 'missing' },
+  'cross-origin-embedder-policy': { name: 'Cross-Origin-Embedder-Policy (COEP)', severity: 'low', check: v => v === 'require-corp' ? 'secure' : v ? 'warning' : 'missing' }
+};
+
+const presets = {
+  secure: `HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Server: nginx/1.24.0
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: camera=(), microphone=(), geolocation=()
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Resource-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp
+Cache-Control: no-store, no-cache, must-revalidate`,
+  typical: `HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Server: Apache/2.4.57 (Ubuntu)
+X-Powered-By: PHP/8.2.10
+Date: Mon, 28 Jul 2026 12:00:00 GMT
+Cache-Control: public, max-age=3600
+Connection: keep-alive
+Content-Length: 12345
+ETag: "abc123"`,
+  insecure: `HTTP/1.1 200 OK
+Content-Type: text/html
+Server: Apache/2.4.52 (Ubuntu)
+X-Powered-By: PHP/7.4.3
+Access-Control-Allow-Origin: *
+X-Frame-Options: ALLOW-FROM http://evil.com
+X-XSS-Protection: 0`,
+  api: `HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Server: cloudflare
+Strict-Transport-Security: max-age=63072000
+X-Content-Type-Options: nosniff
+X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 999
+X-RateLimit-Reset: 1690000000
+Cache-Control: no-cache, no-store
+Date: Mon, 28 Jul 2026 12:00:00 GMT`
+};
+
+function setPreset(key) {
+  document.getElementById('headersInput').value = presets[key];
+  analyzeHeaders();
+}
+
+function analyzeHeaders() {
+  const raw = document.getElementById('headersInput').value.trim();
+  if (!raw) return;
+
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  let statusLine = '';
+  const headers = [];
+
+  for (const line of lines) {
+    if (line.match(/^HTTP\/[\d.]+/)) {
+      statusLine = line;
+    } else if (line.includes(':')) {
+      const idx = line.indexOf(':');
+      const key = line.substring(0, idx).trim();
+      const value = line.substring(idx + 1).trim();
+      headers.push({ key, value });
+    }
+  }
+
+  let statusBadge = '';
+  if (statusLine) {
+    const code = parseInt(statusLine.split(' ')[1]);
+    const cls = code < 300 ? 'status-2xx' : code < 400 ? 'status-3xx' : code < 500 ? 'status-4xx' : 'status-5xx';
+    statusBadge = `<div style="margin-bottom:15px"><span class="status-badge ${cls}">${statusLine}</span></div>`;
+  }
+
+  let headersHTML = '<table class="headers-table"><thead><tr><th>Header</th><th>Value</th><th>Status</th></tr></thead><tbody>';
+  const secResults = {};
+  let secureCount = 0, warningCount = 0, insecureCount = 0, missingCount = 0;
+
+  for (const [name, info] of Object.entries(securityHeaders)) {
+    const found = headers.find(h => h.key.toLowerCase() === name);
+    let status = found ? info.check(found.value) : 'missing';
+    if (found && status === 'missing') status = 'insecure';
+    secResults[name] = { status, found, info };
+
+    if (status === 'secure') secureCount++;
+    else if (status === 'warning') warningCount++;
+    else if (status === 'missing') missingCount++;
+    else insecureCount++;
+  }
+
+  const totalSec = secureCount + warningCount + insecureCount + missingCount;
+  const score = totalSec > 0 ? Math.round((secureCount / totalSec) * 100) : 100;
+  const scoreColor = score >= 80 ? '#22c55e' : score >= 50 ? '#f59e0b' : '#ef4444';
+
+  let headerRows = '';
+  for (const h of headers) {
+    const secName = h.key.toLowerCase();
+    const isSec = securityHeaders[secName];
+    const secClass = isSec ? `sec-${secResults[secName]?.status || 'insecure'}` : '';
+    headerRows += `<tr class="${secClass}"><td>${h.key}</td><td>${h.value}</td><td>${isSec ? `<span class="tag tag-${secResults[secName]?.status === 'secure' ? 'os' : secResults[secName]?.status === 'warning' ? 'device' : 'browser'}">${secResults[secName]?.status || 'insecure'}</span>` : ''}</td></tr>`;
+  }
+  headersHTML += headerRows + '</tbody></table>';
+
+  let missingHTML = '<h3 style="margin-top:20px;font-size:14px;color:#999;margin-bottom:10px">Missing Security Headers</h3><div class="missing-headers">';
+  let hasMissing = false;
+  for (const [name, result] of Object.entries(secResults)) {
+    if (result.status === 'missing') {
+      hasMissing = true;
+      missingHTML += `<div class="missing-item"><span>${result.info.name}</span><span class="severity-${result.info.severity}">${result.info.severity} priority</span></div>`;
+    }
+  }
+  if (!hasMissing) missingHTML += '<div class="missing-item" style="color:#22c55e">All security headers present!</div>';
+  missingHTML += '</div>';
+
+  const content = `
+    <div class="summary-grid">
+      <div class="summary-card summary-secure"><div class="count">${secureCount}</div><div class="label">Secure</div></div>
+      <div class="summary-card summary-warning"><div class="count">${warningCount}</div><div class="label">Warning</div></div>
+      <div class="summary-card summary-insecure"><div class="count">${insecureCount}</div><div class="label">Insecure</div></div>
+      <div class="summary-card summary-missing"><div class="count">${missingCount}</div><div class="label">Missing</div></div>
+    </div>
+    <div style="text-align:center;margin-bottom:20px">
+      <svg class="score-ring" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="50" fill="none" stroke="#222" stroke-width="8"/>
+        <circle cx="60" cy="60" r="50" fill="none" stroke="${scoreColor}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${2*Math.PI*50}" stroke-dashoffset="${2*Math.PI*50*(1-score/100)}" transform="rotate(-90 60 60)"/>
+        <text class="score-text" x="60" y="62">${score}</text>
+        <text class="score-label" x="60" y="80">Security Score</text>
+      </svg>
+    </div>
+    ${statusBadge}
+    <h2 style="font-size:14px;color:#999;margin-bottom:5px">Parsed Headers</h2>
+    ${headersHTML}
+    ${missingHTML}
+  `;
+
+  document.getElementById('resultsContent').innerHTML = content;
+  document.getElementById('resultsPanel').style.display = 'block';
+}
+
+function copyAnalysis() {
+  const el = document.getElementById('resultsContent');
+  const text = el.innerText;
+  navigator.clipboard.writeText(text);
+  const btn = event.target; btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy Analysis', 1500);
+}
+
+function clearAll() {
+  document.getElementById('headersInput').value = '';
+  document.getElementById('resultsPanel').style.display = 'none';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Webhook Signature Verifier – ProtonFlix Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#e0e0e0;font-family:'Outfit',sans-serif;min-height:100vh}
+.header{padding:20px 32px;border-bottom:1px solid #222;display:flex;align-items:center;gap:16px}
+.header a{color:#8b5cf6;text-decoration:none;font-weight:500;font-size:14px;transition:color .2s}
+.header a:hover{color:#a78bfa}
+.header h1{font-size:20px;font-weight:600;color:#fff}
+.container{max-width:860px;margin:0 auto;padding:32px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:24px;margin-bottom:24px}
+.card h2{font-size:16px;font-weight:600;margin-bottom:16px;color:#fff}
+label{display:block;font-size:13px;color:#999;margin-bottom:6px;font-weight:500}
+input[type=text],textarea,select{width:100%;padding:12px 14px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#e0e0e0;font-family:'Outfit',sans-serif;font-size:14px;outline:none;transition:border .2s;resize:vertical}
+textarea{font-family:monospace;min-height:100px}
+input:focus,textarea:focus,select:focus{border-color:#8b5cf6}
+button{padding:10px 20px;border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s}
+.btn-primary{background:#8b5cf6;color:#fff}
+.btn-primary:hover{background:#7c3aed}
+.btn-secondary{background:#222;color:#e0e0e0;border:1px solid #333}
+.btn-secondary:hover{background:#333}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.preset-btn{padding:6px 12px;background:#1a1a2e;border:1px solid #333;border-radius:6px;color:#a78bfa;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s}
+.preset-btn:hover{background:#8b5cf6;color:#fff;border-color:#8b5cf6}
+.result-box{margin-top:16px;padding:16px;border-radius:8px;font-size:14px;font-weight:500}
+.result-pass{background:rgba(34,197,94,.1);border:1px solid #22c55e;color:#22c55e}
+.result-fail{background:rgba(239,68,68,.1);border:1px solid #ef4444;color:#ef4444}
+.result-info{background:rgba(139,92,246,.1);border:1px solid #8b5cf6;color:#a78bfa}
+.code-block{background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:16px;font-family:monospace;font-size:13px;color:#a78bfa;margin-top:12px;white-space:pre-wrap;word-break:break-all;position:relative}
+.copy-btn{position:absolute;top:8px;right:8px;padding:4px 10px;background:#333;border:1px solid #444;border-radius:4px;color:#ccc;font-size:11px;cursor:pointer;font-family:'Outfit',sans-serif}
+.copy-btn:hover{background:#555}
+.tab-bar{display:flex;gap:0;border-bottom:1px solid #222;margin-bottom:16px}
+.tab{padding:10px 20px;font-size:13px;font-weight:500;color:#666;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.tab.active{color:#8b5cf6;border-bottom-color:#8b5cf6}
+.tab:hover{color:#a78bfa}
+.tab-content{display:none}
+.tab-content.active{display:block}
+</style>
+</head>
+<body>
+<div class="header">
+  <a href="index.html">← Back</a>
+  <h1>Webhook Signature Verifier</h1>
+</div>
+<div class="container">
+  <div class="card">
+    <h2>Platform</h2>
+    <div class="tab-bar">
+      <div class="tab active" onclick="setPlatform('custom')">Custom</div>
+      <div class="tab" onclick="setPlatform('github')">GitHub</div>
+      <div class="tab" onclick="setPlatform('stripe')">Stripe</div>
+      <div class="tab" onclick="setPlatform('shopify')">Shopify</div>
+    </div>
+    <div id="platformInfo" class="result-box result-info" style="display:none"></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h2>Payload Body</h2>
+      <textarea id="payload" placeholder='{"event":"payment.completed","data":{"id":"12345"}}'></textarea>
+    </div>
+    <div class="card">
+      <h2>Secret Key</h2>
+      <input type="text" id="secret" placeholder="whsec_..." style="margin-bottom:12px">
+      <label>Algorithm</label>
+      <select id="algorithm">
+        <option value="SHA-256">HMAC-SHA256</option>
+        <option value="SHA-1">HMAC-SHA1</option>
+        <option value="SHA-512">HMAC-SHA512</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Signature Header</h2>
+    <input type="text" id="signature" placeholder="Paste the signature from the webhook header">
+    <div class="presets">
+      <button class="preset-btn" onclick="setPreset('github')">GitHub Example</button>
+      <button class="preset-btn" onclick="setPreset('stripe')">Stripe Example</button>
+      <button class="preset-btn" onclick="setPreset('shopify')">Shopify Example</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Verification</h2>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <button class="btn-primary" onclick="verifySignature()">Verify Signature</button>
+      <button class="btn-secondary" onclick="generateSignature()">Generate Signature</button>
+      <button class="btn-secondary" onclick="copyVerificationCode()">Copy Verification Code</button>
+    </div>
+    <div id="result"></div>
+    <div id="generatedSig" style="display:none">
+      <label style="margin-top:16px">Generated Signature</label>
+      <div class="code-block" id="genSigValue"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Verification Code Snippets</h2>
+    <div class="tab-bar">
+      <div class="tab active" onclick="showLang('node')">Node.js</div>
+      <div class="tab" onclick="showLang('python')">Python</div>
+      <div class="tab" onclick="showLang('go')">Go</div>
+      <div class="tab" onclick="showLang('php')">PHP</div>
+    </div>
+    <div class="code-block" id="codeSnippet" style="position:relative">
+      <button class="copy-btn" onclick="copySnippet()">Copy</button>
+      <span id="codeText"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+const crypto = window.crypto || window.msCrypto;
+let currentPlatform = 'custom';
+let currentLang = 'node';
+
+const platformConfig = {
+  github: { algo: 'SHA-256', header: 'X-Hub-Signature-256', prefix: 'sha256=', name: 'GitHub' },
+  stripe: { algo: 'SHA-256', header: 'Stripe-Signature', prefix: 'v1=', name: 'Stripe' },
+  shopify: { algo: 'SHA-256', header: 'X-Shopify-Hmac-SHA256', prefix: '', name: 'Shopify' }
+};
+
+function setPlatform(p) {
+  currentPlatform = p;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  const info = document.getElementById('platformInfo');
+  if (p !== 'custom') {
+    const cfg = platformConfig[p];
+    document.getElementById('algorithm').value = cfg.algo;
+    info.style.display = 'block';
+    info.innerHTML = `<strong>${cfg.name}</strong>: Uses ${cfg.algo} with header <code>${cfg.header}</code>`;
+  } else {
+    info.style.display = 'none';
+  }
+}
+
+function setPreset(p) {
+  const payload = '{"id":"evt_1234","object":"event","type":"payment_intent.succeeded","created":1690000000}';
+  document.getElementById('payload').value = payload;
+  const secrets = { github: 'my_webhook_secret', stripe: 'whsec_test123', shopify: 'hmac_secret_key' };
+  document.getElementById('secret').value = secrets[p] || 'my_webhook_secret';
+  setPlatform(p);
+}
+
+function hexToBytes(hex) {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+  }
+  return bytes;
+}
+
+function bytesToHex(bytes) {
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function hmacSign(algorithm, key, data) {
+  const enc = new TextEncoder();
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw', enc.encode(key), { name: 'HMAC', hash: algorithm }, false, ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', cryptoKey, enc.encode(data));
+  return bytesToHex(new Uint8Array(sig));
+}
+
+async function verifySignature() {
+  const payload = document.getElementById('payload').value;
+  const secret = document.getElementById('secret').value;
+  const algo = document.getElementById('algorithm').value;
+  const sigHeader = document.getElementById('signature').value.trim();
+  const resultDiv = document.getElementById('result');
+
+  if (!payload || !secret || !sigHeader) {
+    resultDiv.innerHTML = '<div class="result-box result-fail">Fill in all fields</div>';
+    return;
+  }
+
+  try {
+    const computed = await hmacSign(algo, secret, payload);
+    let expected = computed;
+    let received = sigHeader;
+
+    if (currentPlatform === 'github') {
+      received = sigHeader.replace('sha256=', '');
+    } else if (currentPlatform === 'stripe') {
+      const parts = {};
+      sigHeader.split(',').forEach(p => {
+        const [k, v] = p.split('=');
+        if (k && v) parts[k.trim()] = v.trim();
+      });
+      received = parts.v1 || '';
+      const timestamp = parts.t || '';
+      const signedPayload = `${timestamp}.${payload}`;
+      expected = await hmacSign(algo, secret, signedPayload);
+    }
+
+    const match = received === expected;
+    if (match) {
+      resultDiv.innerHTML = `<div class="result-box result-pass">✓ Signature is VALID<br><small>Computed: ${computed}</small></div>`;
+    } else {
+      resultDiv.innerHTML = `<div class="result-box result-fail">✗ Signature is INVALID<br><small>Expected: ${expected}<br>Received: ${received}</small></div>`;
+    }
+  } catch (e) {
+    resultDiv.innerHTML = `<div class="result-box result-fail">Error: ${e.message}</div>`;
+  }
+}
+
+async function generateSignature() {
+  const payload = document.getElementById('payload').value;
+  const secret = document.getElementById('secret').value;
+  const algo = document.getElementById('algorithm').value;
+  if (!payload || !secret) return;
+  const sig = await hmacSign(algo, secret, payload);
+  const genDiv = document.getElementById('generatedSig');
+  const genVal = document.getElementById('genSigValue');
+  let display = sig;
+  if (currentPlatform === 'github') display = `sha256=${sig}`;
+  genVal.textContent = display;
+  genDiv.style.display = 'block';
+}
+
+const snippets = {
+  node: (secret, algo) => `const crypto = require('crypto');
+
+function verifyWebhook(payload, signature, secret) {
+  const algo = '${algo.replace('SHA-', 'sha').toLowerCase()}';
+  const expected = crypto.createHmac(algo, secret)
+    .update(payload, 'utf8')
+    .digest('hex');
+  
+  const trusted = Buffer.from(\`sha256=\${expected}\`, 'ascii');
+  const untrusted = Buffer.from(signature, 'ascii');
+  
+  return crypto.timingSafeEqual(trusted, untrusted);
+}
+
+// Usage
+const payload = req.body;
+const sig = req.headers['x-hub-signature-256'];
+const isValid = verifyWebhook(payload, sig, '${secret}');`,
+
+  python: (secret, algo) => `import hmac
+import hashlib
+
+def verify_webhook(payload: bytes, signature: str, secret: str) -> bool:
+    algo = '${algo.replace('SHA-', 'sha').lower()}'
+    expected = hmac.new(
+        secret.encode('utf-8'),
+        payload,
+        getattr(hashlib, algo)
+    ).hexdigest()
+    
+    return hmac.compare_digest(f'sha256={expected}', signature)
+
+# Usage
+payload = request.data
+sig = request.headers.get('X-Hub-Signature-256')
+is_valid = verify_webhook(payload, sig, '${secret}')`,
+
+  go: (secret, algo) => `package main
+
+import (
+    "crypto/hmac"
+    "crypto/${algo.replace('SHA-', 'sha').toLowerCase()}"
+    "encoding/hex"
+    "fmt"
+)
+
+func verifyWebhook(payload []byte, signature, secret string) bool {
+    mac := hmac.New(${algo.replace('SHA-', 'sha').toLowerCase()}.New, []byte(secret))
+    mac.Write(payload)
+    expected := hex.EncodeToString(mac.Sum(nil))
+    
+    return hmac.Equal(
+        []byte("sha256="+expected),
+        []byte(signature),
+    )
+}`,
+
+  php: (secret, algo) => `<?php
+function verifyWebhook(string $payload, string $signature, string $secret): bool {
+    $algo = '${algo.replace('SHA-', 'sha').toLowerCase()}';
+    $expected = hash_hmac($algo, $payload, $secret);
+    
+    return hash_equals("sha256={$expected}", $signature);
+}
+
+// Usage
+$payload = file_get_contents('php://input');
+$sig = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '';
+$isValid = verifyWebhook($payload, $sig, '${secret}');`
+};
+
+function showLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  const secret = document.getElementById('secret').value || 'your_secret';
+  const algo = document.getElementById('algorithm').value;
+  document.getElementById('codeText').textContent = snippets[lang](secret, algo);
+}
+
+function copyVerificationCode() {
+  const secret = document.getElementById('secret').value || 'your_secret';
+  const algo = document.getElementById('algorithm').value;
+  const code = snippets[currentLang](secret, algo);
+  navigator.clipboard.writeText(code);
+}
+
+function copySnippet() {
+  const text = document.getElementById('codeText').textContent;
+  navigator.clipboard.writeText(text);
+}
+
+showLang('node');
+</script>
+</body>
+</html>

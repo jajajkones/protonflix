@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User-Agent Parser</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#e0e0e0;min-height:100vh;padding:20px}
+.header{max-width:1000px;margin:0 auto 20px;display:flex;align-items:center;gap:15px}
+.header a{color:#60a5fa;text-decoration:none;font-size:14px;font-weight:500;transition:color .2s}
+.header a:hover{color:#93c5fd}
+.header h1{font-size:22px;font-weight:600;color:#fff}
+.container{max-width:1000px;margin:0 auto}
+.panel{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:20px}
+.panel h2{font-size:16px;font-weight:600;margin-bottom:15px;color:#fff}
+label{display:block;font-size:13px;color:#999;margin-bottom:5px;font-weight:500}
+textarea{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:10px 12px;color:#fff;font-family:'Fira Code',monospace;font-size:13px;outline:none;transition:border-color .2s;resize:vertical;min-height:60px}
+textarea:focus{border-color:#60a5fa}
+.btn{padding:8px 16px;border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-weight:500;font-size:13px;cursor:pointer;transition:all .2s}
+.btn-primary{background:#60a5fa;color:#000}.btn-primary:hover{background:#93c5fd}
+.btn-secondary{background:#333;color:#fff}.btn-secondary:hover{background:#444}
+.btn-success{background:#22c55e;color:#000}.btn-success:hover{background:#4ade80}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-group{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:15px}
+.preset-btn{padding:6px 12px;background:#1a1a1a;border:1px solid #333;border-radius:20px;color:#ccc;font-size:12px;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif}
+.preset-btn:hover{background:#60a5fa;color:#000;border-color:#60a5fa}
+.results-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:15px}
+.result-card{background:#1a1a1a;border:1px solid #333;border-radius:10px;padding:15px}
+.result-card h3{font-size:13px;color:#999;margin-bottom:8px;font-weight:500}
+.result-card .value{font-size:18px;font-weight:600;color:#fff}
+.result-card .sub{font-size:12px;color:#666;margin-top:4px}
+.device-icon{font-size:40px;text-align:center;margin:15px 0}
+.raw-json{background:#0d0d0d;border:1px solid #222;border-radius:8px;padding:15px;font-family:'Fira Code',monospace;font-size:12px;white-space:pre-wrap;line-height:1.6;color:#e0e0e0;max-height:300px;overflow:auto}
+.tag{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500;margin:2px}
+.tag-browser{background:#60a5fa20;color:#60a5fa}
+.tag-os{background:#22c55e20;color:#22c55e}
+.tag-device{background:#f59e0b20;color:#f59e0b}
+.tag-engine{background:#a855f720;color:#a855f7}
+.tag-platform{background:#06b6d420;color:#06b6d4}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#111}::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
+@media(max-width:700px){.results-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+  <a href="index.html">← Back</a>
+  <h1>User-Agent Parser</h1>
+</div>
+<div class="container">
+  <div class="panel">
+    <h2>Input</h2>
+    <div class="form-group">
+      <label>Paste a User-Agent string</label>
+      <textarea id="uaInput" rows="3" placeholder="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"></textarea>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="parseUA()">Parse</button>
+      <button class="btn btn-success" onclick="copyJSON()">Copy JSON</button>
+      <button class="btn btn-secondary" onclick="clearAll()">Clear</button>
+    </div>
+    <h2 style="margin-top:15px">Presets</h2>
+    <div class="presets">
+      <button class="preset-btn" onclick="setPreset('chrome-win')">Chrome (Windows)</button>
+      <button class="preset-btn" onclick="setPreset('chrome-mac')">Chrome (macOS)</button>
+      <button class="preset-btn" onclick="setPreset('chrome-linux')">Chrome (Linux)</button>
+      <button class="preset-btn" onclick="setPreset('firefox-win')">Firefox (Windows)</button>
+      <button class="preset-btn" onclick="setPreset('firefox-mac')">Firefox (macOS)</button>
+      <button class="preset-btn" onclick="setPreset('safari-mac')">Safari (macOS)</button>
+      <button class="preset-btn" onclick="setPreset('safari-ios')">Safari (iOS)</button>
+      <button class="preset-btn" onclick="setPreset('edge-win')">Edge (Windows)</button>
+      <button class="preset-btn" onclick="setPreset('chrome-android')">Chrome (Android)</button>
+      <button class="preset-btn" onclick="setPreset('chrome-ios')">Chrome (iOS)</button>
+      <button class="preset-btn" onclick="setPreset('opera-win')">Opera (Windows)</button>
+      <button class="preset-btn" onclick="setPreset('curl')">cURL</button>
+    </div>
+  </div>
+  <div class="panel" id="resultsPanel" style="display:none">
+    <h2>Parsed Result</h2>
+    <div class="results-grid" id="resultsGrid"></div>
+    <h2 style="margin-top:20px">Raw JSON</h2>
+    <div class="raw-json" id="rawJson"></div>
+  </div>
+</div>
+<script>
+const presets = {
+  'chrome-win': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  'chrome-mac': "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  'chrome-linux': "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  'firefox-win': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+  'firefox-mac': "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0",
+  'safari-mac': "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
+  'safari-ios': "Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1",
+  'edge-win': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
+  'chrome-android': "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+  'chrome-ios': "Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/120.0.6099.119 Mobile/15E148 Safari/604.1",
+  'opera-win': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 OPR/106.0.0.0",
+  'curl': "curl/7.88.1"
+};
+
+function setPreset(key) {
+  document.getElementById('uaInput').value = presets[key];
+  parseUA();
+}
+
+function parseUA() {
+  const ua = document.getElementById('uaInput').value.trim();
+  if (!ua) return;
+
+  const result = {
+    raw: ua,
+    browser: parseBrowser(ua),
+    os: parseOS(ua),
+    device: parseDevice(ua),
+    engine: parseEngine(ua),
+    platform: parsePlatform(ua)
+  };
+
+  displayResults(result);
+}
+
+function parseBrowser(ua) {
+  if (ua.includes('Edg/')) return { name: 'Microsoft Edge', version: extractVersion(ua, /Edg\/([\d.]+)/) };
+  if (ua.includes('OPR/') || ua.includes('Opera')) return { name: 'Opera', version: extractVersion(ua, /(?:OPR|Opera)\/([\d.]+)/) };
+  if (ua.includes('Chrome/') && !ua.includes('Edg/')) return { name: 'Google Chrome', version: extractVersion(ua, /Chrome\/([\d.]+)/) };
+  if (ua.includes('Firefox/')) return { name: 'Mozilla Firefox', version: extractVersion(ua, /Firefox\/([\d.]+)/) };
+  if (ua.includes('Safari/') && ua.includes('Version/')) return { name: 'Apple Safari', version: extractVersion(ua, /Version\/([\d.]+)/) };
+  if (ua.includes('curl/')) return { name: 'cURL', version: extractVersion(ua, /curl\/([\d.]+)/) };
+  if (ua.includes('PostmanRuntime')) return { name: 'Postman', version: extractVersion(ua, /PostmanRuntime\/([\d.]+)/) };
+  return { name: 'Unknown', version: '' };
+}
+
+function parseOS(ua) {
+  if (ua.includes('Windows NT 10.0')) return { name: 'Windows', version: '10/11' };
+  if (ua.includes('Windows NT 6.3')) return { name: 'Windows', version: '8.1' };
+  if (ua.includes('Windows NT 6.1')) return { name: 'Windows', version: '7' };
+  if (ua.includes('Windows')) return { name: 'Windows', version: extractVersion(ua, /Windows NT ([\d.]+)/) || '' };
+  if (ua.includes('Mac OS X')) return { name: 'macOS', version: extractVersion(ua, /Mac OS X ([\d_]+)/)?.replace(/_/g, '.') || '' };
+  if (ua.includes('Linux')) {
+    if (ua.includes('Android')) return { name: 'Android', version: extractVersion(ua, /Android ([\d.]+)/) || '' };
+    return { name: 'Linux', version: '' };
+  }
+  if (ua.includes('iPhone') || ua.includes('iPad')) {
+    const ver = extractVersion(ua, /OS ([\d_]+)/)?.replace(/_/g, '.') || '';
+    return { name: ua.includes('iPad') ? 'iPadOS' : 'iOS', version: ver };
+  }
+  return { name: 'Unknown', version: '' };
+}
+
+function parseDevice(ua) {
+  if (ua.includes('curl') || ua.includes('PostmanRuntime')) return { type: 'CLI Tool', model: '' };
+  if (ua.includes('Mobile') || ua.includes('Android')) {
+    if (ua.includes('iPad')) return { type: 'Tablet', model: extractModel(ua) || 'iPad' };
+    return { type: 'Mobile', model: extractModel(ua) || '' };
+  }
+  if (ua.includes('iPhone')) return { type: 'Mobile', model: 'iPhone' };
+  if (ua.includes('Tablet') || ua.includes('iPad')) return { type: 'Tablet', model: 'iPad' };
+  return { type: 'Desktop', model: '' };
+}
+
+function parseEngine(ua) {
+  if (ua.includes('AppleWebKit/') && ua.includes('Chrome/')) return { name: 'Blink', version: extractVersion(ua, /Chrome\/([\d.]+)/) };
+  if (ua.includes('AppleWebKit/')) return { name: 'WebKit', version: extractVersion(ua, /AppleWebKit\/([\d.]+)/) };
+  if (ua.includes('Gecko/') && ua.includes('Firefox/')) return { name: 'Gecko', version: extractVersion(ua, /rv:([\d.]+)/) };
+  return { name: 'Unknown', version: '' };
+}
+
+function parsePlatform(ua) {
+  if (ua.includes('Win32') || ua.includes('Windows')) return 'Windows';
+  if (ua.includes('MacIntel')) return 'MacIntel';
+  if (ua.includes('Linux x86_64')) return 'Linux x86_64';
+  if (ua.includes('Linux aarch64')) return 'Linux ARM64';
+  if (ua.includes('Linux armv7l')) return 'Linux ARMv7';
+  if (ua.includes('iPhone')) return 'iPhone';
+  if (ua.includes('iPad')) return 'iPad';
+  return 'Unknown';
+}
+
+function extractVersion(ua, regex) {
+  const match = ua.match(regex);
+  return match ? match[1] : '';
+}
+
+function extractModel(ua) {
+  const models = [
+    /Pixel ([\d\w]+)/i, /Samsung[\s-]([\w\d\s-]+)/i, /SM-([\w\d]+)/i,
+    /Redmi[\s-]([\w\d\s]+)/i, /Mi [\w\d]+/i, /OnePlus[\s-]([\w\d]+)/i,
+    /HUAWEI[\s-]([\w\d\s]+)/i, /Sony[\s-]([\w\d\s]+)/i
+  ];
+  for (const regex of models) {
+    const match = ua.match(regex);
+    if (match) return match[0].trim();
+  }
+  return '';
+}
+
+function displayResults(result) {
+  const grid = document.getElementById('resultsGrid');
+  grid.innerHTML = `
+    <div class="result-card">
+      <h3>Browser</h3>
+      <div class="value">${result.browser.name}</div>
+      <div class="sub">Version: ${result.browser.version || 'N/A'}</div>
+      <div style="margin-top:8px"><span class="tag tag-browser">${result.browser.name}</span></div>
+    </div>
+    <div class="result-card">
+      <h3>Operating System</h3>
+      <div class="value">${result.os.name}</div>
+      <div class="sub">Version: ${result.os.version || 'N/A'}</div>
+      <div style="margin-top:8px"><span class="tag tag-os">${result.os.name}</span></div>
+    </div>
+    <div class="result-card">
+      <h3>Device</h3>
+      <div class="value">${result.device.type}</div>
+      <div class="sub">Model: ${result.device.model || 'N/A'}</div>
+      <div style="margin-top:8px"><span class="tag tag-device">${result.device.type}</span></div>
+    </div>
+    <div class="result-card">
+      <h3>Rendering Engine</h3>
+      <div class="value">${result.engine.name}</div>
+      <div class="sub">Version: ${result.engine.version || 'N/A'}</div>
+      <div style="margin-top:8px"><span class="tag tag-engine">${result.engine.name}</span></div>
+    </div>
+    <div class="result-card">
+      <h3>Platform</h3>
+      <div class="value">${result.platform}</div>
+      <div style="margin-top:8px"><span class="tag tag-platform">${result.platform}</span></div>
+    </div>
+    <div class="result-card">
+      <h3>Device Category</h3>
+      <div class="value">${result.device.type === 'Desktop' ? '🖥️' : result.device.type === 'Mobile' ? '📱' : result.device.type === 'Tablet' ? '📋' : '⌨️'}</div>
+      <div class="sub">${result.device.type}</div>
+    </div>
+  `;
+  document.getElementById('rawJson').textContent = JSON.stringify(result, null, 2);
+  document.getElementById('resultsPanel').style.display = 'block';
+}
+
+function copyJSON() {
+  const json = document.getElementById('rawJson').textContent;
+  navigator.clipboard.writeText(json);
+  const btn = event.target; btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy JSON', 1500);
+}
+
+function clearAll() {
+  document.getElementById('uaInput').value = '';
+  document.getElementById('resultsPanel').style.display = 'none';
+}
+
+document.getElementById('uaInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); parseUA(); }
+});
+
+parseUA();
+</script>
+</body>
+</html>

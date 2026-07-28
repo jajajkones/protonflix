@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ENV File Editor | ProtonFlix</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#e0e0e0;min-height:100vh}
+a{color:#6cf;text-decoration:none}a:hover{text-decoration:underline}
+.header{background:#111;border-bottom:1px solid #222;padding:16px 32px;display:flex;align-items:center;gap:16px}
+.header h1{font-size:1.2rem;font-weight:600}
+.container{max-width:1200px;margin:0 auto;padding:24px}
+.panel{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:20px}
+.panel h2{font-size:1rem;font-weight:500;margin-bottom:12px;color:#aaa}
+textarea{width:100%;height:200px;background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:14px;color:#e0e0e0;font-family:'Fira Code',monospace;font-size:13px;resize:vertical;outline:none}
+textarea:focus{border-color:#6cf}
+.controls{display:flex;gap:10px;margin:16px 0;flex-wrap:wrap}
+button{background:#6cf;color:#0a0a0a;border:none;padding:10px 20px;border-radius:8px;font-family:'Outfit',sans-serif;font-weight:500;font-size:14px;cursor:pointer;transition:opacity .2s}
+button:hover{opacity:.85}
+button.secondary{background:#222;color:#e0e0e0}
+button.danger{background:#e44;color:#fff}
+.env-rows{display:flex;flex-direction:column;gap:6px}
+.env-row{display:grid;grid-template-columns:1fr 1fr auto auto;gap:8px;align-items:center}
+.env-row input,.env-row textarea{background:#0a0a0a;border:1px solid #222;border-radius:6px;padding:8px 12px;color:#e0e0e0;font-family:'Fira Code',monospace;font-size:13px;outline:none}
+.env-row input:focus,.env-row textarea:focus{border-color:#6cf}
+.env-row input{height:40px}
+.env-row textarea{height:40px;resize:none}
+.env-row .comment{color:#555;font-style:italic}
+.env-row .comment-input{border-style:dashed;border-color:#333}
+.env-row .remove-btn{background:none;border:none;color:#666;cursor:pointer;font-size:18px;padding:4px 8px;border-radius:4px}
+.env-row .remove-btn:hover{color:#e44;background:rgba(228,68,68,0.1)}
+.add-btn{background:none;border:2px dashed #333;color:#666;padding:10px;border-radius:8px;cursor:pointer;width:100%;font-family:'Outfit',sans-serif;font-size:14px;transition:all .2s}
+.add-btn:hover{border-color:#6cf;color:#6cf}
+.templates{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.template-btn{background:#1a1a1a;border:1px solid #222;color:#aaa;padding:6px 14px;border-radius:6px;font-family:'Outfit',sans-serif;font-size:13px;cursor:pointer;transition:all .2s}
+.template-btn:hover{border-color:#6cf;color:#6cf}
+.tabs{display:flex;gap:0;margin-bottom:16px}
+.tab{padding:10px 20px;background:#1a1a1a;border:1px solid #222;cursor:pointer;font-family:'Outfit',sans-serif;font-size:14px;color:#888;transition:all .2s}
+.tab:first-child{border-radius:8px 0 0 8px}
+.tab:last-child{border-radius:0 8px 8px 0}
+.tab.active{background:#6cf;color:#0a0a0a;border-color:#6cf;font-weight:500}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.output-box{background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:14px;min-height:120px;font-family:'Fira Code',monospace;font-size:13px;color:#6cf;white-space:pre-wrap;word-break:break-all}
+.toast{position:fixed;bottom:24px;right:24px;background:#6cf;color:#0a0a0a;padding:12px 24px;border-radius:8px;font-weight:500;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+.sort-btn{background:#1a1a1a;border:1px solid #222;color:#aaa;padding:6px 14px;border-radius:6px;font-family:'Outfit',sans-serif;font-size:13px;cursor:pointer}
+.sort-btn:hover{border-color:#6cf;color:#6cf}
+.row-type{display:flex;gap:4px}
+.type-btn{background:#1a1a1a;border:1px solid #222;color:#888;padding:4px 8px;border-radius:4px;font-size:11px;cursor:pointer;font-family:'Outfit',sans-serif}
+.type-btn.active{background:#333;color:#6cf;border-color:#6cf}
+.multiline{grid-column:1/-1}
+</style>
+</head>
+<body>
+<div class="header">
+  <a href="index.html">&larr; Back</a>
+  <h1>ENV File Editor / .env Generator</h1>
+</div>
+<div class="container">
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('visual')">Visual Editor</div>
+    <div class="tab" onclick="switchTab('raw')">Raw Text</div>
+    <div class="tab" onclick="switchTab('output')">Output</div>
+  </div>
+  <div id="visual" class="tab-content active">
+    <div class="panel">
+      <h2>Environment Variables</h2>
+      <div class="templates">
+        <span style="color:#888;font-size:13px;margin-right:8px">Templates:</span>
+        <button class="template-btn" onclick="loadTemplate('node')">Node.js</button>
+        <button class="template-btn" onclick="loadTemplate('python')">Python</button>
+        <button class="template-btn" onclick="loadTemplate('docker')">Docker</button>
+        <button class="template-btn" onclick="loadTemplate('database')">Database</button>
+        <button class="template-btn" onclick="loadTemplate('aws')">AWS</button>
+        <button class="template-btn" onclick="loadTemplate('redis')">Redis</button>
+      </div>
+      <div class="controls" style="margin-bottom:12px">
+        <button class="secondary" onclick="addRow()">+ Add Variable</button>
+        <button class="secondary" onclick="addComment()">+ Add Comment</button>
+        <button class="sort-btn" onclick="sortRows()">Sort A-Z</button>
+        <button class="sort-btn" onclick="sortRows(true)">Sort Z-A</button>
+      </div>
+      <div class="env-rows" id="envRows"></div>
+      <button class="add-btn" onclick="addRow()" style="margin-top:12px">+ Add Variable</button>
+    </div>
+  </div>
+  <div id="raw" class="tab-content">
+    <div class="panel">
+      <h2>Raw .env Content</h2>
+      <textarea id="rawInput" placeholder="Paste existing .env content here...&#10;&#10;KEY=value&#10;# This is a comment&#10;DATABASE_URL=postgres://localhost/mydb"></textarea>
+      <div class="controls">
+        <button onclick="parseRaw()">Parse to Editor</button>
+        <button class="secondary" onclick="copyRaw()">Copy Raw</button>
+      </div>
+    </div>
+  </div>
+  <div id="output" class="tab-content">
+    <div class="panel">
+      <h2>Generated .env File</h2>
+      <div class="controls">
+        <button onclick="downloadEnv()">Download .env</button>
+        <button class="secondary" onclick="copyOutput()">Copy to Clipboard</button>
+      </div>
+      <div class="output-box" id="envOutput">Generated .env content will appear here...</div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+let rows=[];
+let rowId=0;
+const templates={
+  node:`NODE_ENV=development
+PORT=3000
+HOST=localhost
+DATABASE_URL=postgres://user:pass@localhost:5432/mydb
+REDIS_URL=redis://localhost:6379
+JWT_SECRET=your-secret-key-here
+SESSION_SECRET=your-session-secret
+LOG_LEVEL=debug
+CORS_ORIGIN=*
+MAX_UPLOAD_SIZE=10mb`,
+  python:`DJANGO_SECRET_KEY=your-secret-key
+DEBUG=True
+DATABASE_URL=postgres://user:pass@localhost:5432/mydb
+REDIS_URL=redis://localhost:6379
+CELERY_BROKER_URL=redis://localhost:6379/0
+ALLOWED_HOSTS=localhost,127.0.0.1
+STATIC_ROOT=/static
+MEDIA_ROOT=/media
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587`,
+  docker:`POSTGRES_USER=admin
+POSTGRES_PASSWORD=secret
+POSTGRES_DB=myapp
+REDIS_PASSWORD=redis_secret
+APP_ENV=production
+APP_PORT=8080
+APP_SECRET=super-secret-key
+LOG_LEVEL=info
+TZ=UTC
+NODE_ENV=production`,
+  database:`DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=myapp
+DB_USER=admin
+DB_PASSWORD=secret
+DB_SSL=false
+DB_POOL_MIN=2
+DB_POOL_MAX=10
+DB_TIMEOUT=30000
+DB_RETRY=3`,
+  aws:`AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+AWS_REGION=us-east-1
+AWS_S3_BUCKET=my-bucket
+AWS_S3_REGION=us-east-1
+AWS_LAMBDA_FUNCTION=my-function
+AWS_COGNITO_POOL_ID=us-east-1_example
+AWS_SQS_QUEUE_URL=https://sqs.us-east-1.amazonaws.com/123456789/my-queue`,
+  redis:`REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_DB=0
+REDIS_KEY_PREFIX=app:
+REDIS_MAX_RETRIES=3
+REDIS_RETRY_DELAY=100
+REDIS_TLS=false
+REDIS_CONNECT_TIMEOUT=5000
+REDIS_COMMAND_TIMEOUT=3000`
+};
+function addRow(key='',value='',comment=''){
+  const id=rowId++;
+  rows.push({id,type:'var',key,value,comment});
+  renderRows();
+}
+function addComment(text='# '){
+  const id=rowId++;
+  rows.push({id,type:'comment',key:'',value:'',comment:text});
+  renderRows();
+}
+function removeRow(id){
+  rows=rows.filter(r=>r.id!==id);
+  renderRows();
+}
+function updateRow(id,field,val){
+  const row=rows.find(r=>r.id===id);
+  if(row)row[field]=val;
+}
+function renderRows(){
+  const container=document.getElementById('envRows');
+  container.innerHTML=rows.map(r=>{
+    if(r.type==='comment'){
+      return `<div class="env-row">
+        <input class="comment-input" value="${esc(r.comment)}" onchange="updateRow(${r.id},'comment',this.value)" placeholder="# Comment" style="grid-column:1/-1">
+        <button class="remove-btn" onclick="removeRow(${r.id})">&times;</button>
+      </div>`;
+    }
+    return `<div class="env-row">
+      <input value="${esc(r.key)}" onchange="updateRow(${r.id},'key',this.value)" placeholder="KEY">
+      <input value="${esc(r.value)}" onchange="updateRow(${r.id},'value',this.value)" placeholder="value">
+      <input value="${esc(r.comment)}" onchange="updateRow(${r.id},'comment',this.value)" placeholder="# optional" style="width:120px;color:#666">
+      <button class="remove-btn" onclick="removeRow(${r.id})">&times;</button>
+    </div>`;
+  }).join('');
+}
+function esc(s){return s.replace(/"/g,'&quot;').replace(/</g,'&lt;')}
+function generateEnv(){
+  return rows.map(r=>{
+    if(r.type==='comment')return r.comment;
+    const line=r.key+'='+r.value;
+    return r.comment?line+'  '+r.comment:line;
+  }).join('\n');
+}
+function loadTemplate(name){
+  const raw=templates[name];
+  rows=[];rowId=0;
+  raw.split('\n').forEach(line=>{
+    line=line.trim();
+    if(!line)return;
+    if(line.startsWith('#')){
+      addComment(line);
+    }else{
+      const i=line.indexOf('=');
+      if(i!==-1){
+        const key=line.slice(0,i);
+        const val=line.slice(i+1);
+        addRow(key,val);
+      }
+    }
+  });
+  showToast('Loaded '+name+' template');
+}
+function parseRaw(){
+  const raw=document.getElementById('rawInput').value;
+  if(!raw.trim()){showToast('Please paste some .env content');return}
+  rows=[];rowId=0;
+  raw.split('\n').forEach(line=>{
+    line=line.trim();
+    if(!line)return;
+    if(line.startsWith('#')||line.startsWith('//')){
+      addComment(line);
+    }else{
+      const i=line.indexOf('=');
+      if(i!==-1){
+        const key=line.slice(0,i).trim();
+        const val=line.slice(i+1).trim();
+        addRow(key,val);
+      }
+    }
+  });
+  showToast('Parsed '+rows.filter(r=>r.type==='var').length+' variables');
+}
+function sortRows(reverse=false){
+  const vars=rows.filter(r=>r.type==='var');
+  const comments=rows.filter(r=>r.type==='comment');
+  vars.sort((a,b)=>reverse?b.key.localeCompare(a.key):a.key.localeCompare(b.key));
+  rows=[...comments,...vars];
+  renderRows();
+  showToast('Sorted '+(reverse?'Z-A':'A-Z'));
+}
+function copyOutput(){
+  const env=generateEnv();
+  if(!env.trim()){showToast('Nothing to copy');return}
+  navigator.clipboard.writeText(env).then(()=>showToast('Copied to clipboard!'));
+}
+function copyRaw(){
+  const raw=document.getElementById('rawInput').value;
+  if(!raw.trim()){showToast('Nothing to copy');return}
+  navigator.clipboard.writeText(raw).then(()=>showToast('Copied to clipboard!'));
+}
+function downloadEnv(){
+  const env=generateEnv();
+  if(!env.trim()){showToast('Nothing to download');return}
+  const blob=new Blob([env],{type:'text/plain'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='.env';a.click();
+  URL.revokeObjectURL(url);
+  showToast('Downloaded .env file');
+}
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+  if(id==='output'){
+    document.getElementById('envOutput').textContent=generateEnv();
+  }
+}
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+addRow('NODE_ENV','development');
+addRow('PORT','3000');
+addRow('DATABASE_URL','postgres://user:pass@localhost:5432/mydb');
+addComment('# Add more variables below');
+</script>
+</body>
+</html>

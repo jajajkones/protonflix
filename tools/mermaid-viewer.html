@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mermaid Diagram Viewer</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#e0e0e0;min-height:100vh;padding:20px}
+.header{max-width:1200px;margin:0 auto 24px;display:flex;align-items:center;gap:12px}
+.header a{color:#6ee7b7;text-decoration:none;font-weight:500;font-size:14px}
+.header a:hover{text-decoration:underline}
+.header h1{font-size:22px;font-weight:600;color:#fff}
+.container{max-width:1200px;margin:0 auto}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:24px;margin-bottom:20px}
+.card h2{font-size:16px;font-weight:600;margin-bottom:16px;color:#6ee7b7}
+label{display:block;font-size:13px;color:#999;margin-bottom:6px;font-weight:500}
+textarea{width:100%;padding:12px 14px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#e0e0e0;font-family:'Outfit',monospace;font-size:13px;outline:none;resize:vertical;transition:border-color .2s;line-height:1.6}
+textarea:focus{border-color:#6ee7b7}
+textarea{min-height:180px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:#6ee7b7;color:#0a0a0a;border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-weight:600;font-size:14px;cursor:pointer;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:6px}
+.btn-outline{background:transparent;color:#6ee7b7;border:1px solid #6ee7b7}
+.btn-outline:hover{background:rgba(110,231,183,.1)}
+.tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+.tab{padding:8px 16px;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#999;font-size:13px;font-family:'Outfit',sans-serif;cursor:pointer;font-weight:500;transition:all .2s}
+.tab.active{background:#6ee7b7;color:#0a0a0a;border-color:#6ee7b7}
+.tab:hover:not(.active){border-color:#444;color:#fff}
+.preview-area{background:#fff;border-radius:8px;padding:20px;min-height:300px;overflow:auto;display:flex;align-items:center;justify-content:center;position:relative}
+.preview-area svg{max-width:100%}
+.zoom-controls{display:flex;gap:6px;align-items:center;margin-bottom:10px}
+.zoom-controls span{font-size:13px;color:#999;min-width:50px;text-align:center}
+.error-msg{color:#f87171;font-size:13px;margin-top:8px}
+.copied{position:fixed;top:20px;right:20px;background:#6ee7b7;color:#0a0a0a;padding:10px 20px;border-radius:8px;font-weight:600;font-size:13px;opacity:0;transition:opacity .3s;z-index:999}
+.copied.show{opacity:1}
+@media(max-width:768px){.btn-row{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html">&larr; Back</a>
+<h1>Mermaid Diagram Viewer</h1>
+</div>
+
+<div class="card">
+<h2>Preset Templates</h2>
+<div class="tabs">
+<div class="tab active" data-preset="flowchart" onclick="loadPreset('flowchart')">Flowchart</div>
+<div class="tab" data-preset="sequence" onclick="loadPreset('sequence')">Sequence</div>
+<div class="tab" data-preset="class" onclick="loadPreset('class')">Class</div>
+<div class="tab" data-preset="er" onclick="loadPreset('er')">ER Diagram</div>
+<div class="tab" data-preset="gantt" onclick="loadPreset('gantt')">Gantt</div>
+</div>
+
+<h2>Mermaid Syntax</h2>
+<textarea id="mermaidInput"></textarea>
+<div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap" class="btn-row">
+<button class="btn" onclick="renderDiagram()">Render</button>
+<div class="zoom-controls">
+<button class="btn btn-sm btn-outline" onclick="zoom(-0.2)">−</button>
+<span id="zoomLabel">100%</span>
+<button class="btn btn-sm btn-outline" onclick="zoom(0.2)">+</button>
+<button class="btn btn-sm btn-outline" onclick="resetZoom()">Reset</button>
+</div>
+<div style="margin-left:auto;display:flex;gap:6px">
+<button class="btn btn-sm btn-outline" onclick="downloadPNG()">Download PNG</button>
+<button class="btn btn-sm btn-outline" onclick="downloadSVG()">Download SVG</button>
+</div>
+</div>
+<div class="error-msg" id="error"></div>
+</div>
+
+<div class="card">
+<h2>Preview</h2>
+<div class="preview-area" id="preview">
+<p style="color:#999">Click "Render" to display diagram</p>
+</div>
+</div>
+</div>
+
+<div class="copied" id="copiedMsg">Copied!</div>
+
+<script>
+const presets={
+flowchart:`graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Process A]
+    B -->|No| D[Process B]
+    C --> E[End]
+    D --> E`,
+sequence:`sequenceDiagram
+    participant User
+    participant Frontend
+    participant API
+    participant Database
+    User->>Frontend: Login request
+    Frontend->>API: POST /auth
+    API->>Database: Query user
+    Database-->>API: User data
+    API-->>Frontend: JWT token
+    Frontend-->>User: Welcome`,
+class:`classDiagram
+    class Animal {
+        +String name
+        +int age
+        +makeSound()
+    }
+    class Dog {
+        +fetch()
+    }
+    class Cat {
+        +purr()
+    }
+    Animal <|-- Dog
+    Animal <|-- Cat`,
+er:`erDiagram
+    CUSTOMER ||--o{ ORDER : places
+    ORDER ||--|{ ORDER_ITEM : contains
+    PRODUCT ||--o{ ORDER_ITEM : includes
+    CUSTOMER {
+        int id PK
+        string name
+        string email
+    }
+    ORDER {
+        int id PK
+        date orderDate
+        float total
+    }
+    PRODUCT {
+        int id PK
+        string name
+        float price
+    }`,
+gantt:`gantt
+    title Project Timeline
+    dateFormat  YYYY-MM-DD
+    section Planning
+    Requirements    :a1, 2024-01-01, 14d
+    Design          :a2, after a1, 10d
+    section Development
+    Frontend        :b1, after a2, 20d
+    Backend         :b2, after a2, 25d
+    section Testing
+    QA Testing      :c1, after b2, 10d
+    Deployment      :c2, after c1, 5d`
+};
+
+let currentZoom=1;
+let diagramSvg='';
+
+mermaid.initialize({startOnLoad:false,theme:'default',securityLevel:'loose',fontFamily:'Outfit'});
+
+function loadPreset(type){
+document.getElementById('mermaidInput').value=presets[type];
+document.querySelectorAll('.tab[data-preset]').forEach(t=>t.classList.toggle('active',t.dataset.preset===type));
+renderDiagram();
+}
+
+async function renderDiagram(){
+const code=document.getElementById('mermaidInput').value.trim();
+const errEl=document.getElementById('error');
+const preview=document.getElementById('preview');
+errEl.textContent='';
+if(!code){preview.innerHTML='<p style="color:#999">Enter Mermaid syntax above</p>';return}
+try{
+const{svg}=await mermaid.render('diagram-'+Date.now(),code);
+diagramSvg=svg;
+preview.innerHTML=svg;
+currentZoom=1;
+updateZoom();
+}catch(e){
+errEl.textContent='Render error: '+e.message.replace(/Error:.*/,'');
+preview.innerHTML='<p style="color:#f87171">Failed to render diagram</p>';
+}
+}
+
+function zoom(delta){
+currentZoom=Math.max(0.2,Math.min(5,currentZoom+delta));
+updateZoom();
+}
+function resetZoom(){currentZoom=1;updateZoom()}
+function updateZoom(){
+document.getElementById('zoomLabel').textContent=Math.round(currentZoom*100)+'%';
+const svg=document.querySelector('#preview svg');
+if(svg)svg.style.transform=`scale(${currentZoom})`;
+}
+
+function downloadPNG(){
+const svgEl=document.querySelector('#preview svg');
+if(!svgEl){alert('Render a diagram first');return}
+const canvas=document.createElement('canvas');
+const ctx=canvas.getContext('2d');
+const svgData=new XMLSerializer().serializeToString(svgEl);
+const img=new Image();
+img.onload=()=>{
+canvas.width=img.width*2;canvas.height=img.height*2;
+ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+ctx.drawImage(img,0,0,canvas.width,canvas.height);
+const a=document.createElement('a');
+a.href=canvas.toDataURL('image/png');
+a.download='mermaid-diagram.png';a.click();
+};
+img.src='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svgData)));
+}
+
+function downloadSVG(){
+if(!diagramSvg){alert('Render a diagram first');return}
+const blob=new Blob([diagramSvg],{type:'image/svg+xml'});
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+a.download='mermaid-diagram.svg';a.click();URL.revokeObjectURL(a.href);
+}
+</script>
+</body>
+</html>

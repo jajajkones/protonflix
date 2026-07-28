@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Markdown to PDF Converter</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#e0e0e0;min-height:100vh;padding:20px}
+.header{max-width:1200px;margin:0 auto 24px;display:flex;align-items:center;gap:12px}
+.header a{color:#6ee7b7;text-decoration:none;font-weight:500;font-size:14px}
+.header a:hover{text-decoration:underline}
+.header h1{font-size:22px;font-weight:600;color:#fff}
+.container{max-width:1200px;margin:0 auto}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:24px;margin-bottom:20px}
+.card h2{font-size:16px;font-weight:600;margin-bottom:16px;color:#6ee7b7}
+label{display:block;font-size:13px;color:#999;margin-bottom:6px;font-weight:500}
+textarea{width:100%;padding:12px 14px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#e0e0e0;font-family:'Outfit',monospace;font-size:13px;outline:none;resize:vertical;transition:border-color .2s;line-height:1.6}
+textarea:focus{border-color:#6ee7b7}
+textarea{min-height:250px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.preview-box{background:#fff;border-radius:8px;padding:30px;color:#222;min-height:400px;overflow:auto;font-size:15px;line-height:1.7}
+.preview-box h1{font-size:28px;margin:20px 0 12px;color:#111;border-bottom:2px solid #eee;padding-bottom:8px}
+.preview-box h2{font-size:22px;margin:18px 0 10px;color:#111}
+.preview-box h3{font-size:18px;margin:14px 0 8px;color:#333}
+.preview-box p{margin:10px 0;color:#444}
+.preview-box code{background:#f3f4f6;padding:2px 6px;border-radius:4px;font-size:13px;color:#c7254e}
+.preview-box pre{background:#1e1e1e;color:#d4d4d4;padding:16px;border-radius:8px;overflow-x:auto;margin:12px 0;font-size:13px}
+.preview-box pre code{background:none;color:inherit;padding:0}
+.preview-box blockquote{border-left:4px solid #6ee7b7;padding:10px 16px;margin:12px 0;background:#f9fafb;color:#555;font-style:italic}
+.preview-box ul,.preview-box ol{margin:10px 0;padding-left:24px;color:#444}
+.preview-box li{margin:4px 0}
+.preview-box table{width:100%;border-collapse:collapse;margin:12px 0}
+.preview-box th,.preview-box td{padding:8px 12px;border:1px solid #ddd;text-align:left}
+.preview-box th{background:#f3f4f6;font-weight:600}
+.preview-box hr{border:none;border-top:2px solid #eee;margin:16px 0}
+.preview-box img{max-width:100%;border-radius:6px}
+.preview-box a{color:#2563eb;text-decoration:underline}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:#6ee7b7;color:#0a0a0a;border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-weight:600;font-size:14px;cursor:pointer;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:6px}
+.btn-outline{background:transparent;color:#6ee7b7;border:1px solid #6ee7b7}
+.btn-outline:hover{background:rgba(110,231,183,.1)}
+.controls-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.controls-row select,.controls-row input{padding:8px 12px;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;font-family:'Outfit',sans-serif;font-size:13px;outline:none}
+.controls-row select:focus,.controls-row input:focus{border-color:#6ee7b7}
+.checkbox-row{display:flex;align-items:center;gap:8px;font-size:13px;color:#999}
+.checkbox-row input[type="checkbox"]{accent-color:#6ee7b7;width:16px;height:16px}
+@media(max-width:768px){.grid2{grid-template-columns:1fr}}
+</style>
+<style id="printStyles">
+@media print{
+body *{visibility:hidden}
+#pdfContent,#pdfContent *{visibility:visible;position:absolute;left:0;top:0;width:100%}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html">&larr; Back</a>
+<h1>Markdown to PDF Converter</h1>
+</div>
+
+<div class="card">
+<h2>Paste Markdown</h2>
+<textarea id="mdInput" placeholder="# Hello World&#10;&#10;This is a **bold** and *italic* text.&#10;&#10;- Item 1&#10;- Item 2&#10;&#10;```js&#10;console.log('Hello');&#10;```"></textarea>
+<div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+<button class="btn" onclick="convert()">Convert</button>
+<button class="btn btn-outline" onclick="downloadHTML()">Download HTML</button>
+<button class="btn btn-outline" onclick="exportPDF()">Export as PDF</button>
+</div>
+</div>
+
+<div class="card" id="optionsCard" style="display:none">
+<h2>Options</h2>
+<div class="controls-row">
+<label style="margin-bottom:0">Page Size:</label>
+<select id="pageSize">
+<option value="A4">A4</option>
+<option value="Letter">Letter</option>
+<option value="Legal">Legal</option>
+</select>
+<label style="margin-bottom:0">Margins:</label>
+<select id="margins">
+<option value="normal">Normal (1in)</option>
+<option value="narrow">Narrow (0.5in)</option>
+<option value="wide">Wide (1.5in)</option>
+</select>
+<label style="margin-bottom:0">Font Size:</label>
+<select id="fontSize">
+<option value="12">12px</option>
+<option value="14">14px</option>
+<option value="16" selected>16px</option>
+<option value="18">18px</option>
+</select>
+<div class="checkbox-row">
+<input type="checkbox" id="tocCheck">
+<label for="tocCheck">Include Table of Contents</label>
+</div>
+</div>
+</div>
+
+<div class="card" id="previewCard" style="display:none">
+<h2>Preview</h2>
+<div class="grid2">
+<div>
+<label>Markdown Source</label>
+<textarea id="sourceArea" readonly style="min-height:300px"></textarea>
+</div>
+<div>
+<label>Rendered HTML</label>
+<div class="preview-box" id="previewBox"></div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="pdfContent" style="display:none"></div>
+
+<script>
+let renderedHTML='';
+let renderedMD='';
+
+function parseMarkdown(md){
+let html=md;
+html=html.replace(/^```(\w*)\n([\s\S]*?)```/gm,(_,lang,code)=>`<pre><code class="lang-${lang}">${escapeHTML(code.trim())}</code></pre>`);
+html=html.replace(/`([^`]+)`/g,'<code>$1</code>');
+html=html.replace(/^### (.+)$/gm,'<h3>$1</h3>');
+html=html.replace(/^## (.+)$/gm,'<h2>$1</h2>');
+html=html.replace(/^# (.+)$/gm,'<h1>$1</h1>');
+html=html.replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>');
+html=html.replace(/^---$/gm,'<hr>');
+html=html.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+html=html.replace(/\*(.+?)\*/g,'<em>$1</em>');
+html=html.replace(/~~(.+?)~~/g,'<del>$1</del>');
+html=html.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank">$1</a>');
+html=html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g,'<img src="$2" alt="$1">');
+html=html.replace(/^\s*[-*] (.+)$/gm,'<li>$1</li>');
+html=html.replace(/(<li>.*<\/li>)/gs,m=>'<ul>'+m+'</ul>');
+html=html.replace(/^\s*\d+\. (.+)$/gm,'<li>$1</li>');
+let tableRows=html.split('\n').filter(l=>l.trim());
+let inTable=false;let tableHTML='';let processed=[];
+for(let i=0;i<tableRows.length;i++){
+const line=tableRows[i].trim();
+if(line.startsWith('|')&&line.endsWith('|')){
+const cells=line.split('|').filter((_,idx,arr)=>idx>0&&idx<arr.length-1);
+if(!inTable){tableHTML='<table>';inTable=true}
+if(cells.every(c=>/^[\s\-:]+$/.test(c))){tableHTML+='<thead><tr>';continue}
+if(tableHTML.endsWith('<thead><tr>')){
+tableHTML+=cells.map(c=>`<th>${c.trim()}</th>`).join('')+'</tr></thead><tbody>';
+}else{
+tableHTML+='<tr>'+cells.map(c=>`<td>${c.trim()}</td>`).join('')+'</tr>';
+}
+}else{
+if(inTable){tableHTML+='</tbody></table>';processed.push(tableHTML);inTable=false;tableHTML=''}
+processed.push(line);
+}
+}
+if(inTable){tableHTML+='</tbody></table>';processed.push(tableHTML)}
+html=processed.join('\n');
+html=html.replace(/\n{2,}/g,'</p><p>');
+html='<p>'+html+'</p>';
+html=html.replace(/<p>\s*(<h[1-3]>)/g,'$1');
+html=html.replace(/(<\/h[1-3]>)\s*<\/p>/g,'$1');
+html=html.replace(/<p>\s*(<ul>)/g,'$1');
+html=html.replace(/(<\/ul>)\s*<\/p>/g,'$1');
+html=html.replace(/<p>\s*(<pre>)/g,'$1');
+html=html.replace(/(<\/pre>)\s*<\/p>/g,'$1');
+html=html.replace(/<p>\s*(<blockquote>)/g,'$1');
+html=html.replace(/(<\/blockquote>)\s*<\/p>/g,'$1');
+html=html.replace(/<p>\s*(<hr>)\s*<\/p>/g,'$1');
+html=html.replace(/<p>\s*(<table>)/g,'$1');
+html=html.replace(/(<\/table>)\s*<\/p>/g,'$1');
+return html;
+}
+
+function escapeHTML(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function generateTOC(md){
+const headings=[];
+const lines=md.split('\n');
+lines.forEach(line=>{
+const m=line.match(/^(#{1,3})\s+(.+)/);
+if(m){const level=m[1].length;const text=m[2];const id=text.toLowerCase().replace(/[^a-z0-9]+/g,'-');headings.push({level,id,text})}
+});
+if(headings.length===0)return'';
+let toc='<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px 20px;margin-bottom:24px"><strong style="display:block;margin-bottom:10px;color:#333">Table of Contents</strong>';
+headings.forEach(h=>{
+toc+=`<div style="padding-left:${(h.level-1)*20}px;margin:4px 0"><a href="#${h.id}" style="color:#2563eb;text-decoration:none;font-size:${14-h.level}px">${h.text}</a></div>`;
+});
+toc+='</div>';return toc;
+}
+
+function addHeadingIDs(html){
+return html.replace(/<h([1-3])>(.*?)<\/h\1>/g,(_,level,text)=>{
+const id=text.toLowerCase().replace(/<[^>]+>/g,'').replace(/[^a-z0-9]+/g,'-');
+return`<h${level} id="${id}">${text}</h${level}>`;
+});
+}
+
+function convert(){
+const md=document.getElementById('mdInput').value.trim();
+if(!md){alert('Paste Markdown first');return}
+renderedMD=md;
+const includeTOC=document.getElementById('tocCheck').checked;
+let html=parseMarkdown(md);
+if(includeTOC){html=generateTOC(md)+html}
+html=addHeadingIDs(html);
+renderedHTML=html;
+document.getElementById('sourceArea').value=md;
+document.getElementById('previewBox').innerHTML=html;
+document.getElementById('optionsCard').style.display='block';
+document.getElementById('previewCard').style.display='block';
+}
+
+function getPageCSS(){
+const size=document.getElementById('pageSize').value;
+const margin=document.getElementById('margins').value;
+const font=document.getElementById('fontSize').value;
+const margins={normal:'1in',narrow:'0.5in',wide:'1.5in'};
+return`
+@page{size:${size};margin:${margins[margin]}}
+body{font-family:'Outfit',sans-serif;font-size:${font}px;line-height:1.7;color:#222}
+h1{font-size:28px;border-bottom:2px solid #eee;padding-bottom:8px;margin:20px 0 12px}
+h2{font-size:22px;margin:18px 0 10px}
+h3{font-size:18px;margin:14px 0 8px}
+code{background:#f3f4f6;padding:2px 6px;border-radius:4px;font-size:13px;color:#c7254e}
+pre{background:#1e1e1e;color:#d4d4d4;padding:16px;border-radius:8px;overflow-x:auto;margin:12px 0}
+pre code{background:none;color:inherit;padding:0}
+blockquote{border-left:4px solid #6ee7b7;padding:10px 16px;margin:12px 0;background:#f9fafb;font-style:italic}
+table{width:100%;border-collapse:collapse;margin:12px 0}
+th,td{padding:8px 12px;border:1px solid #ddd;text-align:left}
+th{background:#f3f4f6;font-weight:600}
+a{color:#2563eb}
+img{max-width:100%}
+hr{border:none;border-top:2px solid #eee;margin:16px 0}`;
+}
+
+function exportPDF(){
+if(!renderedHTML){alert('Convert Markdown first');return}
+const content=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Document</title><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"><style>${getPageCSS()}</style></head><body>${renderedHTML}</body></html>`;
+const win=window.open('','_blank');
+win.document.write(content);win.document.close();
+setTimeout(()=>{win.print()},500);
+}
+
+function downloadHTML(){
+if(!renderedHTML){alert('Convert Markdown first');return}
+const css=getPageCSS();
+const content=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Markdown Export</title><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"><style>${css}</style></head><body>${renderedHTML}</body></html>`;
+const blob=new Blob([content],{type:'text/html'});
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+a.download='markdown-export.html';a.click();URL.revokeObjectURL(a.href);
+}
+</script>
+</body>
+</html>

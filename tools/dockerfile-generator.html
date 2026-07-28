@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dockerfile Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#e0e0e0;min-height:100vh;padding:20px}
+.header{max-width:1200px;margin:0 auto 20px;display:flex;align-items:center;gap:15px}
+.header a{color:#60a5fa;text-decoration:none;font-size:14px;font-weight:500;transition:color .2s}
+.header a:hover{color:#93c5fd}
+.header h1{font-size:22px;font-weight:600;color:#fff}
+.container{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.panel{background:#111;border:1px solid #222;border-radius:12px;padding:20px}
+.panel h2{font-size:16px;font-weight:600;margin-bottom:15px;color:#fff}
+label{display:block;font-size:13px;color:#999;margin-bottom:5px;font-weight:500}
+select,input[type="text"],textarea{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:10px 12px;color:#fff;font-family:'Outfit',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+select:focus,input:focus,textarea:focus{border-color:#60a5fa}
+textarea{resize:vertical;min-height:80px;font-family:'Fira Code',monospace;font-size:13px}
+.btn{padding:8px 16px;border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-weight:500;font-size:13px;cursor:pointer;transition:all .2s}
+.btn-primary{background:#60a5fa;color:#000}.btn-primary:hover{background:#93c5fd}
+.btn-secondary{background:#333;color:#fff}.btn-secondary:hover{background:#444}
+.btn-success{background:#22c55e;color:#000}.btn-success:hover{background:#4ade80}
+.btn-danger{background:#ef4444;color:#fff}.btn-danger:hover{background:#f87171}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-group{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.form-group{margin-bottom:12px}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:15px}
+.preset-btn{padding:6px 12px;background:#1a1a1a;border:1px solid #333;border-radius:20px;color:#ccc;font-size:12px;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif}
+.preset-btn:hover,.preset-btn.active{background:#60a5fa;color:#000;border-color:#60a5fa}
+.instructions-list{max-height:300px;overflow-y:auto;margin-bottom:10px}
+.instruction-item{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:8px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.instruction-item code{color:#60a5fa;font-family:'Fira Code',monospace;font-size:12px}
+.preview{background:#0d0d0d;border:1px solid #222;border-radius:8px;padding:15px;font-family:'Fira Code',monospace;font-size:13px;white-space:pre-wrap;line-height:1.6;color:#e0e0e0;min-height:300px;overflow:auto}
+.checkbox-group{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px}
+.checkbox-group label{display:flex;align-items:center;gap:6px;font-size:13px;color:#ccc;cursor:pointer}
+.checkbox-group input[type="checkbox"]{accent-color:#60a5fa}
+.tag{display:inline-block;background:#60a5fa20;color:#60a5fa;padding:2px 8px;border-radius:10px;font-size:11px;margin-right:4px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#111}::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
+@media(max-width:900px){.container{grid-template-columns:1fr}.grid-2,.grid-3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+  <a href="index.html">← Back</a>
+  <h1>Dockerfile Generator</h1>
+</div>
+<div class="container">
+  <div class="panel">
+    <h2>Configuration</h2>
+    <div class="form-group">
+      <label>Base Image</label>
+      <select id="baseImage">
+        <option value="node:20-alpine">Node.js 20 (Alpine)</option>
+        <option value="node:18-slim">Node.js 18 (Slim)</option>
+        <option value="python:3.12-slim">Python 3.12 (Slim)</option>
+        <option value="python:3.11-alpine">Python 3.11 (Alpine)</option>
+        <option value="golang:1.22-alpine">Go 1.22 (Alpine)</option>
+        <option value="nginx:alpine">Nginx (Alpine)</option>
+        <option value="httpd:alpine">Apache (Alpine)</option>
+        <option value="alpine:3.19">Alpine 3.19</option>
+        <option value="ubuntu:22.04">Ubuntu 22.04</option>
+        <option value="eclipse-temurin:21-jdk">Java 21 (Eclipse Temurin)</option>
+        <option value="ruby:3.3-alpine">Ruby 3.3 (Alpine)</option>
+        <option value="php:8.3-fpm-alpine">PHP 8.3 (FPM Alpine)</option>
+        <option value="custom">Custom...</option>
+      </select>
+    </div>
+    <div class="form-group" id="customImageGroup" style="display:none">
+      <label>Custom Image</label>
+      <input type="text" id="customImage" placeholder="e.g. myregistry/myimage:tag">
+    </div>
+    <div class="form-group">
+      <label>Workdir</label>
+      <input type="text" id="workdir" value="/app" placeholder="/app">
+    </div>
+    <div class="form-group">
+      <label>Exposed Port</label>
+      <input type="text" id="expose" placeholder="e.g. 3000, 8080">
+    </div>
+    <div class="form-group">
+      <label>Environment Variables (KEY=VALUE, one per line)</label>
+      <textarea id="envVars" rows="3" placeholder="NODE_ENV=production&#10;PORT=3000"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Run Commands (one per line)</label>
+      <textarea id="runCmds" rows="3" placeholder="npm install&#10;npm run build"></textarea>
+    </div>
+    <div class="form-group">
+      <label>CMD / ENTRYPOINT</label>
+      <div class="grid-2">
+        <div>
+          <select id="cmdType">
+            <option value="CMD">CMD</option>
+            <option value="ENTRYPOINT">ENTRYPOINT</option>
+          </select>
+          <input type="text" id="cmdValue" style="margin-top:6px" placeholder='e.g. ["node", "server.js"]'>
+        </div>
+        <div>
+          <label>Secondary CMD/ENTRYPOINT</label>
+          <select id="cmdType2">
+            <option value="">None</option>
+            <option value="CMD">CMD</option>
+            <option value="ENTRYPOINT">ENTRYPOINT</option>
+          </select>
+          <input type="text" id="cmdValue2" style="margin-top:6px" placeholder="Optional second command">
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Run as User</label>
+      <input type="text" id="runUser" placeholder="e.g. node, root, 1000">
+    </div>
+    <div class="form-group">
+      <label>Healthcheck</label>
+      <div class="grid-2">
+        <select id="healthcheckType">
+          <option value="">None</option>
+          <option value="CMD">CMD (shell)</option>
+          <option value="CMD-SHELL">CMD-SHELL</option>
+          <option value="CMD-array">CMD (exec form)</option>
+        </select>
+        <input type="text" id="healthcheckCmd" placeholder='e.g. curl -f http://localhost:3000'>
+      </div>
+      <div class="grid-3" style="margin-top:8px">
+        <div><label>Interval</label><input type="text" id="hcInterval" value="30s"></div>
+        <div><label>Timeout</label><input type="text" id="hcTimeout" value="10s"></div>
+        <div><label>Retries</label><input type="text" id="hcRetries" value="3"></div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Multi-stage Build</label>
+      <div class="checkbox-group">
+        <label><input type="checkbox" id="multiStage"> Enable multi-stage</label>
+      </div>
+    </div>
+    <div id="multiStageConfig" style="display:none;margin-top:10px">
+      <div class="form-group">
+        <label>Build Stage Image</label>
+        <input type="text" id="buildImage" value="node:20-alpine" placeholder="Build stage base image">
+      </div>
+      <div class="form-group">
+        <label>Build Commands (one per line)</label>
+        <textarea id="buildCmds" rows="3" placeholder="npm ci&#10;npm run build"></textarea>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Custom Instructions (one per line, e.g. COPY --chown=node:node . .)</label>
+      <textarea id="customInstructions" rows="3" placeholder="RUN apt-get update && apt-get install -y curl"></textarea>
+    </div>
+    <h2>Presets</h2>
+    <div class="presets" id="presetsContainer">
+      <button class="preset-btn" data-preset="node">Node.js</button>
+      <button class="preset-btn" data-preset="python-flask">Python Flask</button>
+      <button class="preset-btn" data-preset="python-fastapi">Python FastAPI</button>
+      <button class="preset-btn" data-preset="go">Go</button>
+      <button class="preset-btn" data-preset="nginx">Nginx Static</button>
+      <button class="preset-btn" data-preset="java">Java Spring</button>
+      <button class="preset-btn" data-preset="ruby">Ruby Rails</button>
+      <button class="preset-btn" data-preset="php">PHP</button>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>Preview</h2>
+    <div class="btn-group" style="margin-bottom:15px">
+      <button class="btn btn-success" onclick="copyDockerfile()">Copy</button>
+      <button class="btn btn-primary" onclick="downloadDockerfile()">Download</button>
+      <button class="btn btn-secondary" onclick="resetForm()">Reset</button>
+    </div>
+    <div class="preview" id="preview">FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+COPY . .
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]</div>
+  </div>
+</div>
+<script>
+const baseImages = {
+  node: { image: 'node:20-alpine', workdir: '/app', cmd: '["node", "server.js"]', user: 'node' },
+  'python-flask': { image: 'python:3.12-slim', workdir: '/app', cmd: '["python", "app.py"]', run: 'pip install flask\nCOPY requirements.txt ./\nRUN pip install -r requirements.txt', user: '' },
+  'python-fastapi': { image: 'python:3.12-slim', workdir: '/app', cmd: '["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]', run: 'pip install fastapi uvicorn\nCOPY requirements.txt ./\nRUN pip install -r requirements.txt', user: '' },
+  go: { image: 'golang:1.22-alpine', workdir: '/app', cmd: '["./main"]', run: 'COPY go.mod go.sum ./\nRUN go mod download\nCOPY . .\nRUN go build -o main .', multi: true, buildImage: 'golang:1.22-alpine', buildCmds: 'COPY go.mod go.sum ./\nRUN go mod download\nCOPY . .\nRUN CGO_ENABLED=0 go build -o main .' },
+  nginx: { image: 'nginx:alpine', workdir: '/usr/share/nginx/html', cmd: '', expose: '80', run: 'COPY . .' },
+  java: { image: 'eclipse-temurin:21-jdk', workdir: '/app', cmd: '["java", "-jar", "app.jar"]', run: 'COPY pom.xml ./\nRUN mvn dependency:go-offline\nCOPY src ./src\nRUN mvn package -DskipTests', multi: true, buildImage: 'maven:3.9-eclipse-temurin-21', buildCmds: 'COPY pom.xml ./\nRUN mvn dependency:go-offline\nCOPY src ./src\nRUN mvn package -DskipTests' },
+  ruby: { image: 'ruby:3.3-alpine', workdir: '/app', cmd: '["ruby", "server.rb"]', run: 'COPY Gemfile Gemfile.lock ./\nRUN bundle install', user: '' },
+  php: { image: 'php:8.3-fpm-alpine', workdir: '/var/www/html', cmd: '', run: 'COPY . .', expose: '9000' }
+};
+
+document.getElementById('baseImage').addEventListener('change', function() {
+  document.getElementById('customImageGroup').style.display = this.value === 'custom' ? 'block' : 'none';
+  generatePreview();
+});
+
+document.getElementById('multiStage').addEventListener('change', function() {
+  document.getElementById('multiStageConfig').style.display = this.checked ? 'block' : 'none';
+  generatePreview();
+});
+
+document.querySelectorAll('select, input, textarea').forEach(el => {
+  el.addEventListener('input', generatePreview);
+  el.addEventListener('change', generatePreview);
+});
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    const preset = baseImages[this.dataset.preset];
+    if (!preset) return;
+    document.getElementById('baseImage').value = preset.image.includes('custom') ? 'custom' : preset.image;
+    const opt = [...document.getElementById('baseImage').options].find(o => o.value === preset.image);
+    if (!opt) { document.getElementById('customImageGroup').style.display = 'block'; document.getElementById('customImage').value = preset.image; }
+    else { document.getElementById('customImageGroup').style.display = 'none'; }
+    document.getElementById('workdir').value = preset.workdir || '';
+    document.getElementById('expose').value = preset.expose || '';
+    document.getElementById('cmdType').value = 'CMD';
+    document.getElementById('cmdValue').value = preset.cmd || '';
+    document.getElementById('runUser').value = preset.user || '';
+    document.getElementById('runCmds').value = preset.run || '';
+    document.getElementById('envVars').value = '';
+    document.getElementById('customInstructions').value = '';
+    if (preset.multi) {
+      document.getElementById('multiStage').checked = true;
+      document.getElementById('multiStageConfig').style.display = 'block';
+      document.getElementById('buildImage').value = preset.buildImage || '';
+      document.getElementById('buildCmds').value = preset.buildCmds || '';
+    } else {
+      document.getElementById('multiStage').checked = false;
+      document.getElementById('multiStageConfig').style.display = 'none';
+    }
+    generatePreview();
+  });
+});
+
+function generatePreview() {
+  let lines = [];
+  const baseImage = document.getElementById('baseImage').value === 'custom' ? document.getElementById('customImage').value : document.getElementById('baseImage').value;
+  const workdir = document.getElementById('workdir').value.trim();
+  const expose = document.getElementById('expose').value.trim();
+  const envVars = document.getElementById('envVars').value.trim();
+  const runCmds = document.getElementById('runCmds').value.trim();
+  const cmdType = document.getElementById('cmdType').value;
+  const cmdValue = document.getElementById('cmdValue').value.trim();
+  const cmdType2 = document.getElementById('cmdType2').value;
+  const cmdValue2 = document.getElementById('cmdValue2').value.trim();
+  const runUser = document.getElementById('runUser').value.trim();
+  const healthcheckType = document.getElementById('healthcheckType').value;
+  const healthcheckCmd = document.getElementById('healthcheckCmd').value.trim();
+  const multiStage = document.getElementById('multiStage').checked;
+  const buildImage = document.getElementById('buildImage').value.trim();
+  const buildCmds = document.getElementById('buildCmds').value.trim();
+  const customInstructions = document.getElementById('customInstructions').value.trim();
+
+  if (multiStage && buildImage) {
+    lines.push('# Stage 1: Build');
+    lines.push(`FROM ${buildImage} AS builder`);
+    lines.push('');
+    if (workdir) lines.push(`WORKDIR ${workdir}`);
+    if (buildCmds) {
+      buildCmds.split('\n').filter(Boolean).forEach(l => lines.push(l.trim()));
+    }
+    lines.push('');
+    lines.push('# Stage 2: Production');
+  }
+
+  lines.push(`FROM ${baseImage}`);
+  if (runUser) lines.push(`USER ${runUser}`);
+  lines.push('');
+  if (workdir) {
+    lines.push(`WORKDIR ${workdir}`);
+    lines.push('');
+  }
+  if (envVars) {
+    envVars.split('\n').filter(Boolean).forEach(l => {
+      const t = l.trim();
+      if (t) lines.push(`ENV ${t}`);
+    });
+    lines.push('');
+  }
+  if (runCmds) {
+    runCmds.split('\n').filter(Boolean).forEach(l => {
+      const t = l.trim();
+      if (t) {
+        if (!t.startsWith('RUN') && !t.startsWith('COPY') && !t.startsWith('ADD') && !t.startsWith('ENV') && !t.startsWith('ARG')) {
+          lines.push(`RUN ${t}`);
+        } else {
+          lines.push(t);
+        }
+      }
+    });
+    lines.push('');
+  }
+  if (customInstructions) {
+    customInstructions.split('\n').filter(Boolean).forEach(l => {
+      const t = l.trim();
+      if (t) lines.push(t);
+    });
+    lines.push('');
+  }
+  if (expose) lines.push(`EXPOSE ${expose}`);
+  if (healthcheckType && healthcheckCmd) {
+    const interval = document.getElementById('hcInterval').value.trim() || '30s';
+    const timeout = document.getElementById('hcTimeout').value.trim() || '10s';
+    const retries = document.getElementById('hcRetries').value.trim() || '3';
+    if (healthcheckType === 'CMD-array') {
+      lines.push(`HEALTHCHECK --interval=${interval} --timeout=${timeout} --retries=${retries} CMD [${healthcheckCmd.split(' ').map(s => `"${s}"`).join(', ')}]`);
+    } else {
+      lines.push(`HEALTHCHECK --interval=${interval} --timeout=${timeout} --retries=${retries} ${healthcheckType} ${healthcheckCmd}`);
+    }
+  }
+  if (cmdValue) lines.push(`${cmdType} ${cmdValue}`);
+  if (cmdValue2 && cmdType2) lines.push(`${cmdType2} ${cmdValue2}`);
+  document.getElementById('preview').textContent = lines.join('\n');
+}
+
+function copyDockerfile() {
+  navigator.clipboard.writeText(document.getElementById('preview').textContent);
+  const btn = event.target; btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1500);
+}
+
+function downloadDockerfile() {
+  const blob = new Blob([document.getElementById('preview').textContent], { type: 'text/plain' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Dockerfile'; a.click();
+}
+
+function resetForm() {
+  document.querySelectorAll('select, input[type="text"], textarea').forEach(el => { el.value = el.defaultValue || ''; });
+  document.getElementById('multiStage').checked = false;
+  document.getElementById('multiStageConfig').style.display = 'none';
+  document.getElementById('customImageGroup').style.display = 'none';
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  generatePreview();
+}
+
+generatePreview();
+</script>
+</body>
+</html>

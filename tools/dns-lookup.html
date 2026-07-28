@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DNS Lookup Tool – ProtonFlix Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#e0e0e0;font-family:'Outfit',sans-serif;min-height:100vh}
+.header{padding:20px 32px;border-bottom:1px solid #222;display:flex;align-items:center;gap:16px}
+.header a{color:#8b5cf6;text-decoration:none;font-weight:500;font-size:14px;transition:color .2s}
+.header a:hover{color:#a78bfa}
+.header h1{font-size:20px;font-weight:600;color:#fff}
+.container{max-width:860px;margin:0 auto;padding:32px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:24px;margin-bottom:24px}
+.card h2{font-size:16px;font-weight:600;margin-bottom:16px;color:#fff}
+label{display:block;font-size:13px;color:#999;margin-bottom:6px;font-weight:500}
+input[type=text]{width:100%;padding:12px 14px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#e0e0e0;font-family:'Outfit',sans-serif;font-size:14px;outline:none;transition:border .2s}
+input:focus{border-color:#8b5cf6}
+button{padding:10px 20px;border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s}
+.btn-primary{background:#8b5cf6;color:#fff}
+.btn-primary:hover{background:#7c3aed}
+.btn-secondary{background:#222;color:#e0e0e0;border:1px solid #333}
+.btn-secondary:hover{background:#333}
+.btn-group{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+.type-group{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.type-btn{padding:6px 14px;background:#1a1a2e;border:1px solid #333;border-radius:6px;color:#a78bfa;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s}
+.type-btn.active{background:#8b5cf6;color:#fff;border-color:#8b5cf6}
+.type-btn:hover{border-color:#8b5cf6}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.preset-btn{padding:6px 12px;background:#1a1a2e;border:1px solid #333;border-radius:6px;color:#a78bfa;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s}
+.preset-btn:hover{background:#8b5cf6;color:#fff;border-color:#8b5cf6}
+.result-box{margin-top:16px;padding:16px;border-radius:8px;font-size:14px;font-weight:500}
+.result-error{background:rgba(239,68,68,.1);border:1px solid #ef4444;color:#ef4444}
+.result-success{background:rgba(34,197,94,.1);border:1px solid #22c55e;color:#22c55e}
+table{width:100%;border-collapse:collapse;margin-top:12px}
+th{text-align:left;padding:10px 12px;background:#0a0a0a;border:1px solid #222;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.5px;font-weight:600}
+td{padding:10px 12px;border:1px solid #222;font-size:13px;font-family:monospace;word-break:break-all}
+tr:hover td{background:rgba(139,92,246,.05)}
+.record-type{color:#8b5cf6;font-weight:600}
+.ttl{color:#666;font-size:12px}
+.dns-servers{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.dns-chip{padding:4px 10px;background:#0a0a0a;border:1px solid #222;border-radius:4px;font-size:12px;color:#a78bfa;cursor:pointer;transition:all .2s}
+.dns-chip:hover{border-color:#8b5cf6;background:#1a1a2e}
+.dns-chip.active{background:#8b5cf6;color:#fff;border-color:#8b5cf6}
+.output-box{background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:14px;font-family:monospace;font-size:13px;color:#a78bfa;word-break:break-all;position:relative;margin-top:12px}
+.copy-btn{position:absolute;top:8px;right:8px;padding:4px 10px;background:#333;border:1px solid #444;border-radius:4px;color:#ccc;font-size:11px;cursor:pointer;font-family:'Outfit',sans-serif}
+.copy-btn:hover{background:#555}
+.loading{display:flex;align-items:center;gap:8px;color:#666;font-size:13px}
+.spinner{width:16px;height:16px;border:2px solid #333;border-top-color:#8b5cf6;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="header">
+  <a href="index.html">← Back</a>
+  <h1>DNS Lookup Tool</h1>
+</div>
+<div class="container">
+  <div class="card">
+    <h2>Domain Name</h2>
+    <input type="text" id="domain" placeholder="example.com" value="google.com">
+    <div class="presets" style="margin-top:12px">
+      <button class="preset-btn" onclick="setDomain('google.com')">google.com</button>
+      <button class="preset-btn" onclick="setDomain('github.com')">github.com</button>
+      <button class="preset-btn" onclick="setDomain('cloudflare.com')">cloudflare.com</button>
+      <button class="preset-btn" onclick="setDomain('amazon.com')">amazon.com</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>DNS Server</h2>
+    <div class="dns-servers" id="dnsServers">
+      <div class="dns-chip active" data-server="1.1.1.1" onclick="setDNS(this)">Cloudflare (1.1.1.1)</div>
+      <div class="dns-chip" data-server="8.8.8.8" onclick="setDNS(this)">Google (8.8.8.8)</div>
+      <div class="dns-chip" data-server="9.9.9.9" onclick="setDNS(this)">Quad9 (9.9.9.9)</div>
+      <div class="dns-chip" data-server="208.67.222.222" onclick="setDNS(this)">OpenDNS</div>
+    </div>
+    <input type="text" id="customDNS" placeholder="Or enter custom DNS server IP" style="margin-top:12px">
+  </div>
+
+  <div class="card">
+    <h2>Record Types</h2>
+    <div class="type-group" id="typeGroup">
+      <div class="type-btn active" data-type="A" onclick="toggleType(this)">A</div>
+      <div class="type-btn active" data-type="AAAA" onclick="toggleType(this)">AAAA</div>
+      <div class="type-btn" data-type="MX" onclick="toggleType(this)">MX</div>
+      <div class="type-btn" data-type="NS" onclick="toggleType(this)">NS</div>
+      <div class="type-btn" data-type="TXT" onclick="toggleType(this)">TXT</div>
+      <div class="type-btn" data-type="CNAME" onclick="toggleType(this)">CNAME</div>
+      <div class="type-btn" data-type="SOA" onclick="toggleType(this)">SOA</div>
+    </div>
+    <div class="btn-group">
+      <button class="btn-primary" onclick="lookupDNS()">Lookup</button>
+      <button class="btn-secondary" onclick="selectAllTypes()">Select All</button>
+      <button class="btn-secondary" onclick="copyResults()">Copy Results</button>
+    </div>
+  </div>
+
+  <div class="card" id="resultsCard" style="display:none">
+    <h2>Results</h2>
+    <div id="resultsContent"></div>
+  </div>
+
+  <div class="result-box" id="statusMsg" style="display:none"></div>
+
+  <div class="card">
+    <h2>How DNS Works</h2>
+    <p style="font-size:13px;color:#888;line-height:1.6">DNS (Domain Name System) translates domain names into IP addresses. This tool queries public DNS-over-HTTPS APIs to resolve various record types. Results include TTL (Time To Live) values indicating cache duration. DNS propagation can take up to 48 hours after changes.</p>
+  </div>
+</div>
+
+<script>
+let selectedDNS = '1.1.1.1';
+let selectedTypes = ['A', 'AAAA'];
+let allResults = {};
+
+function setDomain(d) {
+  document.getElementById('domain').value = d;
+}
+
+function setDNS(el) {
+  document.querySelectorAll('.dns-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  selectedDNS = el.dataset.server;
+  document.getElementById('customDNS').value = '';
+}
+
+function toggleType(el) {
+  el.classList.toggle('active');
+  selectedTypes = Array.from(document.querySelectorAll('.type-btn.active')).map(b => b.dataset.type);
+}
+
+function selectAllTypes() {
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.add('active'));
+  selectedTypes = Array.from(document.querySelectorAll('.type-btn')).map(b => b.dataset.type);
+}
+
+async function queryDNS(domain, type, server) {
+  const url = `https://dns.google/resolve?name=${domain}&type=${type}&cd=true`;
+  const res = await fetch(url);
+  const data = await res.json();
+  return data;
+}
+
+async function queryCloudflare(domain, type) {
+  const url = `https://cloudflare-dns.com/dns-query?name=${domain}&type=${type}`;
+  const res = await fetch(url, { headers: { 'Accept': 'application/dns-json' } });
+  return await res.json();
+}
+
+function renderRecords(type, records) {
+  if (!records || !records.Answer || records.Answer.length === 0) {
+    return `<p style="color:#666;font-size:13px;padding:8px 0">No ${type} records found</p>`;
+  }
+  let html = `<table><thead><tr><th>Type</th><th>Name</th><th>Data</th><th>TTL</th></tr></thead><tbody>`;
+  for (const r of records.Answer) {
+    html += `<tr>
+      <td><span class="record-type">${type}</span></td>
+      <td>${r.name}</td>
+      <td>${r.data}</td>
+      <td><span class="ttl">${r.TTL}s</span></td>
+    </tr>`;
+  }
+  html += `</tbody></table>`;
+  return html;
+}
+
+async function lookupDNS() {
+  const domain = document.getElementById('domain').value.trim();
+  if (!domain) {
+    showStatus('Enter a domain name', 'error');
+    return;
+  }
+  const server = document.getElementById('customDNS').value.trim() || selectedDNS;
+  const types = selectedTypes.length > 0 ? selectedTypes : ['A'];
+
+  const resultsCard = document.getElementById('resultsCard');
+  const resultsContent = document.getElementById('resultsContent');
+  resultsCard.style.display = 'block';
+  resultsContent.innerHTML = `<div class="loading"><div class="spinner"></div> Querying DNS records...</div>`;
+  allResults = {};
+
+  let html = '';
+  for (const type of types) {
+    try {
+      const data = await queryDNS(domain, type, server);
+      allResults[type] = data;
+      html += `<div style="margin-bottom:20px"><h3 style="font-size:14px;color:#a78bfa;margin-bottom:8px">${type} Records</h3>${renderRecords(type, data)}</div>`;
+    } catch (e) {
+      html += `<div style="margin-bottom:20px"><h3 style="font-size:14px;color:#a78bfa;margin-bottom:8px">${type} Records</h3><p style="color:#ef4444;font-size:13px">Error: ${e.message}</p></div>`;
+    }
+  }
+
+  resultsContent.innerHTML = html;
+  showStatus(`Resolved ${types.length} record types for ${domain}`, 'success');
+}
+
+function copyResults() {
+  const text = JSON.stringify(allResults, null, 2);
+  navigator.clipboard.writeText(text);
+  showStatus('Results copied as JSON', 'success');
+}
+
+function showStatus(msg, type) {
+  const el = document.getElementById('statusMsg');
+  el.style.display = 'block';
+  el.className = `result-box result-${type}`;
+  el.textContent = msg;
+  setTimeout(() => el.style.display = 'none', 3000);
+}
+</script>
+</body>
+</html>

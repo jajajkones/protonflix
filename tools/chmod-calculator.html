@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chmod Calculator - ProtonFlix Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#e0e0e0;--text-dim:#888;--accent-start:#3b82f6;--accent-mid:#8b5cf6;--accent-end:#ec4899}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
+a{color:var(--accent-mid);text-decoration:none;transition:opacity .2s}a:hover{opacity:.8}
+.header{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.header .back{font-size:14px;padding:6px 14px;border-radius:8px;border:1px solid var(--border);transition:all .2s}
+.header .back:hover{border-color:var(--accent-mid)}
+.header h1{font-size:22px;font-weight:600;background:linear-gradient(90deg,var(--accent-start),var(--accent-mid),var(--accent-end));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.container{max-width:800px;margin:0 auto}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:640px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+.panel h2{font-size:14px;font-weight:500;color:var(--text-dim);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px}
+.perm-grid{display:grid;grid-template-columns:auto repeat(3,1fr);gap:4px;align-items:center}
+.perm-header{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);text-align:center;padding:8px 0}
+.perm-label{font-size:13px;color:var(--text-dim);padding:0 8px}
+.perm-checkbox{display:flex;align-items:center;justify-content:center;padding:8px}
+.perm-checkbox label{display:flex;align-items:center;justify-content:center;width:40px;height:32px;border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:all .2s;font-size:13px;font-weight:500;user-select:none}
+.perm-checkbox label:hover{border-color:var(--accent-mid)}
+.perm-checkbox input{display:none}
+.perm-checkbox input:checked+label{background:var(--accent-mid);border-color:var(--accent-mid);color:#fff}
+.result-box{background:#0d0d0d;border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center;margin-top:16px}
+.octal{font-size:42px;font-weight:700;font-family:'Courier New',monospace;background:linear-gradient(135deg,var(--accent-start),var(--accent-mid),var(--accent-end));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.2}
+.symbolic{font-size:16px;font-family:'Courier New',monospace;color:var(--text);margin-top:4px}
+.chmod-cmd{font-size:13px;color:var(--text-dim);margin-top:8px;font-family:'Courier New',monospace;cursor:pointer;transition:color .2s}
+.chmod-cmd:hover{color:var(--accent-mid)}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.preset{padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;font-family:'Courier New',monospace;font-size:14px;font-weight:600;transition:all .2s}
+.preset:hover{border-color:var(--accent-mid);background:rgba(139,92,246,.1)}
+.preset.active{border-color:var(--accent-mid);background:rgba(139,92,246,.15);color:var(--accent-mid)}
+.reverse-section{margin-top:16px}
+.reverse-section h2{font-size:14px;font-weight:500;color:var(--text-dim);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
+.input-row{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.input-row input{background:#0d0d0d;border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:14px;padding:10px 14px;outline:none;width:120px;transition:border-color .2s;text-align:center}
+.input-row input:focus{border-color:var(--accent-mid)}
+.input-row span{color:var(--text-dim);font-size:13px}
+button{font-family:'Outfit',sans-serif;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:500;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,var(--accent-start),var(--accent-mid),var(--accent-end));color:#fff}
+.btn-primary:hover{opacity:.85;transform:translateY(-1px)}
+.btn-secondary{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent-mid)}
+.actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.copied-toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--accent-mid);color:#fff;padding:8px 20px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:100}
+.copied-toast.show{opacity:1}
+.error{color:var(--red);font-size:13px;margin-top:4px}
+.red{color:#ef4444}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html" class="back">&larr; Back</a>
+<h1>Chmod Calculator</h1>
+</div>
+<div class="grid">
+<div class="panel">
+<h2>Permissions</h2>
+<div class="perm-grid">
+<div class="perm-header"></div>
+<div class="perm-header">Read (r)</div>
+<div class="perm-header">Write (w)</div>
+<div class="perm-header">Execute (x)</div>
+<div class="perm-label">Owner</div>
+<div class="perm-checkbox"><input type="checkbox" id="ur" checked onchange="calc()"><label for="ur">r</label></div>
+<div class="perm-checkbox"><input type="checkbox" id="uw" checked onchange="calc()"><label for="uw">w</label></div>
+<div class="perm-checkbox"><input type="checkbox" id="ux" checked onchange="calc()"><label for="ux">x</label></div>
+<div class="perm-label">Group</div>
+<div class="perm-checkbox"><input type="checkbox" id="gr" checked onchange="calc()"><label for="gr">r</label></div>
+<div class="perm-checkbox"><input type="checkbox" id="gw" onchange="calc()"><label for="gw">w</label></div>
+<div class="perm-checkbox"><input type="checkbox" id="gx" checked onchange="calc()"><label for="gx">x</label></div>
+<div class="perm-label">Other</div>
+<div class="perm-checkbox"><input type="checkbox" id="or" checked onchange="calc()"><label for="or">r</label></div>
+<div class="perm-checkbox"><input type="checkbox" id="ow" onchange="calc()"><label for="ow">w</label></div>
+<div class="perm-checkbox"><input type="checkbox" id="ox" checked onchange="calc()"><label for="ox">x</label></div>
+</div>
+<div class="result-box">
+<div class="octal" id="octal">755</div>
+<div class="symbolic" id="symbolic">rwxr-xr-x</div>
+<div class="chmod-cmd" id="chmodCmd" onclick="copyChmod()" title="Click to copy">chmod 755 file</div>
+</div>
+</div>
+<div class="panel">
+<h2>Common Presets</h2>
+<div class="presets" id="presets">
+<div class="preset active" onclick="setPreset('755',this)">755</div>
+<div class="preset" onclick="setPreset('644',this)">644</div>
+<div class="preset" onclick="setPreset('777',this)">777</div>
+<div class="preset" onclick="setPreset('700',this)">700</div>
+<div class="preset" onclick="setPreset('600',this)">600</div>
+<div class="preset" onclick="setPreset('444',this)">444</div>
+<div class="preset" onclick="setPreset('750',this)">750</div>
+<div class="preset" onclick="setPreset('666',this)">666</div>
+<div class="preset" onclick="setPreset('775',this)">775</div>
+<div class="preset" onclick="setPreset('500',this)">500</div>
+<div class="preset" onclick="setPreset('400',this)">400</div>
+<div class="preset" onclick="setPreset('200',this)">200</div>
+</div>
+<div class="reverse-section">
+<h2>Reverse: Octal to Permissions</h2>
+<div class="input-row">
+<input type="text" id="octalInput" placeholder="755" maxlength="3" oninput="reverseCalc()">
+<span>&rarr;</span>
+<span id="reverseResult" style="font-family:'Courier New',monospace;font-size:14px">rwxr-xr-x</span>
+</div>
+<div id="reverseError" class="error"></div>
+</div>
+<div class="actions">
+<button class="btn-primary" onclick="copyChmod()">Copy chmod Command</button>
+<button class="btn-secondary" onclick="copyOctal()">Copy Octal Value</button>
+</div>
+</div>
+</div>
+<div class="copied-toast" id="toast">Copied!</div>
+<script>
+function calc(){
+const u=($('#ur')?1:0)*4+($('#uw')?1:0)*2+($('#ux')?1:0);
+const g=($('#gr')?1:0)*4+($('#gw')?1:0)*2+($('#gx')?1:0);
+const o=($('#or')?1:0)*4+($('#ow')?1:0)*2+($('#ox')?1:0);
+const oct=String(u)+String(g)+String(o);
+const sym=toSym(u)+toSym(g)+toSym(o);
+document.getElementById('octal').textContent=oct;
+document.getElementById('symbolic').textContent=sym;
+document.getElementById('chmodCmd').textContent='chmod '+oct+' file'}
+function $(id){return document.getElementById(id).checked}
+function toSym(n){let s='';s+=(n&4)?'r':'-';s+=(n&2)?'w':'-';s+=(n&1)?'x':'-';return s}
+function setPreset(val,el){
+document.querySelectorAll('.preset').forEach(p=>p.classList.remove('active'));
+if(el)el.classList.add('active');
+const digits=val.split('').map(Number);
+if(digits.length!==3||digits.some(d=>isNaN(d)||d<0||d>7))return;
+setPerms(digits[0],'u');setPerms(digits[1],'g');setPerms(digits[2],'o');calc()}
+function setPerms(n,prefix){
+document.getElementById(prefix+'r').checked=!!(n&4);
+document.getElementById(prefix+'w').checked=!!(n&2);
+document.getElementById(prefix+'x').checked=!!(n&1)}
+function reverseCalc(){
+const v=document.getElementById('octalInput').value.trim();
+const err=document.getElementById('reverseError');
+if(!v){document.getElementById('reverseResult').textContent='--- --- ---';err.textContent='';return}
+if(!/^[0-7]{3}$/.test(v)){err.textContent='Invalid octal. Use 3 digits (0-7).';document.getElementById('reverseResult').textContent='';return}
+err.textContent='';
+const digits=v.split('').map(Number);
+document.getElementById('reverseResult').textContent=toSym(digits[0])+toSym(digits[1])+toSym(digits[2])}
+function copyChmod(){navigator.clipboard.writeText(document.getElementById('chmodCmd').textContent).then(showToast)}
+function copyOctal(){navigator.clipboard.writeText(document.getElementById('octal').textContent).then(showToast)}
+function showToast(){const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+calc();
+</script>
+</body>
+</html>

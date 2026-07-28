@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON Diff / Compare - ProtonFlix Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#e0e0e0;--text-dim:#888;--accent-start:#3b82f6;--accent-mid:#8b5cf6;--accent-end:#ec4899;--green:#22c55e;--red:#ef4444;--yellow:#eab308}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
+a{color:var(--accent-mid);text-decoration:none;transition:opacity .2s}a:hover{opacity:.8}
+.header{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.header .back{font-size:14px;padding:6px 14px;border-radius:8px;border:1px solid var(--border);transition:all .2s}
+.header .back:hover{border-color:var(--accent-mid)}
+.header h1{font-size:22px;font-weight:600;background:linear-gradient(90deg,var(--accent-start),var(--accent-mid),var(--accent-end));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.container{max-width:1400px;margin:0 auto}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column}
+.panel h2{font-size:14px;font-weight:500;color:var(--text-dim);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
+textarea{width:100%;min-height:250px;background:#0d0d0d;border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:13px;padding:12px;resize:vertical;outline:none;transition:border-color .2s}
+textarea:focus{border-color:var(--accent-mid)}
+.actions{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+button{font-family:'Outfit',sans-serif;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:500;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,var(--accent-start),var(--accent-mid),var(--accent-end));color:#fff}
+.btn-primary:hover{opacity:.85;transform:translateY(-1px)}
+.btn-secondary{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent-mid)}
+.stats{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.stat{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;border:1px solid var(--border);background:var(--surface)}
+.stat.added{color:var(--green);border-color:rgba(34,197,94,.3)}
+.stat.removed{color:var(--red);border-color:rgba(239,68,68,.3)}
+.stat.changed{color:var(--yellow);border-color:rgba(234,179,8,.3)}
+.results{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;max-height:500px;overflow-y:auto}
+.diff-line{padding:8px 12px;border-radius:6px;margin-bottom:4px;font-family:'Courier New',monospace;font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-all}
+.diff-line.added{background:rgba(34,197,94,.1);border-left:3px solid var(--green)}
+.diff-line.removed{background:rgba(239,68,68,.1);border-left:3px solid var(--red)}
+.diff-line.changed{background:rgba(234,179,8,.1);border-left:3px solid var(--yellow)}
+.diff-line.unchanged{color:var(--text-dim);border-left:3px solid transparent}
+.empty{text-align:center;color:var(--text-dim);padding:40px;font-size:14px}
+@media(max-width:768px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html" class="back">&larr; Back</a>
+<h1>JSON Diff / Compare</h1>
+</div>
+<div class="grid">
+<div class="panel">
+<h2>Original</h2>
+<textarea id="jsonA" placeholder="Paste original JSON here..."></textarea>
+</div>
+<div class="panel">
+<h2>Modified</h2>
+<textarea id="jsonB" placeholder="Paste modified JSON here..."></textarea>
+</div>
+</div>
+<div class="actions">
+<button class="btn-primary" onclick="compareJSON()">Compare</button>
+<button class="btn-secondary" onclick="copyReport()">Copy Report</button>
+<button class="btn-secondary" onclick="clearAll()">Clear</button>
+</div>
+<div class="stats" id="stats"></div>
+<div class="results" id="results">
+<div class="empty">Paste two JSON objects and click Compare to see differences.</div>
+</div>
+</div>
+<script>
+let diffReport='';
+function deepDiff(a,b,path=''){
+const diffs=[];
+if(a===b)return diffs;
+if(typeof a!==typeof b||Array.isArray(a)!==Array.isArray(b)){
+diffs.push({type:'changed',path,pathA:path||'root',oldVal:JSON.stringify(a),newVal:JSON.stringify(b)});return diffs}
+if(typeof a!=='object'||a===null||b===null){if(a!==b)diffs.push({type:'changed',path,pathA:path||'root',oldVal:JSON.stringify(a),newVal:JSON.stringify(b)});return diffs}
+const keysA=new Set(Object.keys(a));const keysB=new Set(Object.keys(b));
+for(const k of keysB){if(!keysA.has(k))diffs.push({type:'added',path:appendPath(path,k),val:JSON.stringify(b[k])})}
+for(const k of keysA){if(!keysB.has(k))diffs.push({type:'removed',path:appendPath(path,k),val:JSON.stringify(a[k])})}
+for(const k of keysA){if(keysB.has(k)){const sub=deepDiff(a[k],b[k],appendPath(path,k));if(sub.length)diffs.push(...sub)}}
+return diffs}
+function appendPath(p,k){return p?p+'.'+k:k}
+function compareJSON(){
+try{const a=JSON.parse(document.getElementById('jsonA').value);const b=JSON.parse(document.getElementById('jsonB').value);
+const diffs=deepDiff(a,b);renderResults(diffs);updateStats(diffs)}
+catch(e){document.getElementById('results').innerHTML='<div class="empty" style="color:var(--red)">Invalid JSON: '+e.message+'</div>'}}
+function renderResults(diffs){
+const el=document.getElementById('results');
+if(!diffs.length){el.innerHTML='<div class="empty">No differences found. The JSON is identical.</div>';diffReport='No differences found.';return}
+let html='';diffReport='JSON Diff Report\n================\n\n';
+diffs.forEach(d=>{
+const prefix=d.type==='added'?'+ ':d.type==='removed'?'- ':'~ ';
+html+='<div class="diff-line '+d.type+'">'+prefix+d.path+'\n  '+(d.type==='added'?d.newVal||d.val:d.type==='removed'?d.oldVal||d.val:d.oldVal+' → '+d.newVal)+'</div>';
+diffReport+=prefix+d.path+'\n  '+(d.type==='added'?d.newVal||d.val:d.type==='removed'?d.oldVal||d.val:d.oldVal+' → '+d.newVal)+'\n\n'});
+el.innerHTML=html}
+function updateStats(diffs){
+const s={added:0,removed:0,changed:0};
+diffs.forEach(d=>{if(d.type==='added')s.added++;else if(d.type==='removed')s.removed++;else s.changed++});
+document.getElementById('stats').innerHTML='<div class="stat added">+ '+s.added+' Added</div><div class="stat removed">- '+s.removed+' Removed</div><div class="stat changed">~ '+s.changed+' Changed</div>'}
+function copyReport(){navigator.clipboard.writeText(diffReport).then(()=>{const b=event.target;b.textContent='Copied!';setTimeout(()=>b.textContent='Copy Report',1500)})}
+function clearAll(){document.getElementById('jsonA').value='';document.getElementById('jsonB').value='';document.getElementById('stats').innerHTML='';document.getElementById('results').innerHTML='<div class="empty">Paste two JSON objects and click Compare to see differences.</div>';diffReport=''}
+</script>
+</body>
+</html>

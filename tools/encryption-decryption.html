@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AES Encryption/Decryption – ProtonFlix Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#e0e0e0;font-family:'Outfit',sans-serif;min-height:100vh}
+.header{padding:20px 32px;border-bottom:1px solid #222;display:flex;align-items:center;gap:16px}
+.header a{color:#8b5cf6;text-decoration:none;font-weight:500;font-size:14px;transition:color .2s}
+.header a:hover{color:#a78bfa}
+.header h1{font-size:20px;font-weight:600;color:#fff}
+.container{max-width:860px;margin:0 auto;padding:32px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:24px;margin-bottom:24px}
+.card h2{font-size:16px;font-weight:600;margin-bottom:16px;color:#fff}
+label{display:block;font-size:13px;color:#999;margin-bottom:6px;font-weight:500}
+textarea,input[type=text]{width:100%;padding:12px 14px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#e0e0e0;font-family:'Outfit',sans-serif;font-size:14px;outline:none;transition:border .2s;resize:vertical}
+textarea{min-height:100px;font-family:monospace}
+textarea:focus,input:focus{border-color:#8b5cf6}
+button{padding:10px 20px;border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s}
+.btn-primary{background:#8b5cf6;color:#fff}
+.btn-primary:hover{background:#7c3aed}
+.btn-secondary{background:#222;color:#e0e0e0;border:1px solid #333}
+.btn-secondary:hover{background:#333}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.algo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px}
+.algo-btn{padding:10px;background:#1a1a2e;border:1px solid #333;border-radius:8px;color:#a78bfa;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;text-align:center}
+.algo-btn.active{background:#8b5cf6;color:#fff;border-color:#8b5cf6}
+.algo-btn:hover{border-color:#8b5cf6}
+.output-group{margin-top:12px}
+.output-group label{margin-bottom:4px}
+.output-box{background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:14px;font-family:monospace;font-size:13px;color:#a78bfa;word-break:break-all;position:relative;min-height:40px}
+.copy-btn{position:absolute;top:8px;right:8px;padding:4px 10px;background:#333;border:1px solid #444;border-radius:4px;color:#ccc;font-size:11px;cursor:pointer;font-family:'Outfit',sans-serif}
+.copy-btn:hover{background:#555}
+.result-box{margin-top:16px;padding:16px;border-radius:8px;font-size:14px;font-weight:500}
+.result-success{background:rgba(34,197,94,.1);border:1px solid #22c55e;color:#22c55e}
+.result-error{background:rgba(239,68,68,.1);border:1px solid #ef4444;color:#ef4444}
+.result-info{background:rgba(139,92,246,.1);border:1px solid #8b5cf6;color:#a78bfa}
+.note{font-size:12px;color:#666;margin-top:8px;line-height:1.5}
+.btn-group{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="header">
+  <a href="index.html">← Back</a>
+  <h1>AES Encryption / Decryption</h1>
+</div>
+<div class="container">
+  <div class="card">
+    <h2>Algorithm</h2>
+    <div class="algo-grid">
+      <div class="algo-btn" data-algo="AES-128-CBC" onclick="setAlgo(this)">AES-128-CBC</div>
+      <div class="algo-btn active" data-algo="AES-256-CBC" onclick="setAlgo(this)">AES-256-CBC</div>
+      <div class="algo-btn" data-algo="AES-128-GCM" onclick="setAlgo(this)">AES-128-GCM</div>
+      <div class="algo-btn" data-algo="AES-256-GCM" onclick="setAlgo(this)">AES-256-GCM</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Input</h2>
+    <label>Plaintext / Ciphertext</label>
+    <textarea id="inputText" placeholder="Enter text to encrypt or base64 ciphertext to decrypt">Hello, World! This is a secret message.</textarea>
+    <div class="grid-2" style="margin-top:16px">
+      <div>
+        <label>Password / Key</label>
+        <input type="text" id="password" placeholder="Enter password or hex key">
+      </div>
+      <div>
+        <label>Mode</label>
+        <div class="btn-group" style="margin-top:4px">
+          <button class="btn-primary" onclick="doEncrypt()">Encrypt</button>
+          <button class="btn-secondary" onclick="doDecrypt()">Decrypt</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="outputCard" style="display:none">
+    <h2>Output</h2>
+    <div class="output-group">
+      <label>Ciphertext (Base64)</label>
+      <div class="output-box" id="ciphertextOutput" style="position:relative">
+        <button class="copy-btn" onclick="copyField('ciphertextOutput')">Copy</button>
+        <span id="ciphertextValue"></span>
+      </div>
+    </div>
+    <div class="grid-2" style="margin-top:12px">
+      <div class="output-group">
+        <label>IV (Hex)</label>
+        <div class="output-box" style="position:relative">
+          <button class="copy-btn" onclick="copyField('ivOutput')">Copy</button>
+          <span id="ivOutput"></span>
+        </div>
+      </div>
+      <div class="output-group">
+        <label>Salt (Hex)</label>
+        <div class="output-box" style="position:relative">
+          <button class="copy-btn" onclick="copyField('saltOutput')">Copy</button>
+          <span id="saltOutput"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="decryptCard" style="display:none">
+    <h2>Decrypted Output</h2>
+    <div class="output-box" id="decryptedOutput"></div>
+    <div class="btn-group">
+      <button class="btn-secondary" onclick="copyDecrypted()">Copy</button>
+    </div>
+  </div>
+
+  <div class="result-box" id="statusMsg" style="display:none"></div>
+
+  <div class="card">
+    <h2>Security Note</h2>
+    <p class="note">All encryption/decryption happens locally in your browser using the Web Crypto API. No data is sent to any server. PBKDF2 key derivation is used with 100,000 iterations for password-based encryption. For production use, always use well-tested libraries and never implement your own cryptography.</p>
+  </div>
+</div>
+
+<script>
+let selectedAlgo = 'AES-256-CBC';
+const lastDecrypted = {};
+
+function setAlgo(el) {
+  document.querySelectorAll('.algo-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  selectedAlgo = el.dataset.algo;
+}
+
+function getAlgoParams() {
+  const parts = selectedAlgo.split('-');
+  const keyLen = parseInt(parts[1]) / 8;
+  const mode = parts[2];
+  return { keyLen, mode };
+}
+
+function bytesToHex(bytes) {
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function hexToBytes(hex) {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+  }
+  return bytes;
+}
+
+function base64Encode(bytes) {
+  return btoa(String.fromCharCode(...bytes));
+}
+
+function base64Decode(str) {
+  const binary = atob(str);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+async function deriveKey(password, salt, keyLen) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+    keyMaterial,
+    { name: `AES-${selectedAlgo.split('-').slice(1).join('-')}`, length: keyLen * 8 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
+async function doEncrypt() {
+  const text = document.getElementById('inputText').value;
+  const password = document.getElementById('password').value;
+  if (!text || !password) {
+    showStatus('Enter text and password', 'error');
+    return;
+  }
+
+  try {
+    const { keyLen, mode } = getAlgoParams();
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(mode === 'GCM' ? 12 : 16));
+    const key = await deriveKey(password, salt, keyLen);
+    const enc = new TextEncoder();
+    const algoParams = mode === 'GCM'
+      ? { name: `AES-${mode}`, iv, tagLength: 128 }
+      : { name: `AES-${mode}`, iv };
+
+    const encrypted = await crypto.subtle.encrypt(algoParams, key, enc.encode(text));
+    const result = new Uint8Array(encrypted);
+
+    let ciphertext;
+    if (mode === 'GCM') {
+      ciphertext = result;
+    } else {
+      ciphertext = result;
+    }
+
+    document.getElementById('ciphertextValue').textContent = base64Encode(ciphertext);
+    document.getElementById('ivOutput').textContent = bytesToHex(iv);
+    document.getElementById('saltOutput').textContent = bytesToHex(salt);
+    document.getElementById('outputCard').style.display = 'block';
+    document.getElementById('decryptCard').style.display = 'none';
+    showStatus(`Encrypted with ${selectedAlgo}`, 'success');
+  } catch (e) {
+    showStatus('Encryption failed: ' + e.message, 'error');
+  }
+}
+
+async function doDecrypt() {
+  const input = document.getElementById('inputText').value.trim();
+  const password = document.getElementById('password').value;
+  if (!input || !password) {
+    showStatus('Enter ciphertext and password', 'error');
+    return;
+  }
+
+  try {
+    const { keyLen, mode } = getAlgoParams();
+    let ciphertext;
+    try {
+      ciphertext = base64Decode(input);
+    } catch (e) {
+      showStatus('Invalid base64 ciphertext', 'error');
+      return;
+    }
+
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const ivStr = document.getElementById('ivOutput')?.textContent;
+    const saltStr = document.getElementById('saltOutput')?.textContent;
+    let iv, useSalt;
+    if (ivStr && saltStr && ivStr.length > 0 && saltStr.length > 0) {
+      iv = hexToBytes(ivStr);
+      useSalt = hexToBytes(saltStr);
+    } else {
+      iv = ciphertext.slice(0, mode === 'GCM' ? 12 : 16);
+      useSalt = ciphertext.slice(mode === 'GCM' ? 12 : 16, (mode === 'GCM' ? 12 : 16) + 16);
+      ciphertext = ciphertext.slice((mode === 'GCM' ? 12 : 16) + 16);
+    }
+
+    const key = await deriveKey(password, useSalt, keyLen);
+    const algoParams = mode === 'GCM'
+      ? { name: `AES-${mode}`, iv, tagLength: 128 }
+      : { name: `AES-${mode}`, iv };
+
+    const decrypted = await crypto.subtle.decrypt(algoParams, key, ciphertext);
+    const text = new TextDecoder().decode(decrypted);
+
+    document.getElementById('decryptedOutput').textContent = text;
+    document.getElementById('decryptCard').style.display = 'block';
+    document.getElementById('outputCard').style.display = 'none';
+    lastDecrypted.text = text;
+    showStatus('Decryption successful', 'success');
+  } catch (e) {
+    showStatus('Decryption failed: wrong password or corrupted data', 'error');
+  }
+}
+
+function showStatus(msg, type) {
+  const el = document.getElementById('statusMsg');
+  el.style.display = 'block';
+  el.className = `result-box result-${type}`;
+  el.textContent = msg;
+}
+
+function copyField(id) {
+  const el = document.getElementById(id);
+  const text = el.textContent || el.innerText;
+  navigator.clipboard.writeText(text);
+}
+
+function copyDecrypted() {
+  navigator.clipboard.writeText(lastDecrypted.text || '');
+}
+</script>
+</body>
+</html>

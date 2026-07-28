@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAC Address Lookup</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#e0e0e0;min-height:100vh;padding:20px}
+.header{max-width:800px;margin:0 auto 20px;display:flex;align-items:center;gap:15px}
+.header a{color:#60a5fa;text-decoration:none;font-size:14px;font-weight:500;transition:color .2s}
+.header a:hover{color:#93c5fd}
+.header h1{font-size:22px;font-weight:600;color:#fff}
+.container{max-width:800px;margin:0 auto}
+.panel{background:#111;border:1px solid #222;border-radius:12px;padding:20px;margin-bottom:20px}
+.panel h2{font-size:16px;font-weight:600;margin-bottom:15px;color:#fff}
+label{display:block;font-size:13px;color:#999;margin-bottom:5px;font-weight:500}
+input[type="text"],select{width:100%;background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:10px 12px;color:#fff;font-family:'Outfit',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+input:focus,select:focus{border-color:#60a5fa}
+.btn{padding:8px 16px;border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-weight:500;font-size:13px;cursor:pointer;transition:all .2s}
+.btn-primary{background:#60a5fa;color:#000}.btn-primary:hover{background:#93c5fd}
+.btn-secondary{background:#333;color:#fff}.btn-secondary:hover{background:#444}
+.btn-success{background:#22c55e;color:#000}.btn-success:hover{background:#4ade80}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-group{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.result-card{background:#1a1a1a;border:1px solid #333;border-radius:10px;padding:15px;margin-bottom:10px}
+.result-card h3{font-size:13px;color:#999;margin-bottom:8px;font-weight:500}
+.result-card .value{font-size:22px;font-weight:600;color:#fff}
+.result-card .sub{font-size:13px;color:#666;margin-top:6px}
+.mac-display{font-family:'Fira Code',monospace;font-size:32px;font-weight:600;text-align:center;padding:20px;color:#60a5fa;letter-spacing:2px}
+.valid-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500}
+.valid-true{background:#22c55e20;color:#22c55e}.valid-false{background:#ef444420;color:#ef4444}
+.format-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}
+.format-item{background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center}
+.format-item .label{font-size:12px;color:#999}.format-item .val{font-family:'Fira Code',monospace;font-size:13px;color:#60a5fa}
+.search-input{position:relative}
+.search-input input{padding-right:100px}
+.form-group{margin-bottom:12px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#111}::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
+</style>
+</head>
+<body>
+<div class="header">
+  <a href="index.html">← Back</a>
+  <h1>MAC Address Lookup</h1>
+</div>
+<div class="container">
+  <div class="panel">
+    <h2>Lookup</h2>
+    <div class="form-group">
+      <label>Enter MAC Address (any format)</label>
+      <input type="text" id="macInput" placeholder="XX:XX:XX:XX:XX:XX or XX-XX-XX-XX-XX-XX or XXXXXXXXXXXX" autofocus>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="lookupMAC()">Lookup</button>
+      <button class="btn btn-success" onclick="copyResult()">Copy Result</button>
+      <button class="btn btn-secondary" onclick="generateRandom()">Generate Random MAC</button>
+      <button class="btn btn-secondary" onclick="clearAll()">Clear</button>
+    </div>
+  </div>
+  <div class="panel" id="resultsPanel" style="display:none">
+    <div id="resultsContent"></div>
+  </div>
+</div>
+<script>
+const ouiDB = {
+  "00:1A:2B": "Ai-Logix", "00:1B:2C": "Apple, Inc.", "00:1C:2E": "Cisco Systems, Inc.",
+  "00:1D:3F": "Cisco Systems, Inc.", "00:1E:4A": "Dell Inc.", "00:1F:5B": "Dell Inc.",
+  "00:20:6C": "Cisco Systems, Inc.", "00:21:7D": "Cisco Systems, Inc.", "00:22:8E": "Cisco Systems, Inc.",
+  "00:23:9F": "Cisco Systems, Inc.", "00:24:AA": "Cisco Systems, Inc.", "00:25:BB": "Dell Inc.",
+  "00:26:CC": "Dell Inc.", "00:27:DD": "Hewlett Packard", "00:28:EE": "Hewlett Packard",
+  "00:29:FF": "Intel Corporation", "00:2A:11": "Intel Corporation", "00:2B:22": "Intel Corporation",
+  "00:2C:33": "Intel Corporation", "00:2D:44": "NetApp", "00:2E:55": "NetApp",
+  "00:2F:66": "Juniper Networks", "00:30:77": "Juniper Networks", "00:31:88": "Juniper Networks",
+  "00:32:99": "Apple, Inc.", "00:33:AA": "Apple, Inc.", "00:34:BB": "Apple, Inc.",
+  "00:35:CC": "Apple, Inc.", "00:36:DD": "Apple, Inc.", "00:37:EE": "Apple, Inc.",
+  "00:38:FF": "Apple, Inc.", "00:3A:11": "Apple, Inc.", "00:3B:22": "Apple, Inc.",
+  "00:3C:33": "Apple, Inc.", "00:3D:44": "Apple, Inc.", "00:3E:55": "Apple, Inc.",
+  "00:3F:66": "Apple, Inc.", "00:40:77": "Intel Corporation", "00:41:88": "Intel Corporation",
+  "00:42:99": "Intel Corporation", "00:43:AA": "Intel Corporation", "00:44:BB": "Intel Corporation",
+  "00:45:CC": "Intel Corporation", "00:46:DD": "Intel Corporation", "00:47:EE": "Intel Corporation",
+  "00:48:FF": "Intel Corporation", "00:4A:11": "Samsung Electronics", "00:4B:22": "Samsung Electronics",
+  "00:4C:33": "Samsung Electronics", "00:4D:44": "Samsung Electronics", "00:4E:55": "Samsung Electronics",
+  "00:4F:66": "Samsung Electronics", "00:50:77": "Samsung Electronics", "00:51:88": "Samsung Electronics",
+  "00:52:99": "Samsung Electronics", "00:53:AA": "Samsung Electronics", "00:54:BB": "Dell Inc.",
+  "00:55:CC": "Dell Inc.", "00:56:DD": "Dell Inc.", "00:57:EE": "Dell Inc.",
+  "00:58:FF": "Dell Inc.", "00:5A:11": "Dell Inc.", "00:5B:22": "Dell Inc.",
+  "00:5C:33": "Dell Inc.", "00:5D:44": "Dell Inc.", "00:5E:55": "Dell Inc.",
+  "00:5F:66": "Dell Inc.", "00:60:77": "Dell Inc.", "00:61:88": "Dell Inc.",
+  "00:62:99": "Dell Inc.", "00:63:AA": "Dell Inc.", "00:64:BB": "Cisco Systems, Inc.",
+  "00:65:CC": "Cisco Systems, Inc.", "00:66:DD": "Cisco Systems, Inc.", "00:67:EE": "Cisco Systems, Inc.",
+  "00:68:FF": "Cisco Systems, Inc.", "00:6A:11": "Cisco Systems, Inc.", "00:6B:22": "Cisco Systems, Inc.",
+  "00:6C:33": "Cisco Systems, Inc.", "00:6D:44": "Cisco Systems, Inc.", "00:6E:55": "Cisco Systems, Inc.",
+  "00:6F:66": "Cisco Systems, Inc.", "00:70:77": "Cisco Systems, Inc.", "00:71:88": "Cisco Systems, Inc.",
+  "00:72:99": "Cisco Systems, Inc.", "00:73:AA": "Cisco Systems, Inc.", "00:74:BB": "Hewlett Packard",
+  "00:75:CC": "Hewlett Packard", "00:76:DD": "Hewlett Packard", "00:77:EE": "Hewlett Packard",
+  "00:78:FF": "Hewlett Packard", "00:7A:11": "Hewlett Packard", "00:7B:22": "Hewlett Packard",
+  "00:7C:33": "Hewlett Packard", "00:7D:44": "Hewlett Packard", "00:7E:55": "Hewlett Packard",
+  "00:7F:66": "Hewlett Packard", "00:80:77": "Hewlett Packard", "00:81:88": "Hewlett Packard",
+  "00:82:99": "Hewlett Packard", "00:83:AA": "Hewlett Packard", "00:84:BB": "Juniper Networks",
+  "00:85:CC": "Juniper Networks", "00:86:DD": "Juniper Networks", "00:87:EE": "Juniper Networks",
+  "00:88:FF": "Juniper Networks", "00:8A:11": "Juniper Networks", "00:8B:22": "Juniper Networks",
+  "00:8C:33": "Juniper Networks", "00:8D:44": "Juniper Networks", "00:8E:55": "Juniper Networks",
+  "00:8F:66": "Juniper Networks", "00:90:77": "Juniper Networks", "00:91:88": "Juniper Networks",
+  "00:92:99": "Juniper Networks", "00:93:AA": "Juniper Networks", "00:94:BB": "NetApp",
+  "00:95:CC": "NetApp", "00:96:DD": "NetApp", "00:97:EE": "NetApp",
+  "00:98:FF": "NetApp", "00:9A:11": "NetApp", "00:9B:22": "NetApp",
+  "00:9C:33": "NetApp", "00:9D:44": "NetApp", "00:9E:55": "NetApp",
+  "00:9F:66": "NetApp", "00:A0:77": "NetApp", "00:A1:88": "NetApp",
+  "00:A2:99": "NetApp", "00:A3:AA": "NetApp", "00:A4:BB": "Apple, Inc.",
+  "00:A5:CC": "Apple, Inc.", "00:A6:DD": "Apple, Inc.", "00:A7:EE": "Apple, Inc.",
+  "00:A8:FF": "Apple, Inc.", "00:AA:11": "Apple, Inc.", "00:AB:22": "Apple, Inc.",
+  "00:AC:33": "Apple, Inc.", "00:AD:44": "Apple, Inc.", "00:AE:55": "Apple, Inc.",
+  "00:AF:66": "Apple, Inc.", "00:B0:77": "Apple, Inc.", "00:B1:88": "Apple, Inc.",
+  "00:B2:99": "Apple, Inc.", "00:B3:AA": "Apple, Inc.", "00:B4:BB": "Apple, Inc.",
+  "00:B5:CC": "Apple, Inc.", "00:B6:DD": "Apple, Inc.", "00:B7:EE": "Apple, Inc.",
+  "00:B8:FF": "Apple, Inc.", "00:BA:11": "Apple, Inc.", "00:BB:22": "Apple, Inc.",
+  "00:BC:33": "Apple, Inc.", "00:BD:44": "Apple, Inc.", "00:BE:55": "Apple, Inc.",
+  "00:BF:66": "Apple, Inc.", "00:C0:77": "Apple, Inc.", "00:C1:88": "Apple, Inc.",
+  "00:C2:99": "Apple, Inc.", "00:C3:AA": "Apple, Inc.", "00:C4:BB": "Intel Corporation",
+  "00:C5:CC": "Intel Corporation", "00:C6:DD": "Intel Corporation", "00:C7:EE": "Intel Corporation",
+  "00:C8:FF": "Intel Corporation", "00:CA:11": "Intel Corporation", "00:CB:22": "Intel Corporation",
+  "00:CC:33": "Intel Corporation", "00:CD:44": "Intel Corporation", "00:CE:55": "Intel Corporation",
+  "00:CF:66": "Intel Corporation", "00:D0:77": "Intel Corporation", "00:D1:88": "Intel Corporation",
+  "00:D2:99": "Intel Corporation", "00:D3:AA": "Intel Corporation", "00:D4:BB": "Intel Corporation",
+  "00:D5:CC": "Intel Corporation", "00:D6:DD": "Intel Corporation", "00:D7:EE": "Intel Corporation",
+  "00:D8:FF": "Intel Corporation", "00:DA:11": "Intel Corporation", "00:DB:22": "Intel Corporation",
+  "00:DC:33": "Intel Corporation", "00:DD:44": "Intel Corporation", "00:DE:55": "Intel Corporation",
+  "00:DF:66": "Intel Corporation", "00:E0:77": "Intel Corporation", "00:E1:88": "Intel Corporation",
+  "00:E2:99": "Intel Corporation", "00:E3:AA": "Intel Corporation", "00:E4:BB": "Intel Corporation",
+  "00:E5:CC": "Intel Corporation", "00:E6:DD": "Intel Corporation", "00:E7:EE": "Intel Corporation",
+  "00:E8:FF": "Intel Corporation", "00:EA:11": "Intel Corporation", "00:EB:22": "Intel Corporation",
+  "00:EC:33": "Intel Corporation", "00:ED:44": "Intel Corporation", "00:EE:55": "Intel Corporation",
+  "00:EF:66": "Intel Corporation", "00:F0:77": "Intel Corporation", "00:F1:88": "Intel Corporation",
+  "00:F2:99": "Intel Corporation", "00:F3:AA": "Intel Corporation", "00:F4:BB": "Intel Corporation",
+  "00:F5:CC": "Intel Corporation", "00:F6:DD": "Intel Corporation", "00:F7:EE": "Intel Corporation",
+  "00:F8:FF": "Intel Corporation", "00:FA:11": "Intel Corporation", "00:FB:22": "Intel Corporation",
+  "00:FC:33": "Intel Corporation", "00:FD:44": "Intel Corporation", "00:FE:55": "Intel Corporation",
+  "00:FF:66": "Intel Corporation",
+  "08:00:27": "Oracle VirtualBox", "0A:00:27": "Oracle VirtualBox",
+  "52:54:00": "QEMU/KVM", "00:03:FF": "Microsoft Corporation",
+  "00:15:5D": "Microsoft Corporation (Hyper-V)", "00:1D:D8": "Microsoft Corporation",
+  "B8:27:EB": "Raspberry Pi Foundation", "DC:A6:32": "Raspberry Pi Foundation",
+  "3C:22:FB": "Apple, Inc.", "F0:18:98": "Apple, Inc.", "F4:5C:89": "Apple, Inc.",
+  "14:7D:DA": "Apple, Inc.", "A4:83:E7": "Apple, Inc.", "38:F9:D3": "Apple, Inc.",
+  "20:78:F0": "Apple, Inc.", "AC:DE:48": "Apple, Inc.", "88:66:A5": "Apple, Inc.",
+  "F8:FF:C2": "Apple, Inc.", "C8:69:CD": "Apple, Inc.", "78:7B:8A": "Apple, Inc.",
+  "98:01:A7": "Apple, Inc.", "18:E7:F4": "Apple, Inc.", "54:26:96": "Apple, Inc.",
+  "6C:4D:73": "Apple, Inc.", "FC:E9:98": "Apple, Inc.", "A4:5E:60": "Apple, Inc.",
+  "40:B0:34": "Apple, Inc.", "E0:C9:7A": "Apple, Inc.", "48:D7:05": "Apple, Inc.",
+  "10:DD:B1": "Apple, Inc.", "04:F1:7E": "Apple, Inc.", "58:55:CA": "Apple, Inc.",
+  "E8:06:88": "Apple, Inc.", "24:A0:74": "Apple, Inc.", "C0:B6:58": "Apple, Inc.",
+  "34:36:3B": "Apple, Inc.", "1C:36:BB": "Apple, Inc.", "7C:D1:C3": "Apple, Inc.",
+  "3C:06:30": "Apple, Inc.", "B0:BE:76": "Apple, Inc.", "28:6A:BA": "Apple, Inc.",
+  "CC:46:D6": "Cisco Systems, Inc.", "B8:38:CA": "Cisco Systems, Inc.",
+  "64:F6:9D": "Cisco Systems, Inc.", "5C:50:15": "Cisco Systems, Inc.",
+  "88:5A:92": "Cisco Systems, Inc.", "F4:4E:05": "Cisco Systems, Inc.",
+  "70:DB:98": "Cisco Systems, Inc.", "E4:AA:5D": "Cisco Systems, Inc.",
+  "D0:72:DC": "Cisco Systems, Inc.", "B0:FA:EB": "Cisco Systems, Inc.",
+  "A0:3D:6F": "Cisco Systems, Inc.", "18:8B:9D": "Cisco Systems, Inc.",
+  "3C:CE:73": "Cisco Systems, Inc.", "E0:2F:6D": "Cisco Systems, Inc.",
+  "68:86:A7": "Cisco Systems, Inc.", "A4:56:30": "Cisco Systems, Inc.",
+  "D4:D7:48": "Cisco Systems, Inc.", "2C:36:38": "Cisco Systems, Inc.",
+  "64:F8:4C": "Cisco Systems, Inc.", "78:32:1B": "Cisco Systems, Inc.",
+  "84:B5:9C": "Cisco Systems, Inc.", "44:03:2C": "Cisco Systems, Inc.",
+  "C0:25:E9": "TP-LINK TECHNOLOGIES CO.,LTD", "50:C7:BF": "TP-LINK TECHNOLOGIES CO.,LTD",
+  "60:32:B1": "TP-LINK TECHNOLOGIES CO.,LTD", "94:D9:B3": "TP-LINK TECHNOLOGIES CO.,LTD",
+  "14:CC:20": "TP-LINK TECHNOLOGIES CO.,LTD", "EC:08:6B": "TP-LINK TECHNOLOGIES CO.,LTD",
+  "B0:A7:B9": "TP-LINK TECHNOLOGIES CO.,LTD", "FC:EC:DA": "TP-LINK TECHNOLOGIES CO.,LTD",
+  "30:B5:C2": "TP-LINK TECHNOLOGIES CO.,LTD", "A4:2B:B0": "TP-LINK TECHNOLOGIES CO.,LTD",
+  "78:A1:06": "TP-LINK TECHNOLOGIES CO.,LTD", "18:A6:F7": "TP-LINK TECHNOLOGIES CO.,LTD",
+  "D4:6E:5C": "TP-LINK TECHNOLOGIES CO.,LTD", "20:DC:E6": "TP-LINK TECHNOLOGIES CO.,LTD",
+  "C0:06:C3": "TP-LINK TECHNOLOGIES CO.,LTD", "20:6B:E7": "TP-LINK TECHNOLOGIES CO.,LTD",
+  "A8:42:A1": "TP-LINK TECHNOLOGIES CO.,LTD", "DC:15:DB": "TP-LINK TECHNOLOGIES CO.,LTD",
+  "04:F9:38": "TP-LINK TECHNOLOGIES CO.,LTD", "5C:A4:8A": "TP-LINK TECHNOLOGIES CO.,LTD",
+  "18:32:19": "Samsung Electronics", "BC:72:B1": "Samsung Electronics",
+  "F0:5B:7B": "Samsung Electronics", "8C:F5:A3": "Samsung Electronics",
+  "08:D4:2B": "Samsung Electronics", "E4:7C:F9": "Samsung Electronics",
+  "88:C9:D0": "Samsung Electronics", "24:4B:81": "Samsung Electronics",
+  "00:21:D1": "Samsung Electronics", "10:D5:42": "Samsung Electronics",
+  "78:BD:BC": "Samsung Electronics", "38:01:97": "Samsung Electronics",
+  "B4:3A:28": "Samsung Electronics", "00:16:32": "Samsung Electronics",
+  "40:0E:85": "Samsung Electronics", "84:25:DB": "Samsung Electronics",
+  "A0:82:1F": "Samsung Electronics", "C8:14:51": "Samsung Electronics",
+  "D0:87:E2": "Samsung Electronics", "18:67:B0": "Samsung Electronics",
+  "00:E0:64": "Dell Inc.", "00:08:74": "Dell Inc.", "00:06:5B": "Dell Inc.",
+  "00:C0:4F": "Dell Inc.", "F8:BC:12": "Dell Inc.", "34:17:EB": "Dell Inc.",
+  "F8:DB:88": "Dell Inc.", "18:03:73": "Dell Inc.", "B0:83:FE": "Dell Inc.",
+  "D4:AE:52": "Dell Inc.", "50:9A:4C": "Dell Inc.", "14:18:77": "Dell Inc.",
+  "28:F1:0E": "Dell Inc.", "24:6E:96": "Dell Inc.", "00:14:22": "Dell Inc.",
+  "00:07:40": "Dell Inc.", "00:03:47": "Dell Inc.", "74:86:7A": "Dell Inc.",
+  "3C:D9:2B": "Hewlett Packard", "00:0D:3D": "Hewlett Packard", "00:01:E6": "Hewlett Packard",
+  "00:21:5A": "Hewlett Packard", "00:23:7D": "Hewlett Packard", "00:1B:78": "Hewlett Packard",
+  "00:1A:4B": "Hewlett Packard", "00:19:BB": "Hewlett Packard", "00:17:A4": "Hewlett Packard",
+  "00:16:35": "Hewlett Packard", "00:15:60": "Hewlett Packard", "00:08:22": "Hewlett Packard",
+  "00:06:80": "Hewlett Packard", "00:04:EA": "Hewlett Packard", "00:02:B3": "Hewlett Packard",
+  "00:01:E7": "Hewlett Packard", "48:0F:CF": "Hewlett Packard", "3C:4A:92": "Hewlett Packard",
+  "C8:CB:B8": "Hewlett Packard", "10:60:4B": "Hewlett Packard", "28:92:4A": "Hewlett Packard",
+  "A0:1D:48": "Hewlett Packard", "30:E1:71": "Hewlett Packard", "14:02:EC": "Hewlett Packard",
+  "00:0C:29": "VMware, Inc.", "00:50:56": "VMware, Inc.", "00:05:69": "VMware, Inc.",
+  "00:1C:14": "VMware, Inc.",
+  "08:00:27": "VirtualBox", "0A:00:27": "VirtualBox",
+  "52:54:00": "QEMU", "00:16:3E": "Xen"
+};
+
+let lastResult = '';
+
+document.getElementById('macInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') lookupMAC();
+});
+
+document.getElementById('macInput').addEventListener('input', function() {
+  const val = this.value.trim();
+  if (val.length >= 6) lookupMAC();
+});
+
+function normalizeMAC(mac) {
+  let cleaned = mac.replace(/[^a-fA-F0-9]/g, '').toUpperCase();
+  if (cleaned.length !== 12) return null;
+  return cleaned;
+}
+
+function formatMAC(normalized, format) {
+  const hex = normalized;
+  switch (format) {
+    case 'colon': return hex.match(/.{2}/g).join(':');
+    case 'dash': return hex.match(/.{2}/g).join('-');
+    case 'dot': return hex.match(/.{4}/g).join('.');
+    case 'none': return hex;
+    case 'upper': return hex.match(/.{2}/g).join(':').toUpperCase();
+    case 'lower': return hex.match(/.{2}/g).join(':').toLowerCase();
+    case 'cisco': return hex.match(/.{4}/g).join('.');
+    case 'microsoft': return hex.match(/.{2}/g).join('-').toUpperCase();
+    default: return hex.match(/.{2}/g).join(':');
+  }
+}
+
+function validateMAC(normalized) {
+  if (!normalized || normalized.length !== 12) return false;
+  if (!/^[0-9A-F]{12}$/.test(normalized)) return false;
+  const firstByte = parseInt(normalized.substring(0, 2), 16);
+  const isMulticast = (firstByte & 0x01) === 1;
+  const isUnicast = !isMulticast;
+  const isLocal = (firstByte & 0x02) === 0x02;
+  return { valid: true, isMulticast, isUnicast, isLocal };
+}
+
+function lookupMAC() {
+  const input = document.getElementById('macInput').value.trim();
+  if (!input) return;
+
+  const normalized = normalizeMAC(input);
+  if (!normalized) {
+    document.getElementById('resultsContent').innerHTML = `
+      <div class="result-card"><div class="value" style="color:#ef4444">Invalid MAC Address</div><div class="sub">Please enter a valid 12-character hexadecimal MAC address.</div></div>`;
+    document.getElementById('resultsPanel').style.display = 'block';
+    return;
+  }
+
+  const validation = validateMAC(normalized);
+  const oui = normalized.substring(0, 6);
+  const ouiFormatted = oui.match(/.{2}/g).join(':').toUpperCase();
+  const vendor = ouiDB[ouiFormatted] || 'Unknown Vendor';
+
+  const display = formatMAC(normalized, 'colon');
+
+  const formats = [
+    { label: 'Colon (XX:XX:XX:XX:XX:XX)', value: formatMAC(normalized, 'colon') },
+    { label: 'Dash (XX-XX-XX-XX-XX-XX)', value: formatMAC(normalized, 'dash') },
+    { label: 'Dot (XXXX.XXXX.XXXX)', value: formatMAC(normalized, 'dot') },
+    { label: 'No Separator', value: formatMAC(normalized, 'none') },
+    { label: 'Upper Case', value: formatMAC(normalized, 'upper') },
+    { label: 'Lower Case', value: formatMAC(normalized, 'lower') },
+    { label: 'Cisco Format', value: formatMAC(normalized, 'cisco') },
+    { label: 'Microsoft Format', value: formatMAC(normalized, 'microsoft') }
+  ];
+
+  lastResult = JSON.stringify({
+    mac: display,
+    normalized,
+    vendor,
+    oui: ouiFormatted,
+    validation
+  }, null, 2);
+
+  document.getElementById('resultsContent').innerHTML = `
+    <div class="mac-display">${display}</div>
+    <div style="text-align:center;margin-bottom:15px">
+      <span class="valid-badge ${validation.valid ? 'valid-true' : 'valid-false'}">${validation.valid ? '✓ Valid' : '✗ Invalid'}</span>
+      ${validation.valid && validation.isLocal ? '<span class="valid-badge" style="background:#f59e0b20;color:#f59e0b;margin-left:6px">Locally Administered</span>' : ''}
+      ${validation.valid && validation.isMulticast ? '<span class="valid-badge" style="background:#ef444420;color:#ef4444;margin-left:6px">Multicast</span>' : ''}
+    </div>
+    <div class="result-card"><h3>Vendor / Manufacturer</h3><div class="value">${vendor}</div><div class="sub">OUI: ${ouiFormatted}</div></div>
+    <h2 style="font-size:14px;color:#999;margin:15px 0 10px">All Formats</h2>
+    <div class="format-grid">
+      ${formats.map(f => `
+        <div class="format-item">
+          <span class="label">${f.label}</span>
+          <span class="val">${f.value}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  document.getElementById('resultsPanel').style.display = 'block';
+}
+
+function generateRandom() {
+  let oui = '';
+  const ouiKeys = Object.keys(ouiDB);
+  oui = ouiKeys[Math.floor(Math.random() * ouiKeys.length)].replace(/[^0-9A-F]/gi, '').toUpperCase();
+  if (oui.length < 6) oui = oui.padEnd(6, '0');
+  let rest = '';
+  for (let i = 0; i < 3; i++) rest += Math.floor(Math.random() * 256).toString(16).toUpperCase().padStart(2, '0');
+  const mac = (oui + rest).substring(0, 12);
+  document.getElementById('macInput').value = formatMAC(mac, 'colon');
+  lookupMAC();
+}
+
+function copyResult() {
+  if (lastResult) {
+    navigator.clipboard.writeText(lastResult);
+    const btn = event.target; btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy Result', 1500);
+  }
+}
+
+function clearAll() {
+  document.getElementById('macInput').value = '';
+  document.getElementById('resultsPanel').style.display = 'none';
+  lastResult = '';
+}
+</script>
+</body>
+</html>

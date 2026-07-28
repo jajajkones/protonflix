@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OTP Generator – ProtonFlix Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#e0e0e0;font-family:'Outfit',sans-serif;min-height:100vh}
+.header{padding:20px 32px;border-bottom:1px solid #222;display:flex;align-items:center;gap:16px}
+.header a{color:#8b5cf6;text-decoration:none;font-weight:500;font-size:14px;transition:color .2s}
+.header a:hover{color:#a78bfa}
+.header h1{font-size:20px;font-weight:600;color:#fff}
+.container{max-width:860px;margin:0 auto;padding:32px}
+.card{background:#111;border:1px solid #222;border-radius:12px;padding:24px;margin-bottom:24px}
+.card h2{font-size:16px;font-weight:600;margin-bottom:16px;color:#fff}
+label{display:block;font-size:13px;color:#999;margin-bottom:6px;font-weight:500}
+input[type=text],input[type=number],select{width:100%;padding:12px 14px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#e0e0e0;font-family:'Outfit',sans-serif;font-size:14px;outline:none;transition:border .2s}
+input:focus,select:focus{border-color:#8b5cf6}
+button{padding:10px 20px;border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s}
+.btn-primary{background:#8b5cf6;color:#fff}
+.btn-primary:hover{background:#7c3aed}
+.btn-secondary{background:#222;color:#e0e0e0;border:1px solid #333}
+.btn-secondary:hover{background:#333}
+.btn-danger{background:#dc2626;color:#fff}
+.btn-danger:hover{background:#b91c1c}
+.otp-display{font-size:48px;font-weight:700;letter-spacing:8px;text-align:center;padding:24px;color:#8b5cf6;font-variant-numeric:tabular-nums}
+.otp-section{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.otp-section input{flex:1;min-width:200px}
+.otp-section button{flex-shrink:0}
+.timer-bar{height:4px;background:#222;border-radius:2px;margin-top:16px;overflow:hidden}
+.timer-bar-fill{height:100%;background:#8b5cf6;border-radius:2px;transition:width 1s linear}
+.timer-text{text-align:center;font-size:13px;color:#999;margin-top:8px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.preset-btn{padding:6px 12px;background:#1a1a2e;border:1px solid #333;border-radius:6px;color:#a78bfa;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s}
+.preset-btn:hover{background:#8b5cf6;color:#fff;border-color:#8b5cf6}
+.code-output{background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:16px;font-family:monospace;font-size:14px;color:#a78bfa;margin-top:12px;word-break:break-all}
+.verify-result{margin-top:12px;padding:12px;border-radius:8px;font-size:14px;font-weight:500}
+.verify-pass{background:rgba(34,197,94,.1);border:1px solid #22c55e;color:#22c55e}
+.verify-fail{background:rgba(239,68,68,.1);border:1px solid #ef4444;color:#ef4444}
+.hidden{display:none}
+.qr-container{display:flex;justify-content:center;margin-top:16px}
+.qr-container canvas{border-radius:8px}
+.note{font-size:12px;color:#666;margin-top:8px;line-height:1.5}
+.row{display:flex;gap:12px;align-items:flex-end}
+.row>div{flex:1}
+</style>
+</head>
+<body>
+<div class="header">
+  <a href="index.html">← Back</a>
+  <h1>OTP Generator</h1>
+</div>
+<div class="container">
+  <div class="card">
+    <h2>Secret Key</h2>
+    <label>Base32 Secret</label>
+    <div class="otp-section">
+      <input type="text" id="secretKey" placeholder="JBSWY3DPEHPK3PXP" autocomplete="off">
+      <button class="btn-primary" onclick="generateOTP()">Generate</button>
+    </div>
+    <div class="presets">
+      <button class="preset-btn" onclick="setPreset('JBSWY3DPEHPK3PXP')">Test Secret</button>
+      <button class="preset-btn" onclick="setPreset('HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ')">Long Secret</button>
+      <button class="preset-btn" onclick="setPreset('GEZDGNBVGY3TQOJQ')">Numeric Test</button>
+      <button class="preset-btn" onclick="randomSecret()">Random</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Current TOTP Code</h2>
+    <div class="otp-display" id="currentCode">------</div>
+    <div class="timer-bar"><div class="timer-bar-fill" id="timerFill"></div></div>
+    <div class="timer-text" id="timerText">30s remaining</div>
+    <div class="grid-2" style="margin-top:20px">
+      <div class="card" style="margin:0">
+        <h2 style="font-size:14px">Previous Code</h2>
+        <div class="code-output" id="prevCode">------</div>
+      </div>
+      <div class="card" style="margin:0">
+        <h2 style="font-size:14px">Next Code</h2>
+        <div class="code-output" id="nextCode">------</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Verify OTP</h2>
+    <label>Enter code to verify</label>
+    <div class="otp-section">
+      <input type="text" id="verifyCode" placeholder="6-digit code" maxlength="6" style="max-width:200px;font-size:24px;text-align:center;letter-spacing:4px">
+      <button class="btn-primary" onclick="verifyOTP()">Verify</button>
+    </div>
+    <div id="verifyResult"></div>
+  </div>
+
+  <div class="card">
+    <h2>QR Code (Google Authenticator URI)</h2>
+    <label>Account Name</label>
+    <input type="text" id="accountName" placeholder="user@example.com" style="margin-bottom:12px">
+    <label>Issuer</label>
+    <input type="text" id="issuerName" placeholder="ProtonFlix" style="margin-bottom:12px">
+    <button class="btn-primary" onclick="generateQR()">Generate QR Code</button>
+    <div class="qr-container" id="qrContainer"></div>
+    <div class="code-output" id="otpauthUri" style="margin-top:12px;display:none"></div>
+  </div>
+
+  <div class="card">
+    <h2>How It Works</h2>
+    <p class="note">TOTP (Time-based One-Time Password) generates a new 6-digit code every 30 seconds based on your secret key using HMAC-SHA1. Compatible with Google Authenticator, Authy, and other TOTP apps. All computation happens locally in your browser.</p>
+  </div>
+</div>
+
+<script>
+let currentInterval = null;
+
+function base32Decode(str) {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  str = str.replace(/=+$/, '').toUpperCase();
+  let bits = '';
+  for (const c of str) {
+    const val = alphabet.indexOf(c);
+    if (val === -1) continue;
+    bits += val.toString(2).padStart(5, '0');
+  }
+  const bytes = new Uint8Array(Math.floor(bits.length / 8));
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(bits.substr(i * 8, 8), 2);
+  }
+  return bytes;
+}
+
+async function hmacSha1(key, message) {
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw', key, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', cryptoKey, message);
+  return new Uint8Array(sig);
+}
+
+async function generateTOTP(secret, timeStep = 30, digits = 6) {
+  const key = base32Decode(secret);
+  const epoch = Math.floor(Date.now() / 1000);
+  const counter = Math.floor(epoch / timeStep);
+  const counterBytes = new ArrayBuffer(8);
+  const view = new DataView(counterBytes);
+  view.setUint32(4, counter, false);
+  const hash = await hmacSha1(key, new Uint8Array(counterBytes));
+  const offset = hash[hash.length - 1] & 0x0f;
+  const code = (
+    ((hash[offset] & 0x7f) << 24) |
+    ((hash[offset + 1] & 0xff) << 16) |
+    ((hash[offset + 2] & 0xff) << 8) |
+    (hash[offset + 3] & 0xff)
+  ) % Math.pow(10, digits);
+  return code.toString().padStart(digits, '0');
+}
+
+function setPreset(val) {
+  document.getElementById('secretKey').value = val;
+  generateOTP();
+}
+
+function randomSecret() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let s = '';
+  for (let i = 0; i < 16; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  document.getElementById('secretKey').value = s;
+  generateOTP();
+}
+
+async function generateOTP() {
+  const secret = document.getElementById('secretKey').value.trim();
+  if (!secret) return;
+  if (currentInterval) clearInterval(currentInterval);
+  await updateCodes(secret);
+  currentInterval = setInterval(() => updateCodes(secret), 1000);
+}
+
+async function updateCodes(secret) {
+  try {
+    const timeStep = 30;
+    const now = Math.floor(Date.now() / 1000);
+    const remaining = timeStep - (now % timeStep);
+    const progress = (remaining / timeStep) * 100;
+    document.getElementById('timerFill').style.width = progress + '%';
+    document.getElementById('timerText').textContent = remaining + 's remaining';
+    const current = await generateTOTP(secret, timeStep);
+    document.getElementById('currentCode').textContent = current;
+    const prevCounterBytes = new ArrayBuffer(8);
+    const prevView = new DataView(prevCounterBytes);
+    prevView.setUint32(4, Math.floor(now / timeStep) - 1, false);
+    const prevKey = base32Decode(secret);
+    const prevHash = await hmacSha1(prevKey, new Uint8Array(prevCounterBytes));
+    const prevOffset = prevHash[prevHash.length - 1] & 0x0f;
+    const prevCode = (
+      ((prevHash[prevOffset] & 0x7f) << 24) |
+      ((prevHash[prevOffset + 1] & 0xff) << 16) |
+      ((prevHash[prevOffset + 2] & 0xff) << 8) |
+      (prevHash[prevOffset + 3] & 0xff)
+    ) % 1000000;
+    document.getElementById('prevCode').textContent = prevCode.toString().padStart(6, '0');
+    const nextCounterBytes = new ArrayBuffer(8);
+    const nextView = new DataView(nextCounterBytes);
+    nextView.setUint32(4, Math.floor(now / timeStep) + 1, false);
+    const nextKey = base32Decode(secret);
+    const nextHash = await hmacSha1(nextKey, new Uint8Array(nextCounterBytes));
+    const nextOffset = nextHash[nextHash.length - 1] & 0x0f;
+    const nextCodeVal = (
+      ((nextHash[nextOffset] & 0x7f) << 24) |
+      ((nextHash[nextOffset + 1] & 0xff) << 16) |
+      ((nextHash[nextOffset + 2] & 0xff) << 8) |
+      (nextHash[nextOffset + 3] & 0xff)
+    ) % 1000000;
+    document.getElementById('nextCode').textContent = nextCodeVal.toString().padStart(6, '0');
+  } catch (e) {
+    document.getElementById('currentCode').textContent = 'ERROR';
+  }
+}
+
+async function verifyOTP() {
+  const secret = document.getElementById('secretKey').value.trim();
+  const code = document.getElementById('verifyCode').value.trim();
+  const resultDiv = document.getElementById('verifyResult');
+  if (!secret || !code) {
+    resultDiv.innerHTML = '<div class="verify-result verify-fail">Enter both secret and code</div>';
+    return;
+  }
+  const timeStep = 30;
+  const now = Math.floor(Date.now() / 1000);
+  for (let i = -1; i <= 1; i++) {
+    const counterBytes = new ArrayBuffer(8);
+    const view = new DataView(counterBytes);
+    view.setUint32(4, Math.floor(now / timeStep) + i, false);
+    const key = base32Decode(secret);
+    const hash = await hmacSha1(key, new Uint8Array(counterBytes));
+    const offset = hash[hash.length - 1] & 0x0f;
+    const genCode = (
+      ((hash[offset] & 0x7f) << 24) |
+      ((hash[offset + 1] & 0xff) << 16) |
+      ((hash[offset + 2] & 0xff) << 8) |
+      (hash[offset + 3] & 0xff)
+    ) % 1000000;
+    if (genCode.toString().padStart(6, '0') === code.padStart(6, '0')) {
+      resultDiv.innerHTML = '<div class="verify-result verify-pass">✓ Valid OTP code</div>';
+      return;
+    }
+  }
+  resultDiv.innerHTML = '<div class="verify-result verify-fail">✗ Invalid OTP code</div>';
+}
+
+function generateQR() {
+  const secret = document.getElementById('secretKey').value.trim();
+  const account = document.getElementById('accountName').value.trim() || 'user@example.com';
+  const issuer = document.getElementById('issuerName').value.trim() || 'ProtonFlix';
+  if (!secret) return;
+  const uri = `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(account)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`;
+  document.getElementById('otpauthUri').textContent = uri;
+  document.getElementById('otpauthUri').style.display = 'block';
+  const qrDiv = document.getElementById('qrContainer');
+  qrDiv.innerHTML = '';
+  const canvas = document.createElement('canvas');
+  qrDiv.appendChild(canvas);
+  drawQR(canvas, uri);
+}
+
+function drawQR(canvas, text) {
+  const size = 256;
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, size, size);
+  const modules = generateQRMatrix(text);
+  const moduleCount = modules.length;
+  const cellSize = size / moduleCount;
+  ctx.fillStyle = '#000';
+  for (let r = 0; r < moduleCount; r++) {
+    for (let c = 0; c < moduleCount; c++) {
+      if (modules[r][c]) {
+        ctx.fillRect(c * cellSize, r * cellSize, cellSize + 0.5, cellSize + 0.5);
+      }
+    }
+  }
+}
+
+function generateQRMatrix(text) {
+  const len = text.length;
+  const version = len < 25 ? 2 : len < 40 ? 3 : 4;
+  const size = 17 + version * 4;
+  const matrix = Array.from({length: size}, () => Array(size).fill(false));
+  const reserved = Array.from({length: size}, () => Array(size).fill(false));
+
+  function setModule(r, c, val) {
+    if (r >= 0 && r < size && c >= 0 && c < size) {
+      matrix[r][c] = val;
+      reserved[r][c] = true;
+    }
+  }
+
+  function drawFinderPattern(row, col) {
+    for (let r = -1; r <= 7; r++) {
+      for (let c = -1; c <= 7; c++) {
+        const rr = row + r, cc = col + c;
+        if (rr < 0 || rr >= size || cc < 0 || cc >= size) continue;
+        const inOuter = r >= 0 && r <= 6 && c >= 0 && c <= 6;
+        const inBorder = r === 0 || r === 6 || c === 0 || c === 6;
+        const inInner = r >= 2 && r <= 4 && c >= 2 && c <= 4;
+        setModule(rr, cc, inOuter && (inBorder || inInner));
+      }
+    }
+  }
+
+  drawFinderPattern(0, 0);
+  drawFinderPattern(0, size - 7);
+  drawFinderPattern(size - 7, 0);
+
+  for (let i = 8; i < size - 8; i++) {
+    setModule(6, i, i % 2 === 0);
+    setModule(i, 6, i % 2 === 0);
+  }
+
+  const dataBits = [];
+  for (let i = 0; i < text.length; i++) {
+    const code = text.charCodeAt(i);
+    if (code < 128) {
+      dataBits.push(0, 1, 1, 1);
+      for (let b = 6; b >= 0; b--) dataBits.push((code >> b) & 1);
+    } else {
+      dataBits.push(1, 1, 1, 0);
+      for (let b = 12; b >= 6; b--) dataBits.push((code >> b) & 1);
+      for (let b = 5; b >= 0; b--) dataBits.push((code >> b) & 1);
+    }
+  }
+
+  const totalBits = size * size;
+  const needed = Math.min(dataBits.length, totalBits - Math.floor(totalBits * 0.3));
+  let bitIdx = 0;
+  for (let c = size - 1; c >= 0; c -= 2) {
+    if (c === 6) c = 5;
+    for (let r = 0; r < size; r++) {
+      for (let cc = 0; cc < 2; cc++) {
+        const col = c - cc;
+        if (col < 0 || col >= size) continue;
+        const actualR = (Math.floor((size - 1 - c) / 2) % 2 === 0) ? size - 1 - r : r;
+        if (!reserved[actualR][col] && bitIdx < needed) {
+          matrix[actualR][col] = dataBits[bitIdx] === 1;
+          bitIdx++;
+        }
+      }
+    }
+  }
+
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if (!reserved[r][c]) {
+        matrix[r][c] = (r + c) % 3 === 0;
+      }
+    }
+  }
+
+  return matrix;
+}
+</script>
+</body>
+</html>

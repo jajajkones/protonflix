@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sort Lines Tool - ProtonFlix Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#e0e0e0;--text-dim:#888;--accent-start:#3b82f6;--accent-mid:#8b5cf6;--accent-end:#ec4899}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
+a{color:var(--accent-mid);text-decoration:none;transition:opacity .2s}a:hover{opacity:.8}
+.header{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.header .back{font-size:14px;padding:6px 14px;border-radius:8px;border:1px solid var(--border);transition:all .2s}
+.header .back:hover{border-color:var(--accent-mid)}
+.header h1{font-size:22px;font-weight:600;background:linear-gradient(90deg,var(--accent-start),var(--accent-mid),var(--accent-end));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.container{max-width:900px;margin:0 auto}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
+.panel h2{font-size:14px;font-weight:500;color:var(--text-dim);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
+textarea{width:100%;min-height:250px;background:#0d0d0d;border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Courier New',monospace;font-size:13px;padding:12px;resize:vertical;outline:none;transition:border-color .2s;line-height:1.6}
+textarea:focus{border-color:var(--accent-mid)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+button{font-family:'Outfit',sans-serif;padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:13px;font-weight:500;transition:all .2s}
+button:hover{border-color:var(--accent-mid);background:rgba(139,92,246,.1)}
+button.active{border-color:var(--accent-mid);background:rgba(139,92,246,.15);color:var(--accent-mid)}
+.actions{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.btn-primary{font-family:'Outfit',sans-serif;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:500;background:linear-gradient(135deg,var(--accent-start),var(--accent-mid),var(--accent-end));color:#fff;transition:all .2s}
+.btn-primary:hover{opacity:.85;transform:translateY(-1px)}
+.btn-secondary{font-family:'Outfit',sans-serif;padding:10px 20px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:14px;font-weight:500;transition:all .2s}
+.btn-secondary:hover{border-color:var(--accent-mid)}
+.toggles{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.toggle-opt{display:flex;align-items:center;gap:8px;padding:8px 14px;background:#0d0d0d;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .2s;font-size:13px;user-select:none}
+.toggle-opt:hover{border-color:var(--accent-mid)}
+.toggle-opt.active{border-color:var(--accent-mid);background:rgba(139,92,246,.1)}
+.toggle-opt input{display:none}
+.toggle-box{width:16px;height:16px;border:1px solid var(--border);border-radius:4px;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:10px}
+.toggle-opt.active .toggle-box{background:var(--accent-mid);border-color:var(--accent-mid)}
+.toggle-opt.active .toggle-box::after{content:'✓';color:#fff}
+.stats{font-size:13px;color:var(--text-dim);margin-bottom:10px}
+.copied-toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--accent-mid);color:#fff;padding:8px 20px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:100}
+.copied-toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html" class="back">&larr; Back</a>
+<h1>Sort Lines Tool</h1>
+</div>
+<div class="panel">
+<h2>Input</h2>
+<textarea id="input" placeholder="Paste text here, one item per line..."></textarea>
+</div>
+<div class="toolbar">
+<button onclick="sortLines('asc')" title="Sort A-Z">A → Z</button>
+<button onclick="sortLines('desc')" title="Sort Z-A">Z → A</button>
+<button onclick="sortLines('len')" title="Sort by length">By Length</button>
+<button onclick="sortLines('revLen')" title="Reverse by length">Reverse Length</button>
+<button onclick="sortLines('shuffle')" title="Shuffle randomly">Shuffle</button>
+<button onclick="sortLines('num')" title="Numeric sort">Numeric</button>
+</div>
+<div class="toggles">
+<div class="toggle-opt active" onclick="toggleOpt(this,'caseInsensitive')"><div class="toggle-box"></div>Case Insensitive</div>
+<div class="toggle-opt" onclick="toggleOpt(this,'removeEmpty')"><div class="toggle-box"></div>Remove Empty Lines</div>
+<div class="toggle-opt" onclick="toggleOpt(this,'removeDuplicates')"><div class="toggle-box"></div>Remove Duplicates</div>
+<div class="toggle-opt" onclick="toggleOpt(this,'trimLines')"><div class="toggle-box"></div>Trim Whitespace</div>
+</div>
+<div class="stats" id="stats"></div>
+<div class="panel">
+<h2>Output</h2>
+<textarea id="output" readonly placeholder="Sorted output will appear here..."></textarea>
+</div>
+<div class="actions">
+<button class="btn-primary" onclick="copyOutput()">Copy Output</button>
+<button class="btn-secondary" onclick="swapInput()">Use Output as Input</button>
+<button class="btn-secondary" onclick="clearAll()">Clear</button>
+</div>
+</div>
+<div class="copied-toast" id="toast">Copied!</div>
+<script>
+const opts={caseInsensitive:true,removeEmpty:false,removeDuplicates:false,trimLines:true};
+function getLines(){return document.getElementById('input').value.split('\n')}
+function toggleOpt(el,key){el.classList.toggle('active');opts[key]=el.classList.contains('active');sortLines(lastSort)}
+let lastSort='asc';
+function sortLines(method){
+lastSort=method;let lines=getLines();
+if(opts.trimLines)lines=lines.map(l=>l.trim());
+if(opts.removeEmpty)lines=lines.filter(l=>l.length>0);
+if(opts.removeDuplicates)lines=[...new Set(lines)];
+const ci=opts.caseInsensitive;
+switch(method){
+case'asc':lines.sort((a,b)=>ci?a.toLowerCase().localeCompare(b.toLowerCase()):a.localeCompare(b));break;
+case'desc':lines.sort((a,b)=>ci?b.toLowerCase().localeCompare(a.toLowerCase()):b.localeCompare(a));break;
+case'len':lines.sort((a,b)=>a.length-b.length||(ci?a.toLowerCase().localeCompare(b.toLowerCase()):a.localeCompare(b)));break;
+case'revLen':lines.sort((a,b)=>b.length-a.length||(ci?a.toLowerCase().localeCompare(b.toLowerCase()):a.localeCompare(b)));break;
+case'shuffle':for(let i=lines.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[lines[i],lines[j]]=[lines[j],lines[i]]}break;
+case'num':lines.sort((a,b)=>{const na=parseFloat(a),nb=parseFloat(b);if(!isNaN(na)&&!isNaN(nb))return na-nb;return ci?a.toLowerCase().localeCompare(b.toLowerCase()):a.localeCompare(b)});break}
+document.getElementById('output').value=lines.join('\n');
+const orig=getLines();let oCount=orig.length;if(opts.trimLines)orig.forEach((l,i)=>{orig[i]=l.trim()});
+if(opts.removeEmpty)oCount=orig.filter(l=>l.length>0).length;
+document.getElementById('stats').textContent=oCount+' lines in → '+lines.length+' lines out'}
+function copyOutput(){navigator.clipboard.writeText(document.getElementById('output').value).then(showToast)}
+function swapInput(){document.getElementById('input').value=document.getElementById('output').value;sortLines(lastSort)}
+function clearAll(){document.getElementById('input').value='';document.getElementById('output').value='';document.getElementById('stats').textContent=''}
+function showToast(){const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+</script>
+</body>
+</html>
