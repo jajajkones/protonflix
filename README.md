@@ -3,6 +3,7 @@
 > 40+ free, fast, and privacy-first browser tools for developers. No sign-up, no tracking. Everything runs locally in your browser.
 
 **Live:** [jajajkones.github.io/protonflix/tools/](https://jajajkones.github.io/protonflix/tools/)
+**Root:** [jajajkones.github.io/protonflix/](https://jajajkones.github.io/protonflix/)
 
 ---
 
@@ -83,6 +84,8 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 
 ### GitHub Pages
 Visit the live site: **[jajajkones.github.io/protonflix/tools/](https://jajajkones.github.io/protonflix/tools/)**
+
+The root URL serves the original ProtonFlix page: **[jajajkones.github.io/protonflix/](https://jajajkones.github.io/protonflix/)**
 
 ### Local
 Clone the repo and open any tool file directly in your browser:
