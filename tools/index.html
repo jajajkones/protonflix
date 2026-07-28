@@ -7,139 +7,263 @@
 <meta name="description" content="200+ free, client-side developer tools by ProtonTools. No sign-up. No tracking. Everything runs in your browser.">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#09090b;--surface:#18181b;--surface-2:#27272a;--border:#2e2e32;
-  --text:#fafafa;--text-secondary:#a1a1aa;--text-muted:#52525b;
-  --accent:#f59e0b;--accent-dim:rgba(245,158,11,.12);
-  --radius:8px;
-  --font:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',system-ui,sans-serif;
-  --mono:'JetBrains Mono','SF Mono','Fira Code',monospace;
-}
 html{scroll-behavior:smooth}
-body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden}
 ::selection{background:var(--accent);color:#000}
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+a{text-decoration:none;color:inherit}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input{font-family:inherit}
 
-/* LAYOUT */
-.shell{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
-@media(max-width:768px){.shell{grid-template-columns:1fr}.sidebar{display:none}}
+/* ===== UI SWITCHER ===== */
+#ui-switcher{position:fixed;bottom:20px;right:20px;z-index:9999}
+#switcher-btn{width:42px;height:42px;border-radius:50%;background:#27272a;border:1px solid #3f3f46;color:#a1a1aa;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+#switcher-btn:hover{background:#3f3f46;color:#fff;transform:rotate(60deg)}
+#switcher-panel{position:absolute;bottom:52px;right:0;width:220px;background:#18181b;border:1px solid #2e2e32;border-radius:8px;padding:6px;display:none;box-shadow:0 8px 32px rgba(0,0,0,.6)}
+#switcher-panel.open{display:block}
+.switcher-option{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;font-size:12px;color:#a1a1aa;transition:all .15s;width:100%;text-align:left}
+.switcher-option:hover{background:#27272a;color:#fafafa}
+.switcher-option.active{background:rgba(245,158,11,.12);color:#f59e0b}
+.switcher-option .sw-dot{width:8px;height:8px;border-radius:50%;border:1.5px solid currentColor;flex-shrink:0}
+.switcher-option.active .sw-dot{background:currentColor}
 
-/* SIDEBAR */
-.sidebar{
-  position:sticky;top:0;height:100vh;overflow-y:auto;
-  border-right:1px solid var(--border);padding:24px 0;
-  display:flex;flex-direction:column;
-}
-.sidebar-brand{padding:0 20px;margin-bottom:32px}
-.sidebar-brand h1{font-size:15px;font-weight:700;letter-spacing:-.02em}
-.sidebar-brand span{color:var(--accent)}
-.sidebar-nav{flex:1;display:flex;flex-direction:column;gap:1px;padding:0 8px}
-.nav-item{
-  display:flex;align-items:center;gap:10px;
-  padding:8px 12px;border-radius:var(--radius);font-size:13px;
-  color:var(--text-secondary);cursor:pointer;transition:all .15s;
-  text-decoration:none;border:none;background:none;width:100%;text-align:left;font-family:inherit;
-}
-.nav-item:hover{background:var(--surface);color:var(--text)}
-.nav-item.active{background:var(--accent-dim);color:var(--accent);font-weight:600}
-.nav-item .icon{width:18px;text-align:center;font-size:12px;opacity:.7}
-.nav-item .count{margin-left:auto;font-size:11px;color:var(--text-muted);font-family:var(--mono)}
-.sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);margin-top:auto}
-.sidebar-footer p{font-size:11px;color:var(--text-muted);line-height:1.6}
-
-/* MAIN */
-.main{padding:32px 40px;max-width:1100px}
-@media(max-width:768px){.main{padding:20px 16px}}
-
-/* HEADER */
-.page-header{margin-bottom:32px}
-.page-header h2{font-size:20px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
-.page-header p{font-size:13px;color:var(--text-secondary)}
-
-/* SEARCH */
-.search-wrap{position:relative;margin-bottom:28px}
-.search-input{
-  width:100%;padding:10px 14px 10px 36px;
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  color:var(--text);font-size:13px;font-family:var(--font);
-  outline:none;transition:border-color .2s;
-}
-.search-input:focus{border-color:var(--accent)}
-.search-input::placeholder{color:var(--text-muted)}
-.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none}
-.search-kbd{
-  position:absolute;right:10px;top:50%;transform:translateY(-50%);
-  font-size:10px;font-family:var(--mono);color:var(--text-muted);
-  background:var(--surface-2);padding:2px 6px;border-radius:4px;border:1px solid var(--border);
-}
-
-/* TOOL LIST */
-.tool-section{margin-bottom:32px}
-.tool-section-title{
-  font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;
-  color:var(--text-muted);padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:8px;
-}
-.tool-grid{display:flex;flex-direction:column;gap:2px}
-.tool-row{
-  display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;
-  padding:10px 12px;border-radius:var(--radius);cursor:pointer;
-  text-decoration:none;color:inherit;transition:background .15s;
-}
-.tool-row:hover{background:var(--surface)}
-.tool-row-left{display:flex;align-items:center;gap:12px;min-width:0}
-.tool-icon{
-  width:32px;height:32px;min-width:32px;border-radius:6px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:13px;font-weight:600;font-family:var(--mono);
-  background:var(--surface-2);color:var(--text-secondary);
-  border:1px solid var(--border);transition:all .15s;
-}
-.tool-row:hover .tool-icon{border-color:var(--accent);color:var(--accent)}
-.tool-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tool-desc{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tool-tag{
-  font-size:10px;padding:2px 8px;border-radius:4px;font-weight:500;
-  background:var(--surface-2);color:var(--text-muted);white-space:nowrap;
-}
-.tool-new{
-  font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--accent);margin-left:6px;
-}
-.no-results{text-align:center;padding:60px 0;color:var(--text-muted);font-size:13px;display:none}
-.no-results.show{display:block}
-.no-results strong{display:block;font-size:16px;color:var(--text);margin-bottom:4px}
+/* ===== LAYOUT 1: LINEAR ===== */
+.L-linear{--bg:#09090b;--surface:#18181b;--surface-2:#27272a;--border:#2e2e32;--text:#fafafa;--text-secondary:#a1a1aa;--text-muted:#52525b;--accent:#f59e0b;--accent-dim:rgba(245,158,11,.12);--radius:8px}
+.L-linear body,.L-linear{background:var(--bg);color:var(--text)}
+.L-linear .shell{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+.L-linear .sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;border-right:1px solid var(--border);padding:24px 0;display:flex;flex-direction:column}
+.L-linear .sidebar-brand{padding:0 20px;margin-bottom:32px}
+.L-linear .sidebar-brand h1{font-size:15px;font-weight:700;letter-spacing:-.02em}
+.L-linear .sidebar-brand span{color:var(--accent)}
+.L-linear .sidebar-nav{flex:1;display:flex;flex-direction:column;gap:1px;padding:0 8px}
+.L-linear .nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--radius);font-size:13px;color:var(--text-secondary);cursor:pointer;transition:all .15s;text-decoration:none;border:none;background:none;width:100%;text-align:left;font-family:inherit}
+.L-linear .nav-item:hover{background:var(--surface);color:var(--text)}
+.L-linear .nav-item.active{background:var(--accent-dim);color:var(--accent);font-weight:600}
+.L-linear .nav-item .icon{width:18px;text-align:center;font-size:12px;opacity:.7}
+.L-linear .nav-item .count{margin-left:auto;font-size:11px;color:var(--text-muted);font-family:'SF Mono','Fira Code',monospace}
+.L-linear .sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);margin-top:auto}
+.L-linear .sidebar-footer p{font-size:11px;color:var(--text-muted);line-height:1.6}
+.L-linear .main{padding:32px 40px;max-width:1100px}
+.L-linear .page-header{margin-bottom:32px}
+.L-linear .page-header h2{font-size:20px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
+.L-linear .page-header p{font-size:13px;color:var(--text-secondary)}
+.L-linear .search-wrap{position:relative;margin-bottom:28px}
+.L-linear .search-input{width:100%;padding:10px 14px 10px 36px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:13px;outline:none;transition:border-color .2s}
+.L-linear .search-input:focus{border-color:var(--accent)}
+.L-linear .search-input::placeholder{color:var(--text-muted)}
+.L-linear .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none}
+.L-linear .search-kbd{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:10px;font-family:'SF Mono','Fira Code',monospace;color:var(--text-muted);background:var(--surface-2);padding:2px 6px;border-radius:4px;border:1px solid var(--border)}
+.L-linear .tool-section{margin-bottom:32px}
+.L-linear .tool-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.L-linear .tool-grid{display:flex;flex-direction:column;gap:2px}
+.L-linear .tool-row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:10px 12px;border-radius:var(--radius);cursor:pointer;text-decoration:none;color:inherit;transition:background .15s}
+.L-linear .tool-row:hover{background:var(--surface)}
+.L-linear .tool-row-left{display:flex;align-items:center;gap:12px;min-width:0}
+.L-linear .tool-icon{width:32px;height:32px;min-width:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;font-family:'SF Mono','Fira Code',monospace;background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--border);transition:all .15s}
+.L-linear .tool-row:hover .tool-icon{border-color:var(--accent);color:var(--accent)}
+.L-linear .tool-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.L-linear .tool-desc{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.L-linear .tool-tag{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:500;background:var(--surface-2);color:var(--text-muted);white-space:nowrap}
+.L-linear .tool-new{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-left:6px}
+.L-linear .no-results{text-align:center;padding:60px 0;color:var(--text-muted);font-size:13px;display:none}
+.L-linear .no-results.show{display:block}
+.L-linear .no-results strong{display:block;font-size:16px;color:var(--text);margin-bottom:4px}
+.L-linear .hamburger{display:none;position:fixed;top:16px;left:16px;z-index:100;width:36px;height:36px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:18px;align-items:center;justify-content:center}
+.L-linear .mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:90}
 @media(max-width:768px){
-  .tool-grid{gap:0}
-  .tool-desc{display:none}
-  .tool-tag{display:none}
+  .L-linear .shell{grid-template-columns:1fr}
+  .L-linear .sidebar{display:none;position:fixed;top:0;left:0;width:260px;height:100vh;z-index:95;background:var(--bg);border-right:1px solid var(--border)}
+  .L-linear .sidebar.open{display:flex}
+  .L-linear .hamburger{display:flex}
+  .L-linear .mobile-overlay.open{display:block}
+  .L-linear .main{padding:20px 16px;padding-top:60px}
+  .L-linear .tool-desc{display:none}
+  .L-linear .tool-tag{display:none}
+}
+
+/* ===== LAYOUT 2: VERCEL ===== */
+.L-vercel{--bg:#000;--surface:#111;--surface-2:#1a1a1a;--border:#333;--text:#fff;--text-secondary:#888;--text-muted:#555;--accent:#0070f3;--accent-dim:rgba(0,112,243,.12);--radius:0px}
+.L-vercel body,.L-vercel{background:var(--bg);color:var(--text)}
+.L-vercel .shell{display:flex;flex-direction:column;min-height:100vh}
+.L-vercel .main{padding:48px 40px;max-width:1200px;margin:0 auto;width:100%}
+.L-vercel .page-header{margin-bottom:40px}
+.L-vercel .page-header h2{font-size:48px;font-weight:800;letter-spacing:-.04em;margin-bottom:8px;line-height:1.1}
+.L-vercel .page-header p{font-size:16px;color:var(--text-secondary)}
+.L-vercel .search-wrap{position:relative;margin-bottom:40px}
+.L-vercel .search-input{width:100%;padding:14px 18px;background:var(--bg);border:2px solid var(--border);border-radius:0;color:var(--text);font-size:16px;outline:none;transition:border-color .2s}
+.L-vercel .search-input:focus{border-color:var(--accent)}
+.L-vercel .search-input::placeholder{color:var(--text-muted)}
+.L-vercel .search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none}
+.L-vercel .search-kbd{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:11px;font-family:'SF Mono','Fira Code',monospace;color:var(--text-muted);background:var(--surface-2);padding:3px 8px;border:1px solid var(--border)}
+.L-vercel .cat-filter{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px}
+.L-vercel .cat-btn{padding:8px 16px;border:1px solid var(--border);font-size:13px;color:var(--text-secondary);transition:all .15s;background:transparent}
+.L-vercel .cat-btn:hover{border-color:var(--text);color:var(--text)}
+.L-vercel .cat-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.L-vercel .tool-grid-v{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border);margin-bottom:2px}
+.L-vercel .tool-card{background:var(--bg);padding:20px;cursor:pointer;transition:background .15s;text-decoration:none;color:inherit;display:block}
+.L-vercel .tool-card:hover{background:var(--surface)}
+.L-vercel .tool-card-top{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.L-vercel .tool-icon{width:36px;height:36px;min-width:36px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;font-family:'SF Mono','Fira Code',monospace;background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--border);transition:all .15s}
+.L-vercel .tool-card:hover .tool-icon{border-color:var(--accent);color:var(--accent)}
+.L-vercel .tool-name{font-size:14px;font-weight:600}
+.L-vercel .tool-new{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-left:6px}
+.L-vercel .tool-desc{font-size:13px;color:var(--text-secondary);line-height:1.5}
+.L-vercel .no-results{text-align:center;padding:80px 0;color:var(--text-muted);font-size:14px;display:none}
+.L-vercel .no-results.show{display:block}
+.L-vercel .no-results strong{display:block;font-size:20px;color:var(--text);margin-bottom:8px}
+@media(max-width:768px){
+  .L-vercel .main{padding:24px 16px}
+  .L-vercel .page-header h2{font-size:32px}
+  .L-vercel .tool-grid-v{grid-template-columns:1fr}
+}
+
+/* ===== LAYOUT 3: RAYCAST ===== */
+.L-raycast{--bg:#1a1a1a;--surface:#222;--surface-2:#2a2a2a;--border:#333;--text:#fff;--text-secondary:#999;--text-muted:#666;--accent:#ff6363;--accent-dim:rgba(255,99,99,.12);--radius:12px}
+.L-raycast body,.L-raycast{background:var(--bg);color:var(--text)}
+.L-raycast .shell{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px}
+.L-raycast .raycast-box{width:100%;max-width:640px}
+.L-raycast .search-wrap{position:relative;margin-bottom:24px}
+.L-raycast .search-input{width:100%;padding:16px 20px 16px 48px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:16px;outline:none;transition:border-color .2s;box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.L-raycast .search-input:focus{border-color:var(--accent)}
+.L-raycast .search-input::placeholder{color:var(--text-muted)}
+.L-raycast .search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none}
+.L-raycast .ray-results{max-height:60vh;overflow-y:auto}
+.L-raycast .ray-section{margin-bottom:16px}
+.L-raycast .ray-section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);padding:8px 12px}
+.L-raycast .ray-list{display:flex;flex-direction:column;gap:2px}
+.L-raycast .ray-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;cursor:pointer;text-decoration:none;color:inherit;transition:background .12s}
+.L-raycast .ray-item:hover,.L-raycast .ray-item.focused{background:var(--surface)}
+.L-raycast .ray-item-icon{width:28px;height:28px;min-width:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;font-family:'SF Mono','Fira Code',monospace;background:var(--surface-2);color:var(--text-secondary)}
+.L-raycast .ray-item:hover .ray-item-icon{color:var(--accent)}
+.L-raycast .ray-item-name{font-size:14px;font-weight:500;flex:1}
+.L-raycast .ray-item-desc{font-size:12px;color:var(--text-muted);margin-left:auto;white-space:nowrap}
+.L-raycast .ray-item-new{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-left:8px}
+.L-raycast .ray-kbd-hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);font-size:11px;color:var(--text-muted);display:flex;gap:12px}
+.L-raycast .ray-kbd-hint kbd{background:var(--surface);border:1px solid var(--border);padding:2px 6px;border-radius:4px;font-family:'SF Mono','Fira Code',monospace;font-size:10px}
+.L-raycast .no-results{text-align:center;padding:60px 0;color:var(--text-muted);font-size:13px;display:none}
+.L-raycast .no-results.show{display:block}
+.L-raycast .no-results strong{display:block;font-size:16px;color:var(--text);margin-bottom:4px}
+@media(max-width:768px){
+  .L-raycast .shell{justify-content:flex-start;padding-top:20px}
+  .L-raycast .raycast-box{max-width:100%}
+  .L-raycast .ray-item-desc{display:none}
+  .L-raycast .ray-kbd-hint{display:none}
+}
+
+/* ===== LAYOUT 4: ACCORDION ===== */
+.L-accordion{--bg:#0f0f0f;--surface:#1a1a1a;--surface-2:#242424;--border:#2e2e32;--text:#fafafa;--text-secondary:#a1a1aa;--text-muted:#52525b;--accent:#a78bfa;--accent-dim:rgba(167,139,250,.12);--radius:8px}
+.L-accordion body,.L-accordion{background:var(--bg);color:var(--text)}
+.L-accordion .shell{display:flex;flex-direction:column;min-height:100vh}
+.L-accordion .main{padding:40px 20px;max-width:800px;margin:0 auto;width:100%}
+.L-accordion .page-header{margin-bottom:32px;text-align:center}
+.L-accordion .page-header h2{font-size:24px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
+.L-accordion .page-header p{font-size:13px;color:var(--text-secondary)}
+.L-accordion .search-wrap{position:relative;margin-bottom:20px}
+.L-accordion .search-input{width:100%;padding:12px 16px 12px 40px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px;outline:none;transition:border-color .2s}
+.L-accordion .search-input:focus{border-color:var(--accent)}
+.L-accordion .search-input::placeholder{color:var(--text-muted)}
+.L-accordion .search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none}
+.L-accordion .acc-controls{display:flex;gap:8px;margin-bottom:24px;justify-content:center}
+.L-accordion .acc-ctrl-btn{padding:6px 14px;border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--text-secondary);transition:all .15s;background:transparent}
+.L-accordion .acc-ctrl-btn:hover{border-color:var(--accent);color:var(--accent)}
+.L-accordion .acc-section{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden;background:var(--surface)}
+.L-accordion .acc-header{display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;transition:background .15s;width:100%;text-align:left;font-family:inherit;color:var(--text);font-size:14px;font-weight:600}
+.L-accordion .acc-header:hover{background:var(--surface-2)}
+.L-accordion .acc-header .icon{width:20px;text-align:center;font-size:12px;opacity:.7}
+.L-accordion .acc-header .count{margin-left:auto;font-size:11px;color:var(--text-muted);font-family:'SF Mono','Fira Code',monospace}
+.L-accordion .acc-header .arrow{margin-left:8px;transition:transform .2s;font-size:10px;color:var(--text-muted)}
+.L-accordion .acc-section.open .acc-header .arrow{transform:rotate(90deg)}
+.L-accordion .acc-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.L-accordion .acc-section.open .acc-body{max-height:2000px}
+.L-accordion .acc-tools{padding:0 8px 8px}
+.L-accordion .acc-tool{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;cursor:pointer;text-decoration:none;color:inherit;transition:background .12s}
+.L-accordion .acc-tool:hover{background:var(--surface-2)}
+.L-accordion .acc-tool-icon{width:28px;height:28px;min-width:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;font-family:'SF Mono','Fira Code',monospace;background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--border)}
+.L-accordion .acc-tool:hover .acc-tool-icon{border-color:var(--accent);color:var(--accent)}
+.L-accordion .acc-tool-name{font-size:13px;font-weight:500}
+.L-accordion .acc-tool-desc{font-size:12px;color:var(--text-muted);margin-left:auto;white-space:nowrap}
+.L-accordion .acc-tool-new{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-left:8px}
+.L-accordion .no-results{text-align:center;padding:60px 0;color:var(--text-muted);font-size:13px;display:none}
+.L-accordion .no-results.show{display:block}
+.L-accordion .no-results strong{display:block;font-size:16px;color:var(--text);margin-bottom:4px}
+@media(max-width:768px){
+  .L-accordion .main{padding:20px 12px}
+  .L-accordion .acc-tool-desc{display:none}
+}
+
+/* ===== LAYOUT 5: IDE ===== */
+.L-ide{--bg:#1e1e1e;--surface:#252526;--surface-2:#2d2d2d;--border:#3c3c3c;--text:#cccccc;--text-secondary:#999;--text-muted:#666;--accent:#569cd6;--accent-dim:rgba(86,156,214,.12);--radius:0px}
+.L-ide body,.L-ide{background:var(--bg);color:var(--text)}
+.L-ide .shell{display:grid;grid-template-columns:48px 260px 1fr;grid-template-rows:1fr 22px;height:100vh;overflow:hidden}
+.L-ide .activity-bar{grid-row:1/2;background:#333;display:flex;flex-direction:column;align-items:center;padding-top:4px;gap:2px;border-right:1px solid var(--border)}
+.L-ide .act-btn{width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-muted);transition:all .15s;border-left:2px solid transparent;cursor:pointer}
+.L-ide .act-btn:hover{color:var(--text)}
+.L-ide .act-btn.active{color:var(--text);border-left-color:var(--accent)}
+.L-ide .act-btn[title]::after{content:attr(title)}
+.L-ide .sidebar-panel{grid-row:1/2;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
+.L-ide .sidebar-panel-header{padding:8px 12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.L-ide .sidebar-panel-header span{font-size:10px;color:var(--text-muted)}
+.L-ide .file-tree{flex:1;overflow-y:auto;padding:4px 0}
+.L-ide .tree-folder{padding:0}
+.L-ide .tree-folder-header{display:flex;align-items:center;gap:6px;padding:4px 12px;font-size:12px;color:var(--text-secondary);cursor:pointer;transition:background .1s;width:100%;text-align:left;font-family:inherit;background:none;border:none}
+.L-ide .tree-folder-header:hover{background:rgba(255,255,255,.05)}
+.L-ide .tree-folder-header .folder-icon{font-size:10px;width:14px;text-align:center}
+.L-ide .tree-folder-header .folder-arrow{font-size:8px;transition:transform .15s;width:10px;text-align:center}
+.L-ide .tree-folder.open>.tree-folder-header .folder-arrow{transform:rotate(90deg)}
+.L-ide .tree-items{max-height:0;overflow:hidden;transition:max-height .2s ease}
+.L-ide .tree-folder.open>.tree-items{max-height:2000px}
+.L-ide .tree-file{display:flex;align-items:center;gap:6px;padding:3px 12px 3px 32px;font-size:12px;color:var(--text-secondary);cursor:pointer;transition:background .1s;text-decoration:none}
+.L-ide .tree-file:hover{background:rgba(255,255,255,.05);color:var(--text)}
+.L-ide .tree-file-icon{font-size:10px;width:14px;text-align:center;opacity:.6}
+.L-ide .editor-area{grid-row:1/2;display:flex;flex-direction:column;overflow:hidden}
+.L-ide .breadcrumb{padding:6px 16px;font-size:12px;color:var(--text-muted);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;flex-shrink:0}
+.L-ide .breadcrumb span{color:var(--text-secondary)}
+.L-ide .editor-content{flex:1;overflow-y:auto;padding:12px 16px}
+.L-ide .editor-table{width:100%;border-collapse:collapse}
+.L-ide .editor-table th{text-align:left;padding:6px 12px;font-size:11px;font-weight:600;color:var(--text-muted);border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg)}
+.L-ide .editor-table td{padding:6px 12px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.03)}
+.L-ide .editor-table tr:hover td{background:rgba(255,255,255,.03)}
+.L-ide .editor-table .file-link{text-decoration:none;color:var(--text);display:flex;align-items:center;gap:8px;cursor:pointer}
+.L-ide .editor-table .file-link:hover{color:var(--accent)}
+.L-ide .editor-table .file-icon{width:24px;height:24px;min-width:24px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;font-family:'SF Mono','Fira Code',monospace;background:var(--surface-2);color:var(--text-secondary);border:1px solid var(--border)}
+.L-ide .editor-table .file-new{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.L-ide .status-bar{grid-column:1/4;background:#007acc;display:flex;align-items:center;padding:0 12px;font-size:11px;color:#fff;gap:16px}
+.L-ide .status-bar .status-left{display:flex;align-items:center;gap:12px}
+.L-ide .status-bar .status-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.L-ide .status-item{display:flex;align-items:center;gap:4px;padding:0 6px;height:100%}
+.L-ide .no-results{text-align:center;padding:60px 0;color:var(--text-muted);font-size:13px;display:none}
+.L-ide .no-results.show{display:block}
+.L-ide .no-results strong{display:block;font-size:16px;color:var(--text);margin-bottom:4px}
+.L-ide .ide-search{padding:8px;border-bottom:1px solid var(--border)}
+.L-ide .ide-search input{width:100%;padding:6px 10px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-size:12px;outline:none}
+.L-ide .ide-search input:focus{border-color:var(--accent)}
+@media(max-width:768px){
+  .L-ide .shell{grid-template-columns:1fr;grid-template-rows:1fr 48px 22px}
+  .L-ide .activity-bar{grid-row:2/3;grid-column:1/2;flex-direction:row;border-right:none;border-top:1px solid var(--border);order:2}
+  .L-ide .sidebar-panel{display:none;position:fixed;top:0;left:0;width:280px;height:calc(100vh - 48px);z-index:100;order:1}
+  .L-ide .sidebar-panel.open{display:flex}
+  .L-ide .status-bar{grid-column:1/2;grid-row:3/4;order:3}
+  .L-ide .editor-area{order:1}
 }
 </style>
 </head>
 <body>
-<div class="shell">
-  <nav class="sidebar">
-    <div class="sidebar-brand"><h1>Proton<span>Tools</span></h1></div>
-    <div class="sidebar-nav" id="sidebarNav"></div>
-    <div class="sidebar-footer">
-      <p>200+ tools. Zero tracking.<br>All processing stays in your browser.</p>
-    </div>
-  </nav>
-  <main class="main">
-    <div class="page-header">
-      <h2 id="pageTitle">All Tools</h2>
-      <p id="pageDesc">Browse all developer utilities. Everything runs locally.</p>
-    </div>
-    <div class="search-wrap">
-      <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-      <input type="text" class="search-input" id="search" placeholder="Search tools..." autocomplete="off" spellcheck="false">
-      <span class="search-kbd">/</span>
-    </div>
-    <div id="toolList"></div>
-    <div class="no-results" id="noResults"><strong>No tools found</strong>Try a different search term.</div>
-  </main>
+<div id="app"></div>
+
+<!-- UI SWITCHER -->
+<div id="ui-switcher">
+  <button id="switcher-btn" title="Switch layout">⚙</button>
+  <div id="switcher-panel">
+    <button class="switcher-option" data-layout="linear"><span class="sw-dot"></span>Linear</button>
+    <button class="switcher-option" data-layout="vercel"><span class="sw-dot"></span>Vercel</button>
+    <button class="switcher-option" data-layout="raycast"><span class="sw-dot"></span>Raycast</button>
+    <button class="switcher-option" data-layout="accordion"><span class="sw-dot"></span>Accordion</button>
+    <button class="switcher-option" data-layout="ide"><span class="sw-dot"></span>IDE</button>
+  </div>
 </div>
+
 <script>
 const TOOLS = {
   "Text & String": {
@@ -163,8 +287,7 @@ const TOOLS = {
     "xml-yaml-converter": { n:"XML ↔ YAML", d:"Bidirectional XML and YAML conversion", i:"⇄", new:true },
     "hex-rgb-converter": { n:"HEX ↔ RGB ↔ HSL", d:"Convert between all color formats with preview", i:"◉", new:true },
     "markdown-slides": { n:"Markdown → Slides", d:"Turn Markdown into presentation slides", i:"▶", new:true },
-    "diff-viewer": { n:"Diff Viewer", d:"Side-by-side line and word diff comparison", i:"‖", new:true },
-    "text-statistics": { n:"Text Statistics", d:"Advanced text analysis and readability scores", i:"Σ", new:true }
+    "diff-viewer": { n:"Diff Viewer", d:"Side-by-side line and word diff comparison", i:"‖", new:true }
   },
   "Encoding": {
     "base64": { n:"Base64 Encoder/Decoder", d:"Encode and decode Base64 strings", i:"64" },
@@ -361,74 +484,314 @@ const CAT_ICONS = {
   "Media & Utilities":"◎"
 };
 
+let currentLayout = localStorage.getItem('proton-layout') || 'linear';
 let activeCat = null;
-const search = document.getElementById('search');
-const toolList = document.getElementById('toolList');
-const noResults = document.getElementById('noResults');
-const sidebarNav = document.getElementById('sidebarNav');
-const pageTitle = document.getElementById('pageTitle');
-const pageDesc = document.getElementById('pageDesc');
+let searchQuery = '';
+let focusIndex = -1;
+let flatResults = [];
 
 function totalCount(){return Object.values(TOOLS).reduce((a,c)=>a+Object.keys(c).length,0)}
-
-function buildSidebar(){
-  let html = `<button class="nav-item active" data-cat="all"><span class="icon">◎</span>All Tools<span class="count">${totalCount()}</span></button>`;
-  Object.keys(TOOLS).forEach(cat=>{
-    html += `<button class="nav-item" data-cat="${cat}"><span class="icon">${CAT_ICONS[cat]||'·'}</span>${cat}<span class="count">${Object.keys(TOOLS[cat]).length}</span></button>`;
-  });
-  sidebarNav.innerHTML = html;
-  sidebarNav.querySelectorAll('.nav-item').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      sidebarNav.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      activeCat = btn.dataset.cat === 'all' ? null : btn.dataset.cat;
-      renderTools();
-    });
-  });
-}
-
-function renderTools(){
-  const q = search.value.toLowerCase().trim();
-  let html = '';
+function getFilteredTools(q, cat){
+  const query = (q||'').toLowerCase().trim();
+  const cats = cat ? [cat] : Object.keys(TOOLS);
+  const result = {};
   let total = 0;
-  const cats = activeCat ? [activeCat] : Object.keys(TOOLS);
-
-  cats.forEach(cat => {
-    const tools = TOOLS[cat];
-    const entries = Object.entries(tools).filter(([file,t])=>{
-      if(!q) return true;
-      return t.n.toLowerCase().includes(q) || t.d.toLowerCase().includes(q) || file.includes(q);
+  cats.forEach(c=>{
+    const tools = TOOLS[c];
+    const entries = Object.entries(tools).filter(([f,t])=>{
+      if(!query) return true;
+      return t.n.toLowerCase().includes(query) || t.d.toLowerCase().includes(query) || f.includes(query);
     });
-    if(!entries.length) return;
-    total += entries.length;
-
-    html += `<div class="tool-section"><div class="tool-section-title">${cat} — ${entries.length}</div><div class="tool-grid">`;
-    entries.forEach(([file, t])=>{
-      html += `<a href="${file}.html" class="tool-row">
-        <div class="tool-row-left">
-          <div class="tool-icon">${t.i}</div>
-          <div><div class="tool-name">${t.n}${t.new?'<span class="tool-new">new</span>':''}</div><div class="tool-desc">${t.d}</div></div>
-        </div>
-        <span class="tool-tag">${cat.split(' ')[0]}</span>
-      </a>`;
-    });
-    html += '</div></div>';
+    if(entries.length){result[c]=entries;total+=entries.length;}
   });
-
-  toolList.innerHTML = html;
-  noResults.classList.toggle('show', total === 0);
-  pageTitle.textContent = activeCat || 'All Tools';
-  pageDesc.textContent = activeCat ? `${total} tools in this category` : `${totalCount()} tools across ${Object.keys(TOOLS).length} categories`;
+  return {result,total};
 }
 
-document.addEventListener('keydown',e=>{
-  if(e.key==='/' && document.activeElement!==search){e.preventDefault();search.focus()}
-  if(e.key==='Escape') search.blur();
-});
-search.addEventListener('input', renderTools);
+// ===== LINEAR LAYOUT =====
+function renderLinear(){
+  const {result, total} = getFilteredTools(searchQuery, activeCat);
+  const catList = Object.keys(TOOLS);
+  let sidebarHTML = `<button class="nav-item ${!activeCat?'active':''}" data-cat="all"><span class="icon">◎</span>All Tools<span class="count">${totalCount()}</span></button>`;
+  catList.forEach(cat=>{
+    sidebarHTML += `<button class="nav-item ${activeCat===cat?'active':''}" data-cat="${cat}"><span class="icon">${CAT_ICONS[cat]||'·'}</span>${cat}<span class="count">${Object.keys(TOOLS[cat]).length}</span></button>`;
+  });
+  let mainHTML = '';
+  Object.entries(result).forEach(([cat, entries])=>{
+    mainHTML += `<div class="tool-section"><div class="tool-section-title">${cat} — ${entries.length}</div><div class="tool-grid">`;
+    entries.forEach(([file, t])=>{
+      mainHTML += `<a href="${file}.html" class="tool-row"><div class="tool-row-left"><div class="tool-icon">${t.i}</div><div><div class="tool-name">${t.n}${t.new?'<span class="tool-new">new</span>':''}</div><div class="tool-desc">${t.d}</div></div></div><span class="tool-tag">${cat.split(' ')[0]}</span></a>`;
+    });
+    mainHTML += '</div></div>';
+  });
+  document.getElementById('app').innerHTML = `
+    <div class="shell">
+      <button class="hamburger" id="hamburger">☰</button>
+      <div class="mobile-overlay" id="mobileOverlay"></div>
+      <nav class="sidebar" id="sidebar">
+        <div class="sidebar-brand"><h1>Proton<span>Tools</span></h1></div>
+        <div class="sidebar-nav" id="sidebarNav">${sidebarHTML}</div>
+        <div class="sidebar-footer"><p>200+ tools. Zero tracking.<br>All processing stays in your browser.</p></div>
+      </nav>
+      <main class="main">
+        <div class="page-header"><h2 id="pageTitle">${activeCat||'All Tools'}</h2><p id="pageDesc">${activeCat?`${total} tools in this category`:`${totalCount()} tools across ${catList.length} categories`}</p></div>
+        <div class="search-wrap">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" class="search-input" id="searchInput" placeholder="Search tools..." autocomplete="off" spellcheck="false" value="${searchQuery}">
+          <span class="search-kbd">/</span>
+        </div>
+        <div id="toolList">${mainHTML}</div>
+        <div class="no-results ${total===0?'show':''}" id="noResults"><strong>No tools found</strong>Try a different search term.</div>
+      </main>
+    </div>`;
+  document.getElementById('hamburger').onclick=()=>{document.getElementById('sidebar').classList.toggle('open');document.getElementById('mobileOverlay').classList.toggle('open')};
+  document.getElementById('mobileOverlay').onclick=()=>{document.getElementById('sidebar').classList.remove('open');document.getElementById('mobileOverlay').classList.remove('open')};
+  document.querySelectorAll('.nav-item').forEach(btn=>{
+    btn.onclick=()=>{
+      activeCat = btn.dataset.cat==='all'?null:btn.dataset.cat;
+      renderLayout();
+    };
+  });
+  bindSearch();
+}
 
-buildSidebar();
-renderTools();
+// ===== VERCEL LAYOUT =====
+function renderVercel(){
+  const {result, total} = getFilteredTools(searchQuery, activeCat);
+  const catList = Object.keys(TOOLS);
+  let filterHTML = `<button class="cat-btn ${!activeCat?'active':''}" data-cat="all">All</button>`;
+  catList.forEach(cat=>{
+    filterHTML += `<button class="cat-btn ${activeCat===cat?'active':''}" data-cat="${cat}">${cat}</button>`;
+  });
+  let gridHTML = '';
+  Object.entries(result).forEach(([cat, entries])=>{
+    entries.forEach(([file, t])=>{
+      gridHTML += `<a href="${file}.html" class="tool-card"><div class="tool-card-top"><div class="tool-icon">${t.i}</div><div><div class="tool-name">${t.n}${t.new?'<span class="tool-new">new</span>':''}</div></div></div><div class="tool-desc">${t.d}</div></a>`;
+    });
+  });
+  document.getElementById('app').innerHTML = `
+    <div class="shell">
+      <main class="main">
+        <div class="page-header"><h2>Developer Tools</h2><p>${totalCount()} free client-side utilities. No sign-up required.</p></div>
+        <div class="search-wrap">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" class="search-input" id="searchInput" placeholder="Search tools..." autocomplete="off" spellcheck="false" value="${searchQuery}">
+          <span class="search-kbd">/</span>
+        </div>
+        <div class="cat-filter" id="catFilter">${filterHTML}</div>
+        <div class="tool-grid-v" id="toolGrid">${gridHTML}</div>
+        <div class="no-results ${total===0?'show':''}" id="noResults"><strong>No tools found</strong>Try a different search term.</div>
+      </main>
+    </div>`;
+  document.querySelectorAll('.cat-btn').forEach(btn=>{
+    btn.onclick=()=>{
+      activeCat = btn.dataset.cat==='all'?null:btn.dataset.cat;
+      renderLayout();
+    };
+  });
+  bindSearch();
+}
+
+// ===== RAYCAST LAYOUT =====
+function renderRaycast(){
+  const {result, total} = getFilteredTools(searchQuery, null);
+  flatResults = [];
+  Object.entries(result).forEach(([cat, entries])=>{
+    entries.forEach(([file, t])=>{
+      flatResults.push({file, t, cat});
+    });
+  });
+  let sectionsHTML = '';
+  Object.entries(result).forEach(([cat, entries])=>{
+    sectionsHTML += `<div class="ray-section"><div class="ray-section-title">${cat}</div><div class="ray-list">`;
+    entries.forEach(([file, t])=>{
+      sectionsHTML += `<a href="${file}.html" class="ray-item" data-idx="${flatResults.findIndex(r=>r.file===file)}"><div class="ray-item-icon">${t.i}</div><div class="ray-item-name">${t.n}${t.new?'<span class="ray-item-new">new</span>':''}</div><div class="ray-item-desc">${t.d}</div></a>`;
+    });
+    sectionsHTML += '</div></div>';
+  });
+  document.getElementById('app').innerHTML = `
+    <div class="shell">
+      <div class="raycast-box">
+        <div class="search-wrap">
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" class="search-input" id="searchInput" placeholder="Search tools..." autocomplete="off" spellcheck="false" value="${searchQuery}" autofocus>
+        </div>
+        <div class="ray-results" id="rayResults">${sectionsHTML}</div>
+        <div class="no-results ${total===0?'show':''}" id="noResults"><strong>No tools found</strong>Try a different search term.</div>
+      </div>
+      <div class="ray-kbd-hint"><span><kbd>↑</kbd><kbd>↓</kbd> Navigate</span><span><kbd>↵</kbd> Open</span><span><kbd>/</kbd> Search</span></div>
+    </div>`;
+  focusIndex = -1;
+  bindSearch();
+  const input = document.getElementById('searchInput');
+  input.addEventListener('keydown', e=>{
+    const items = document.querySelectorAll('.ray-item');
+    if(e.key==='ArrowDown'){e.preventDefault();focusIndex=Math.min(focusIndex+1,items.length-1);updateFocus(items);}
+    if(e.key==='ArrowUp'){e.preventDefault();focusIndex=Math.max(focusIndex-1,0);updateFocus(items);}
+    if(e.key==='Enter'&&focusIndex>=0&&flatResults[focusIndex]){window.location.href=flatResults[focusIndex].file+'.html';}
+  });
+}
+function updateFocus(items){
+  items.forEach((el,i)=>{
+    el.classList.toggle('focused',i===focusIndex);
+    if(i===focusIndex) el.scrollIntoView({block:'nearest'});
+  });
+}
+
+// ===== ACCORDION LAYOUT =====
+function renderAccordion(){
+  const {result, total} = getFilteredTools(searchQuery, activeCat);
+  const catList = Object.keys(TOOLS);
+  let accordionHTML = '';
+  Object.entries(result).forEach(([cat, entries])=>{
+    const isOpen = !searchQuery || entries.length>0;
+    accordionHTML += `<div class="acc-section ${isOpen?'open':''}" data-cat="${cat}">
+      <button class="acc-header"><span class="icon">${CAT_ICONS[cat]||'·'}</span>${cat}<span class="count">${entries.length}</span><span class="arrow">▶</span></button>
+      <div class="acc-body"><div class="acc-tools">`;
+    entries.forEach(([file, t])=>{
+      accordionHTML += `<a href="${file}.html" class="acc-tool"><div class="acc-tool-icon">${t.i}</div><div class="acc-tool-name">${t.n}${t.new?'<span class="acc-tool-new">new</span>':''}</div><div class="acc-tool-desc">${t.d}</div></a>`;
+    });
+    accordionHTML += '</div></div></div>';
+  });
+  document.getElementById('app').innerHTML = `
+    <div class="shell">
+      <main class="main">
+        <div class="page-header"><h2>ProtonTools</h2><p>${totalCount()} developer utilities</p></div>
+        <div class="search-wrap">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" class="search-input" id="searchInput" placeholder="Search tools..." autocomplete="off" spellcheck="false" value="${searchQuery}">
+        </div>
+        <div class="acc-controls"><button class="acc-ctrl-btn" id="expandAll">Expand All</button><button class="acc-ctrl-btn" id="collapseAll">Collapse All</button></div>
+        <div id="accList">${accordionHTML}</div>
+        <div class="no-results ${total===0?'show':''}" id="noResults"><strong>No tools found</strong>Try a different search term.</div>
+      </main>
+    </div>`;
+  document.querySelectorAll('.acc-header').forEach(h=>{
+    h.onclick=()=>h.parentElement.classList.toggle('open');
+  });
+  document.getElementById('expandAll').onclick=()=>document.querySelectorAll('.acc-section').forEach(s=>s.classList.add('open'));
+  document.getElementById('collapseAll').onclick=()=>document.querySelectorAll('.acc-section').forEach(s=>s.classList.remove('open'));
+  if(searchQuery){document.querySelectorAll('.acc-section').forEach(s=>s.classList.add('open'));}
+  bindSearch();
+}
+
+// ===== IDE LAYOUT =====
+function renderIDE(){
+  const {result, total} = getFilteredTools(searchQuery, activeCat);
+  const catList = Object.keys(TOOLS);
+  const actIcons = {'Text & String':'T','Encoding':'<>','Conversion':'⇄','Design':'◆','Code':'/','API & Auth':'⚡','Developer Tools':'⚙','DevOps & Network':'☁','Media & Utilities':'◎'};
+  let actHTML = '';
+  catList.forEach((cat,i)=>{
+    actHTML += `<button class="act-btn ${activeCat===cat||(i===0&&!activeCat)?'active':''}" data-cat="${cat}" title="${actIcons[cat]||'·'}">${actIcons[cat]||'·'}</button>`;
+  });
+  let treeHTML = '';
+  Object.entries(TOOLS).forEach(([cat, tools])=>{
+    const isOpen = activeCat===cat || (!activeCat && Object.keys(result).includes(cat));
+    treeHTML += `<div class="tree-folder ${isOpen?'open':''}" data-cat="${cat}">
+      <button class="tree-folder-header"><span class="folder-arrow">▶</span><span class="folder-icon">📁</span>${cat} <span style="color:var(--text-muted);font-size:10px;margin-left:auto">${Object.keys(tools).length}</span></button>
+      <div class="tree-items">`;
+    Object.entries(tools).forEach(([file, t])=>{
+      treeHTML += `<a href="${file}.html" class="tree-file"><span class="tree-file-icon">📄</span>${t.n}</a>`;
+    });
+    treeHTML += '</div></div>';
+  });
+  let tableHTML = '';
+  Object.entries(result).forEach(([cat, entries])=>{
+    entries.forEach(([file, t])=>{
+      tableHTML += `<tr><td><a href="${file}.html" class="file-link"><div class="file-icon">${t.i}</div>${t.n}${t.new?' <span class="file-new">new</span>':''}</a></td><td style="color:var(--text-muted);font-size:12px">${t.d}</td><td style="font-size:11px;color:var(--text-muted)">${cat}</td></tr>`;
+    });
+  });
+  const breadcrumb = activeCat ? `ProtonTools > <span>${activeCat}</span>` : 'ProtonTools > <span>All Tools</span>';
+  document.getElementById('app').innerHTML = `
+    <div class="shell">
+      <div class="activity-bar" id="activityBar">${actHTML}</div>
+      <div class="sidebar-panel" id="sidebarPanel">
+        <div class="sidebar-panel-header">Explorer <span>${totalCount()}</span></div>
+        <div class="ide-search"><input type="text" id="searchInput" placeholder="Filter..." value="${searchQuery}"></div>
+        <div class="file-tree" id="fileTree">${treeHTML}</div>
+      </div>
+      <div class="editor-area">
+        <div class="breadcrumb">${breadcrumb}</div>
+        <div class="editor-content">
+          <table class="editor-table"><thead><tr><th>Name</th><th>Description</th><th>Category</th></tr></thead><tbody id="editorBody">${tableHTML}</tbody></table>
+          <div class="no-results ${total===0?'show':''}" id="noResults"><strong>No tools found</strong>Try a different search term.</div>
+        </div>
+      </div>
+      <div class="status-bar"><div class="status-left"><span class="status-item">📁 ${activeCat||'All'}</span></div><div class="status-right"><span class="status-item">${total} tools</span><span class="status-item">UTF-8</span></div></div>
+    </div>`;
+  document.querySelectorAll('.act-btn').forEach(btn=>{
+    btn.onclick=()=>{
+      activeCat = btn.dataset.cat===activeCat ? null : btn.dataset.cat;
+      renderLayout();
+    };
+  });
+  document.querySelectorAll('.tree-folder-header').forEach(h=>{
+    h.onclick=()=>h.parentElement.classList.toggle('open');
+  });
+  document.getElementById('searchInput').addEventListener('input', e=>{
+    searchQuery = e.target.value;
+    renderLayout();
+  });
+  // Sync sidebar search with main
+  const sidebarSearch = document.getElementById('searchInput');
+  if(sidebarSearch){
+    sidebarSearch.addEventListener('keydown', e=>{
+      if(e.key==='Enter') return;
+    });
+  }
+}
+
+// ===== SEARCH & KEYBOARD =====
+function bindSearch(){
+  const input = document.getElementById('searchInput');
+  if(!input) return;
+  input.addEventListener('input', e=>{
+    searchQuery = e.target.value;
+    renderLayout();
+  });
+  input.focus();
+}
+document.addEventListener('keydown', e=>{
+  if(e.key==='/' && document.activeElement.tagName!=='INPUT'){
+    e.preventDefault();
+    const input = document.getElementById('searchInput');
+    if(input) input.focus();
+  }
+  if(e.key==='Escape'){
+    const input = document.getElementById('searchInput');
+    if(input) input.blur();
+  }
+});
+
+// ===== LAYOUT RENDERER =====
+const renderers = {linear:renderLinear, vercel:renderVercel, raycast:renderRaycast, accordion:renderAccordion, ide:renderIDE};
+function renderLayout(){
+  document.body.className = `L-${currentLayout}`;
+  renderers[currentLayout]();
+}
+function switchLayout(layout){
+  currentLayout = layout;
+  localStorage.setItem('proton-layout', layout);
+  document.querySelectorAll('.switcher-option').forEach(o=>o.classList.toggle('active',o.dataset.layout===layout));
+  renderLayout();
+}
+
+// ===== UI SWITCHER =====
+document.getElementById('switcher-btn').onclick=()=>{
+  document.getElementById('switcher-panel').classList.toggle('open');
+};
+document.querySelectorAll('.switcher-option').forEach(opt=>{
+  opt.onclick=()=>{
+    switchLayout(opt.dataset.layout);
+    document.getElementById('switcher-panel').classList.remove('open');
+  };
+});
+document.addEventListener('click', e=>{
+  if(!e.target.closest('#ui-switcher')) document.getElementById('switcher-panel').classList.remove('open');
+});
+
+// ===== INIT =====
+document.querySelectorAll('.switcher-option').forEach(o=>o.classList.toggle('active',o.dataset.layout===currentLayout));
+renderLayout();
 </script>
 </body>
 </html>
