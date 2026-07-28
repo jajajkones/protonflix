@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Random Number Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#22c55e;--radius:6px;--mono:'SF Mono',Consolas,monospace}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px}
+.big-num{font-size:80px;font-weight:300;font-family:var(--mono);margin-bottom:40px;min-height:100px;display:flex;align-items:center;justify-content:center;transition:all .3s}
+.controls{display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap;justify-content:center}
+.input-group{display:flex;flex-direction:column;gap:4px;align-items:center}
+.input-group label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.input-group input{width:120px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:10px;font-family:var(--mono);font-size:16px;text-align:center;outline:none}
+.input-group input:focus{border-color:var(--accent)}
+.btn{padding:14px 32px;border-radius:var(--radius);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;border:none;transition:all .2s}
+.btn-main{background:var(--accent);color:#000;font-size:18px;padding:16px 48px}
+.btn-secondary{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn:hover{opacity:.8}
+.history{margin-top:30px;width:100%;max-width:400px}
+.history h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;text-align:center}
+.history-list{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.history-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:4px 10px;font-family:var(--mono);font-size:13px;cursor:pointer;transition:all .2s}
+.history-item:hover{border-color:var(--accent)}
+.options{display:flex;gap:16px;margin-bottom:20px}
+.option{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.option input{accent-color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="big-num" id="result">-</div>
+<div class="controls">
+<div class="input-group"><label>Min</label><input type="number" id="min" value="1"></div>
+<div class="input-group"><label>Max</label><input type="number" id="max" value="100"></div>
+<div class="input-group"><label>Count</label><input type="number" id="count" value="1" min="1" max="100"></div>
+</div>
+<div class="options">
+<label class="option"><input type="checkbox" id="unique"> Unique only</label>
+<label class="option"><input type="checkbox" id="noRepeat"> No repeat last</label>
+</div>
+<button class="btn btn-main" onclick="generate()">Generate</button>
+<div style="margin-top:12px"><button class="btn btn-secondary" onclick="copyAll()">Copy All</button> <button class="btn btn-secondary" onclick="clearHistory()">Clear History</button></div>
+<div class="history"><h3>History</h3><div class="history-list" id="history"></div></div>
+<script>
+let hist=[];let lastResult='';
+function generate(){
+const min=+document.getElementById('min').value;const max=+document.getElementById('max').value;const count=+document.getElementById('count').value;const unique=document.getElementById('unique').checked;const noRepeat=document.getElementById('noRepeat').checked;
+if(min>max)return;
+const nums=[];const used=new Set();
+for(let i=0;i<count;i++){
+let n;let attempts=0;
+do{n=Math.floor(Math.random()*(max-min+1))+min;attempts++}while(attempts<1000&&((unique&&used.has(n))||(noRepeat&&n==lastResult)));
+nums.push(n);used.add(n);
+}
+lastResult=nums.length===1?nums[0]:nums[nums.length-1];
+document.getElementById('result').textContent=nums.join(', ');
+document.getElementById('result').style.animation='none';document.getElementById('result').offsetHeight;document.getElementById('result').style.animation='';
+nums.forEach(n=>{hist.unshift(n);if(hist.length>50)hist.pop()});
+renderHistory();
+}
+function renderHistory(){document.getElementById('history').innerHTML=hist.map(n=>`<div class="history-item" onclick="navigator.clipboard.writeText('${n}')">${n}</div>`).join('')}
+function copyAll(){navigator.clipboard.writeText(hist.join('\n'))}
+function clearHistory(){hist=[];renderHistory()}
+document.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.target.matches('input')){e.preventDefault();generate()}});
+renderHistory();
+</script>
+</body>
+</html>

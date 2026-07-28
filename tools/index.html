@@ -34,7 +34,7 @@ footer{text-align:center;padding:40px;color:#333;font-size:12px;text-transform:u
 <body>
 <div class="hero">
 <h1><span>DevTools</span> Hub</h1>
-<p>40+ free, fast, and privacy-first browser tools for developers. No sign-up, no tracking.</p>
+<p>75+ free, fast, and privacy-first browser tools for developers. No sign-up, no tracking.</p>
 <div class="search">
 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
 <input type="text" id="searchInput" placeholder="Search tools..." oninput="filterTools()">
@@ -52,11 +52,17 @@ const tools=[
 {cat:'Text & String',name:'Lorem Ipsum Generator',desc:'Generate placeholder text in words, sentences, or paragraphs',icon:'📄',file:'lorem-ipsum.html',tags:['lorem','placeholder','text']},
 {cat:'Text & String',name:'Whitespace Editor',desc:'Show, remove, and convert whitespace characters',icon:'␣',file:'whitespace-editor.html',tags:['whitespace','tabs','spaces']},
 {cat:'Text & String',name:'Character Map',desc:'Browse and copy special characters and symbols',icon:'Ω',file:'character-map.html',tags:['unicode','symbols','characters']},
+{cat:'Text & String',name:'Markdown Table Generator',desc:'Generate Markdown tables with live preview',icon:'📋',file:'markdown-table-generator.html',tags:['markdown','table','generate']},
 {cat:'Encoding',name:'Base64 Encoder / Decoder',desc:'Encode text to Base64 or decode Base64 strings',icon:'🔐',file:'base64.html',tags:['base64','encode','decode']},
 {cat:'Encoding',name:'URL Encoder / Decoder',desc:'Encode and decode URLs and URL components',icon:'🔗',file:'url-encoder.html',tags:['url','encode','decode']},
 {cat:'Encoding',name:'HTML Entity Encoder',desc:'Encode and decode HTML entities',icon:'&amp;',file:'html-entity-encoder.html',tags:['html','entities','encode']},
 {cat:'Encoding',name:'JWT Decoder',desc:'Decode and inspect JSON Web Tokens',icon:'🎫',file:'jwt-decoder.html',tags:['jwt','token','decode']},
 {cat:'Encoding',name:'Hash Generator',desc:'Generate MD5, SHA-1, SHA-256, SHA-512 hashes',icon:'#',file:'hash-generator.html',tags:['hash','md5','sha','crypto']},
+{cat:'Encoding',name:'ROT13 Cipher',desc:'ROT13, Caesar, Vigenere, Atbash cipher toolkit',icon:'🔐',file:'rot13-cipher.html',tags:['rot13','caesar','vigenere','atbash','cipher']},
+{cat:'Encoding',name:'Morse Code Converter',desc:'Convert text to Morse code with sound playback',icon:'📡',file:'morse-code.html',tags:['morse','code','audio','convert']},
+{cat:'Encoding',name:'Binary / Text Converter',desc:'Convert between binary, text, hex, and ASCII',icon:'💾',file:'binary-text.html',tags:['binary','hex','ascii','convert']},
+{cat:'Encoding',name:'Unicode Text Encoder',desc:'Encode and decode Unicode text representations',icon:'🔤',file:'text-encoder.html',tags:['unicode','encode','text']},
+{cat:'Encoding',name:'Hash ID Generator',desc:'Generate short hash IDs from text or numbers',icon:'#️⃣',file:'hashids.html',tags:['hash','id','generate','short']},
 {cat:'Conversion',name:'CSV to JSON',desc:'Convert between CSV and JSON formats',icon:'📊',file:'csv-json.html',tags:['csv','json','convert']},
 {cat:'Conversion',name:'XML to JSON',desc:'Convert between XML and JSON formats',icon:'📰',file:'xml-json.html',tags:['xml','json','convert']},
 {cat:'Conversion',name:'HTML to Markdown',desc:'Convert between HTML and Markdown',icon:'📝',file:'html-markdown.html',tags:['html','markdown','convert']},
@@ -65,6 +71,10 @@ const tools=[
 {cat:'Conversion',name:'Unit Converter',desc:'Convert length, weight, temperature, speed, and more',icon:'⚖️',file:'unit-converter.html',tags:['unit','convert','measurement']},
 {cat:'Conversion',name:'Timestamp Converter',desc:'Convert between Unix timestamps and date formats',icon:'⏰',file:'timestamp-converter.html',tags:['timestamp','unix','date']},
 {cat:'Conversion',name:'Percentage Calculator',desc:'Calculate percentages, discounts, and tips',icon:'%',file:'percentage-calc.html',tags:['percentage','calculator','math']},
+{cat:'Conversion',name:'JSON to TypeScript',desc:'Convert JSON to TypeScript interface definitions',icon:'📝',file:'json-to-typescript.html',tags:['json','typescript','convert','interface']},
+{cat:'Conversion',name:'Temperature Converter',desc:'Convert between Celsius, Fahrenheit, and Kelvin',icon:'🌡️',file:'temperature-converter.html',tags:['temperature','celsius','fahrenheit','kelvin']},
+{cat:'Conversion',name:'Roman Numeral Converter',desc:'Convert between numbers and Roman numerals',icon:'🏛️',file:'roman-numeral.html',tags:['roman','numeral','convert']},
+{cat:'Conversion',name:'Number to Words',desc:'Convert numbers to written words',icon:'🔢',file:'number-words.html',tags:['number','words','convert','spell']},
 {cat:'Design',name:'Color Picker & Converter',desc:'Pick colors and convert between HEX, RGB, HSL',icon:'🎨',file:'color-picker.html',tags:['color','picker','hex','rgb']},
 {cat:'Design',name:'Color Converter',desc:'Convert between HEX, RGB, HSL color formats',icon:'🔄',file:'color-converter.html',tags:['color','convert','hex','rgb','hsl']},
 {cat:'Design',name:'Color Palette Generator',desc:'Generate harmonious color palettes',icon:'🎭',file:'color-palette.html',tags:['color','palette','design']},
@@ -73,6 +83,14 @@ const tools=[
 {cat:'Design',name:'Box Shadow Generator',desc:'Generate CSS box shadows visually',icon:'⬜',file:'box-shadow.html',tags:['css','shadow','box']},
 {cat:'Design',name:'Favicon Generator',desc:'Generate favicons in multiple sizes from text',icon:'🏷️',file:'favicon-generator.html',tags:['favicon','icon','generate']},
 {cat:'Design',name:'Placeholder Image Generator',desc:'Generate placeholder images in any size',icon:'🖼️',file:'placeholder-image.html',tags:['placeholder','image','generate']},
+{cat:'Design',name:'Flexbox Generator',desc:'Flexbox CSS generator with live preview',icon:'📐',file:'flexbox-generator.html',tags:['flexbox','css','layout','generate']},
+{cat:'Design',name:'CSS Grid Generator',desc:'CSS Grid layout generator with preview',icon:'📊',file:'css-grid-generator.html',tags:['grid','css','layout','generate']},
+{cat:'Design',name:'CSS Animation Generator',desc:'CSS animation generator with presets',icon:'🎬',file:'css-animation.html',tags:['css','animation','keyframes','generate']},
+{cat:'Design',name:'CSS Border Radius Generator',desc:'Visual border radius generator with preview',icon:'⬜',file:'css-border-radius.html',tags:['css','border','radius','generate']},
+{cat:'Design',name:'Color Blend Tool',desc:'Blend two or more colors together',icon:'🎨',file:'color-blend.html',tags:['color','blend','mix','gradient']},
+{cat:'Design',name:'SVG Viewer / Editor',desc:'View and edit SVG code with live preview',icon:'🖼️',file:'svg-viewer.html',tags:['svg','viewer','editor','preview']},
+{cat:'Design',name:'CSS Box Model Visualizer',desc:'Visualize and modify CSS box model properties',icon:'📦',file:'css-box-model.html',tags:['css','box','model','margin','padding']},
+{cat:'Design',name:'Color Harmony Generator',desc:'Generate color harmonies (complementary, triadic, etc.)',icon:'🎭',file:'color-harmony.html',tags:['color','harmony','complementary','triadic']},
 {cat:'Code',name:'Regex Tester',desc:'Test regular expressions with live matching',icon:'.*',file:'regex-tester.html',tags:['regex','pattern','test']},
 {cat:'Code',name:'Regex Cheat Sheet',desc:'Quick reference for regular expression patterns',icon:'📖',file:'regex-cheatsheet.html',tags:['regex','cheatsheet','reference']},
 {cat:'Code',name:'Cron Expression Parser',desc:'Parse and visualize cron expressions',icon:'⏰',file:'cron-parser.html',tags:['cron','schedule','parser']},
@@ -81,12 +99,30 @@ const tools=[
 {cat:'Code',name:'HTML Minifier / Beautifier',desc:'Minify or beautify HTML code',icon:'🌐',file:'html-minifier.html',tags:['html','minify','beautify']},
 {cat:'Code',name:'Text Diff Checker',desc:'Compare two texts and highlight differences',icon:'📊',file:'text-diff.html',tags:['diff','compare','text']},
 {cat:'Code',name:'Markdown Preview',desc:'Live Markdown preview with syntax highlighting',icon:'📝',file:'markdown-preview.html',tags:['markdown','preview','editor']},
+{cat:'Code',name:'Git Cheat Sheet',desc:'Quick reference for Git commands',icon:'🌿',file:'git-cheatsheet.html',tags:['git','commands','cheatsheet','reference']},
+{cat:'Code',name:'Docker Cheat Sheet',desc:'Quick reference for Docker commands',icon:'🐳',file:'docker-cheatsheet.html',tags:['docker','commands','cheatsheet','reference']},
+{cat:'Code',name:'JS Array Methods',desc:'JavaScript array methods reference with examples',icon:'📚',file:'js-array-methods.html',tags:['javascript','array','methods','reference']},
+{cat:'Code',name:'HTML Form Builder',desc:'Build HTML forms with drag-and-drop',icon:'📋',file:'html-form-builder.html',tags:['html','form','builder','generate']},
+{cat:'Code',name:'HTML Table Generator',desc:'Generate HTML tables with styling options',icon:'📋',file:'html-table-generator.html',tags:['html','table','generate','builder']},
+{cat:'Code',name:'OG Meta Tag Generator',desc:'Generate Open Graph meta tags for social sharing',icon:'🏷️',file:'og-meta-generator.html',tags:['open','graph','meta','seo','social']},
+{cat:'Code',name:'JSON Schema Generator',desc:'Generate JSON Schema from sample JSON',icon:'📐',file:'json-schema-generator.html',tags:['json','schema','generate','validate']},
+{cat:'Code',name:'HTML/CSS/JS Playground',desc:'Live HTML, CSS, and JavaScript playground',icon:'⚡',file:'html-prototype.html',tags:['html','css','javascript','playground','live']},
 {cat:'Utility',name:'Password Generator',desc:'Generate secure passwords with strength analysis',icon:'🔑',file:'password-generator.html',tags:['password','security','generate']},
 {cat:'Utility',name:'QR Code Generator',desc:'Generate QR codes from text or URLs',icon:'📱',file:'qr-code.html',tags:['qr','code','generate']},
 {cat:'Utility',name:'UUID Generator',desc:'Generate v4 and v1 UUIDs',icon:'🆔',file:'uuid-generator.html',tags:['uuid','generate','id']},
 {cat:'Utility',name:'Image to Base64',desc:'Convert images to Base64 data URLs',icon:'🖼️',file:'image-to-base64.html',tags:['image','base64','convert']},
 {cat:'Utility',name:'IP Info Lookup',desc:'Look up public IP address information',icon:'🌍',file:'ip-lookup.html',tags:['ip','address','lookup']},
 {cat:'Utility',name:'Stopwatch & Timer',desc:'Stopwatch with laps and countdown timer',icon:'⏱️',file:'stopwatch.html',tags:['stopwatch','timer','clock']},
+{cat:'Utility',name:'BMI Calculator',desc:'Calculate BMI with metric and imperial support',icon:'⚖️',file:'bmi-calculator.html',tags:['bmi','health','weight','calculator']},
+{cat:'Utility',name:'Loan Calculator',desc:'Loan amortization calculator with payment schedule',icon:'🏦',file:'loan-calculator.html',tags:['loan','amortization','finance','calculator']},
+{cat:'Utility',name:'Age Calculator',desc:'Calculate age with fun facts',icon:'🎂',file:'age-calculator.html',tags:['age','birthday','calculate']},
+{cat:'Utility',name:'Date Difference Calculator',desc:'Calculate the difference between two dates',icon:'📅',file:'date-diff.html',tags:['date','difference','calculate','days']},
+{cat:'Utility',name:'Pomodoro Timer',desc:'Pomodoro productivity timer with sessions',icon:'🍅',file:'pomodoro.html',tags:['pomodoro','timer','productivity','focus']},
+{cat:'Utility',name:'Random Number Generator',desc:'Generate random numbers in any range',icon:'🎲',file:'random-number.html',tags:['random','number','generate']},
+{cat:'Utility',name:'Dice Roller',desc:'Roll dice from d4 to d100',icon:'🎲',file:'dice-roller.html',tags:['dice','roll','d4','d6','d20']},
+{cat:'Utility',name:'Typing Speed Test',desc:'Test your typing speed and accuracy',icon:'⌨️',file:'typing-test.html',tags:['typing','speed','test','wpm']},
+{cat:'Utility',name:'Tip Calculator',desc:'Calculate tips and split bills',icon:'💰',file:'tip-calculator.html',tags:['tip','bill','split','calculator']},
+{cat:'Utility',name:'HTML to Screenshot',desc:'Capture web pages as screenshots',icon:'📸',file:'webpage-screenshot.html',tags:['screenshot','capture','html','image']},
 ];
 function render(filter=''){
 const cats={};

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS Animation Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#ec4899;--radius:6px}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}header h1{font-size:20px;font-weight:500}header a{color:var(--muted);text-decoration:none;font-size:13px}header a:hover{color:var(--text)}
+.content{flex:1;padding:40px;max-width:800px;width:100%;margin:0 auto}
+.preview{width:100%;height:200px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:20px;display:flex;align-items:center;justify-content:center}
+.box{width:80px;height:80px;background:var(--accent);border-radius:12px}
+.presets{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:20px}
+.preset{background:var(--surface);color:var(--muted);border:1px solid var(--border);padding:10px;border-radius:var(--radius);font-size:12px;text-align:center;cursor:pointer;transition:all .2s}
+.preset:hover{color:var(--text);border-color:#444}
+.preset.active{color:var(--accent);border-color:var(--accent)}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.control{display:flex;flex-direction:column;gap:4px}
+.control label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.control select,.control input{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:8px;font-size:12px;font-family:inherit;outline:none}
+.btn{background:var(--accent);color:#fff;border:none;padding:8px 18px;border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;margin-bottom:16px}
+.css-output{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-family:'SF Mono',monospace;font-size:12px;white-space:pre-wrap;cursor:pointer;line-height:1.8}
+.css-output:hover{border-color:#444}
+</style>
+</head>
+<body>
+<header><h1>CSS Animation Generator</h1><a href="index.html">← Back to Tools</a></header>
+<div class="content">
+<div class="preview"><div class="box" id="box"></div></div>
+<div class="presets" id="presets"></div>
+<div class="controls">
+<div class="control"><label>Duration</label><input type="range" id="duration" min="0.1" max="5" step="0.1" value="1" oninput="update()"><span id="durVal" style="font-size:11px;color:var(--muted)">1s</span></div>
+<div class="control"><label>Delay</label><input type="range" id="delay" min="0" max="3" step="0.1" value="0" oninput="update()"><span id="delVal" style="font-size:11px;color:var(--muted)">0s</span></div>
+<div class="control"><label>Easing</label><select id="easing" onchange="update()"><option value="ease">ease</option><option value="linear">linear</option><option value="ease-in">ease-in</option><option value="ease-out">ease-out</option><option value="ease-in-out" selected>ease-in-out</option><option value="cubic-bezier(0.68,-0.55,0.27,1.55)">bounce</option></select></div>
+<div class="control"><label>Iteration</label><select id="iter" onchange="update()"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="infinite" selected>infinite</option></select></div>
+<div class="control"><label>Direction</label><select id="dir" onchange="update()"><option value="normal" selected>normal</option><option value="reverse">reverse</option><option value="alternate" selected>alternate</option><option value="alternate-reverse">alternate-reverse</option></select></div>
+<div class="control"><label>Fill Mode</label><select id="fill" onchange="update()"><option value="none">none</option><option value="forwards">forwards</option><option value="backwards">backwards</option><option value="both" selected>both</option></select></div>
+</div>
+<button class="btn" onclick="replay()">Replay</button>
+<div class="css-output" id="cssOutput" onclick="navigator.clipboard.writeText(this.textContent)"></div>
+</div>
+<script>
+const ANIMATIONS=[
+{name:'Bounce',keyframes:'0%,100%{transform:translateY(0)} 50%{transform:translateY(-30px)}'},
+{name:'Pulse',keyframes:'0%,100%{transform:scale(1)} 50%{transform:scale(1.1)}'},
+{name:'Spin',keyframes:'0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)}'},
+{name:'Shake',keyframes:'0%,100%{transform:translateX(0)} 25%{transform:translateX(-10px)} 75%{transform:translateX(10px)}'},
+{name:'Fade In',keyframes:'0%{opacity:0} 100%{opacity:1}'},
+{name:'Slide Right',keyframes:'0%{transform:translateX(-100px)} 100%{transform:translateX(0)}'},
+{name:'Slide Up',keyframes:'0%{transform:translateY(50px);opacity:0} 100%{transform:translateY(0);opacity:1}'},
+{name:'Zoom',keyframes:'0%{transform:scale(0.5);opacity:0} 100%{transform:scale(1);opacity:1}'},
+{name:'Swing',keyframes:'0%,100%{transform:rotate(0deg)} 25%{transform:rotate(15deg)} 75%{transform:rotate(-15deg)}'},
+{name:'Flash',keyframes:'0%,50%,100%{opacity:1} 25%,75%{opacity:0}'},
+{name:'Rubber Band',keyframes:'0%{transform:scale(1)} 30%{transform:scaleX(1.25) scaleY(0.75)} 40%{transform:scaleX(0.75) scaleY(1.25)} 50%{transform:scaleX(1.15) scaleY(0.85)} 65%{transform:scaleX(0.95) scaleY(1.05)} 75%{transform:scaleX(1.05) scaleY(0.95)} 100%{transform:scale(1)}'},
+{name:'Jello',keyframes:'0%{transform:skewX(0) skewY(0)} 30%{transform:skewX(-12.5deg) skewY(-12.5deg)} 40%{transform:skewX(6.25deg) skewY(6.25deg)} 50%{transform:skewX(-3.125deg) skewY(-3.125deg)} 65%{transform:skewX(1.5625deg) skewY(1.5625deg)} 75%{transform:skewX(-0.78125deg) skewY(-0.78125deg)} 100%{transform:skewX(0) skewY(0)}'},
+];
+let currentAnim=ANIMATIONS[0];
+function init(){
+document.getElementById('presets').innerHTML=ANIMATIONS.map((a,i)=>`<div class="preset ${i===0?'active':''}" onclick="selectAnim(${i})">${a.name}</div>`).join('');
+update();
+}
+function selectAnim(i){currentAnim=ANIMATIONS[i];document.querySelectorAll('.preset').forEach((p,j)=>p.classList.toggle('active',j===i));replay()}
+function replay(){const box=document.getElementById('box');box.style.animation='none';box.offsetHeight;box.style.animation=''}
+function update(){
+const dur=document.getElementById('duration').value;
+const delay=document.getElementById('delay').value;
+const easing=document.getElementById('easing').value;
+const iter=document.getElementById('iter').value;
+const dir=document.getElementById('dir').value;
+const fill=document.getElementById('fill').value;
+document.getElementById('durVal').textContent=dur+'s';
+document.getElementById('delVal').textContent=delay+'s';
+const box=document.getElementById('box');
+box.style.animation=`${currentAnim.name} ${dur}s ${easing} ${delay}s ${iter} ${dir} ${fill}`;
+const style=document.createElement('style');style.textContent=`@keyframes ${currentAnim.name}{${currentAnim.keyframes}}`;document.head.appendChild(style);
+const css=`@keyframes ${currentAnim.name} {\n  ${currentAnim.keyframes.replace(/\}/g,'}\n  ').trim()}\n}\n\n.element {\n  animation-name: ${currentAnim.name};\n  animation-duration: ${dur}s;\n  animation-timing-function: ${easing};\n  animation-delay: ${delay}s;\n  animation-iteration-count: ${iter};\n  animation-direction: ${dir};\n  animation-fill-mode: ${fill};\n\n  /* Shorthand */\n  animation: ${currentAnim.name} ${dur}s ${easing} ${delay}s ${iter} ${dir} ${fill};\n}`;
+document.getElementById('cssOutput').textContent=css;
+}
+init();
+</script>
+</body>
+</html>

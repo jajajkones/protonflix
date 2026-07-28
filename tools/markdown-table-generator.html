@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Markdown Table Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh}
+a{color:#fff;text-decoration:none}
+.header{background:#111;border-bottom:1px solid #222;padding:16px 24px;display:flex;align-items:center;gap:16px}
+.header h1{font-size:1.2rem;font-weight:600}
+.back{padding:6px 12px;border:1px solid #222;border-radius:6px;font-size:.85rem;transition:.2s}
+.back:hover{background:#222}
+.container{max-width:1000px;margin:24px auto;padding:0 20px}
+.panel{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:24px}
+.panel h2{font-size:1rem;font-weight:500;margin-bottom:16px;color:#737373}
+.controls{display:flex;gap:12px;align-items:center;margin-bottom:16px}
+.field{display:flex;align-items:center;gap:6px}
+.field label{font-size:.8rem;color:#737373}
+.field input{padding:6px 8px;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;font-family:inherit;font-size:.85rem;outline:none;width:70px}
+.btn{padding:8px 16px;background:#fff;color:#0a0a0a;border:none;border-radius:6px;font-family:inherit;font-weight:600;cursor:pointer;font-size:.85rem}
+.btn:hover{background:#e0e0e0}
+.copy-btn{padding:8px 16px;background:#222;border:1px solid #333;border-radius:6px;color:#fff;font-family:inherit;cursor:pointer;font-size:.85rem}
+.copy-btn:hover{background:#333}
+.table-editor{overflow-x:auto;margin-bottom:16px}
+.table-editor table{border-collapse:collapse}
+.table-editor td{padding:0}
+.table-editor input{width:120px;padding:6px 8px;background:#0a0a0a;border:1px solid #222;color:#fff;font-family:inherit;font-size:.8rem;outline:none}
+.table-editor input:focus{border-color:#555}
+.table-editor th input{background:#1a1a1a}
+.code-box{position:relative}
+.code-box pre{background:#0a0a0a;border:1px solid #222;border-radius:6px;padding:14px;font-size:.8rem;overflow-x:auto;line-height:1.6;max-height:400px;overflow-y:auto}
+.code-box pre code{font-family:'Courier New',monospace}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html" class="back">← Back</a>
+<h1>Markdown Table Generator</h1>
+</div>
+<div class="container">
+<div class="panel">
+<div class="controls">
+<div class="field"><label>Rows</label><input id="rows" type="number" value="3" min="1" max="20"></div>
+<div class="field"><label>Cols</label><input id="cols" type="number" value="3" min="1" max="10"></div>
+<button class="btn" onclick="generate()">Generate</button>
+<button class="copy-btn" onclick="copyCode()">Copy Markdown</button>
+</div>
+<div id="editor" class="table-editor"></div>
+</div>
+<div class="panel">
+<h2>Markdown Output</h2>
+<div class="code-box"><pre><code id="code"></code></pre></div>
+</div>
+</div>
+<script>
+let data=[];
+function generate(){
+const r=+document.getElementById('rows').value,c=+document.getElementById('cols').value;
+data=Array.from({length:r+1},(_,i)=>Array.from({length:c},(_,j)=>i===0?`Header ${j+1}`:`Row ${i} Col ${j+1}`));
+renderEditor();updateCode();
+}
+function renderEditor(){
+const el=document.getElementById('editor');
+let html='<table>';
+data.forEach((row,ri)=>{
+html+=`<tr>${row.map((cell,ci)=>`<td><input value="${cell}" oninput="data[${ri}][${ci}]=this.value;updateCode()"></td>`).join('')}</tr>`;
+});
+html+='</table>';el.innerHTML=html;
+}
+function updateCode(){
+const widths=data[0].map((_,ci)=>Math.max(...data.map(row=>row[ci].length)));
+const align=data[0].map(()=>'left');
+const lines=[];
+lines.push('| '+data[0].map((cell,ci)=>cell.padEnd(widths[ci])).join(' | ')+' |');
+lines.push('| '+widths.map(w=>'-'.repeat(w)).join(' | ')+' |');
+for(let i=1;i<data.length;i++){
+lines.push('| '+data[i].map((cell,ci)=>cell.padEnd(widths[ci])).join(' | ')+' |');
+}
+document.getElementById('code').textContent=lines.join('\n');
+}
+function copyCode(){
+navigator.clipboard.writeText(document.getElementById('code').textContent);
+const b=document.querySelector('.copy-btn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy Markdown',1500);
+}
+document.getElementById('rows').addEventListener('change',generate);
+document.getElementById('cols').addEventListener('change',generate);
+generate();
+</script>
+</body>
+</html>

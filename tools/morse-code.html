@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Morse Code Converter</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#f59e0b;--radius:6px;--mono:'SF Mono',Consolas,monospace}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}header h1{font-size:20px;font-weight:500}header a{color:var(--muted);text-decoration:none;font-size:13px}header a:hover{color:var(--text)}
+.content{flex:1;padding:40px;max-width:800px;width:100%;margin:0 auto}
+textarea{width:100%;height:100px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-family:var(--mono);font-size:14px;resize:vertical;outline:none}
+.btn-row{display:flex;gap:8px;margin:12px 0}
+.btn{background:var(--surface);color:var(--text);border:1px solid var(--border);padding:8px 16px;border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;transition:all .2s}
+.btn:hover{border-color:444}.btn.active{border-color:var(--accent);color:var(--accent)}
+.output{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-family:var(--mono);font-size:16px;letter-spacing:2px;min-height:60px;white-space:pre-wrap;word-break:break-all;cursor:pointer}
+.output:hover{border-color:#444}
+.reference{margin-top:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.reference h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px}
+.ref-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px;font-family:var(--mono);font-size:12px}
+.ref-item{padding:4px;text-align:center}
+.ref-item .char{color:var(--accent);font-size:14px}
+</style>
+</head>
+<body>
+<header><h1>Morse Code Converter</h1><a href="index.html">← Back to Tools</a></header>
+<div class="content">
+<textarea id="input" placeholder="Enter text or morse code (use / for spaces)..." oninput="convert()">SOS</textarea>
+<div class="btn-row">
+<button class="btn active" id="btnToMorse" onclick="dir='toMorse';convert()">Text → Morse</button>
+<button class="btn" id="btnFromMorse" onclick="dir='fromMorse';convert()">Morse → Text</button>
+<button class="btn" onclick="playMorse()">Play Sound</button>
+<button class="btn" onclick="navigator.clipboard.writeText(document.getElementById('output').textContent)">Copy</button>
+</div>
+<div class="output" id="output"></div>
+<div class="reference">
+<h3>Morse Code Reference</h3>
+<div class="ref-grid" id="ref"></div>
+</div>
+</div>
+<script>
+const MORSE={A:'.-',B:'-...',C:'-.-.',D:'-..',E:'.',F:'..-.',G:'--.',H:'....',I:'..',J:'.---',K:'-.-',L:'.-..',M:'--',N:'-.',O:'---',P:'.--.',Q:'--.-',R:'.-.',S:'...',T:'-',U:'..-',V:'...-',W:'.--',X:'-..-',Y:'-.--',Z:'--..','0':'-----','1':'.----','2':'..---','3':'...--','4':'....-', '5':'.....', '6':'-....', '7':'--...', '8':'---..', '9':'----.','.', '.-.-.-',',':'--..--', '?':'..--..', '!':'-.-.--', '/':'-..-.','(':'-.--.',')':'-.--.-','&':'.-...',':':'---...', ';':'-.-.-.','=':'-...-','+':'.-.-.','_':'..--.-','"':'.-..-.','$':'...-..-','@':'.--.-.',' ':'/'};
+const REVERSE=Object.fromEntries(Object.entries(MORSE).map(([k,v])=>[v,k]));
+let dir='toMorse';
+function convert(){
+const input=document.getElementById('input').value.toUpperCase();
+let output='';
+if(dir==='toMorse'){
+output=[...input].map(c=>MORSE[c]||c).join(' ');
+}else{
+output=input.split(' ').map(m=>REVERSE[m]||m).join('');
+}
+document.getElementById('output').textContent=output;
+}
+function playMorse(){
+const morse=document.getElementById('output').textContent;
+const ctx=new(window.AudioContext||window.webkitAudioContext)();
+let t=ctx.currentTime;
+[...morse].forEach(c=>{
+if(c==='.'){const o=ctx.createOscillator();o.frequency.value=600;const g=ctx.createGain();g.gain.value=0.3;o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+0.06);t+=0.08}
+else if(c==='-'){const o=ctx.createOscillator();o.frequency.value=600;const g=ctx.createGain();g.gain.value=0.3;o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+0.15);t+=0.18}
+else if(c===' ')t+=0.14;
+});
+}
+document.getElementById('ref').innerHTML=Object.entries(MORSE).filter(([k])=>k.match(/[A-Z0-9]/)).map(([k,v])=>`<div class="ref-item"><div class="char">${k}</div><div>${v}</div></div>`).join('');
+convert();
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # DevTools Hub
 
-> 40+ free, fast, and privacy-first browser tools for developers. No sign-up, no tracking. Everything runs locally in your browser.
+> 75+ free, fast, and privacy-first browser tools for developers. No sign-up, no tracking. Everything runs locally in your browser.
 
 **Live:** [jajajkones.github.io/protonflix/tools/](https://jajajkones.github.io/protonflix/tools/)
 **Root:** [jajajkones.github.io/protonflix/](https://jajajkones.github.io/protonflix/)
@@ -22,6 +22,7 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 | [Lorem Ipsum Generator](tools/lorem-ipsum.html) | Generate placeholder text (words, sentences, paragraphs) |
 | [Whitespace Editor](tools/whitespace-editor.html) | Visualize, remove, and convert whitespace characters |
 | [Character Map](tools/character-map.html) | Browse and copy Unicode characters and symbols |
+| [Markdown Table Generator](tools/markdown-table-generator.html) | Generate Markdown tables with live preview |
 
 ### Encoding & Decoding
 | Tool | Description |
@@ -31,6 +32,11 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 | [HTML Entity Encoder](tools/html-entity-encoder.html) | Encode/decode HTML entities |
 | [JWT Decoder](tools/jwt-decoder.html) | Decode and inspect JSON Web Tokens |
 | [Hash Generator](tools/hash-generator.html) | Generate MD5, SHA-1, SHA-256, SHA-512 hashes |
+| [ROT13 Cipher](tools/rot13-cipher.html) | ROT13, Caesar, Vigenere, Atbash cipher toolkit |
+| [Morse Code Converter](tools/morse-code.html) | Convert text to Morse code with sound playback |
+| [Binary / Text Converter](tools/binary-text.html) | Convert between binary, text, hex, and ASCII |
+| [Unicode Text Encoder](tools/text-encoder.html) | Encode and decode Unicode text representations |
+| [Hash ID Generator](tools/hashids.html) | Generate short hash IDs from text or numbers |
 
 ### Conversion Tools
 | Tool | Description |
@@ -43,6 +49,10 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 | [Unit Converter](tools/unit-converter.html) | Length, weight, temperature, speed, volume, area, data |
 | [Timestamp Converter](tools/timestamp-converter.html) | Unix timestamps ↔ date formats with live clock |
 | [Percentage Calculator](tools/percentage-calc.html) | Percentages, discounts, tip calculator |
+| [JSON to TypeScript](tools/json-to-typescript.html) | Convert JSON to TypeScript interface definitions |
+| [Temperature Converter](tools/temperature-converter.html) | Convert between Celsius, Fahrenheit, and Kelvin |
+| [Roman Numeral Converter](tools/roman-numeral.html) | Convert between numbers and Roman numerals |
+| [Number to Words](tools/number-words.html) | Convert numbers to written words |
 
 ### Design Tools
 | Tool | Description |
@@ -55,6 +65,14 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 | [Box Shadow Generator](tools/box-shadow.html) | Visual CSS box shadow builder |
 | [Favicon Generator](tools/favicon-generator.html) | Generate favicons in multiple sizes from a letter/emoji |
 | [Placeholder Image Generator](tools/placeholder-image.html) | Generate placeholder images in any dimension |
+| [Flexbox Generator](tools/flexbox-generator.html) | Flexbox CSS generator with live preview |
+| [CSS Grid Generator](tools/css-grid-generator.html) | CSS Grid layout generator with preview |
+| [CSS Animation Generator](tools/css-animation.html) | CSS animation generator with presets |
+| [CSS Border Radius Generator](tools/css-border-radius.html) | Visual border radius generator with preview |
+| [Color Blend Tool](tools/color-blend.html) | Blend two or more colors together |
+| [SVG Viewer / Editor](tools/svg-viewer.html) | View and edit SVG code with live preview |
+| [CSS Box Model Visualizer](tools/css-box-model.html) | Visualize and modify CSS box model properties |
+| [Color Harmony Generator](tools/color-harmony.html) | Generate color harmonies (complementary, triadic, etc.) |
 
 ### Code Tools
 | Tool | Description |
@@ -67,6 +85,14 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 | [HTML Minifier / Beautifier](tools/html-minifier.html) | Minify or beautify HTML |
 | [Text Diff Checker](tools/text-diff.html) | Compare two texts and highlight differences |
 | [Markdown Preview](tools/markdown-preview.html) | Live Markdown preview with toolbar |
+| [Git Cheat Sheet](tools/git-cheatsheet.html) | Quick reference for Git commands |
+| [Docker Cheat Sheet](tools/docker-cheatsheet.html) | Quick reference for Docker commands |
+| [JS Array Methods](tools/js-array-methods.html) | JavaScript array methods reference with examples |
+| [HTML Form Builder](tools/html-form-builder.html) | Build HTML forms with drag-and-drop |
+| [HTML Table Generator](tools/html-table-generator.html) | Generate HTML tables with styling options |
+| [OG Meta Tag Generator](tools/og-meta-generator.html) | Generate Open Graph meta tags for social sharing |
+| [JSON Schema Generator](tools/json-schema-generator.html) | Generate JSON Schema from sample JSON |
+| [HTML/CSS/JS Playground](tools/html-prototype.html) | Live HTML, CSS, and JavaScript playground |
 
 ### Utility Tools
 | Tool | Description |
@@ -77,6 +103,16 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 | [Image to Base64](tools/image-to-base64.html) | Convert images to Base64 data URLs |
 | [IP Info Lookup](tools/ip-lookup.html) | Look up public IP address info |
 | [Stopwatch & Timer](tools/stopwatch.html) | Stopwatch with laps and countdown timer |
+| [BMI Calculator](tools/bmi-calculator.html) | Calculate BMI with metric and imperial support |
+| [Loan Calculator](tools/loan-calculator.html) | Loan amortization calculator with payment schedule |
+| [Age Calculator](tools/age-calculator.html) | Calculate age with fun facts |
+| [Date Difference Calculator](tools/date-diff.html) | Calculate the difference between two dates |
+| [Pomodoro Timer](tools/pomodoro.html) | Pomodoro productivity timer with sessions |
+| [Random Number Generator](tools/random-number.html) | Generate random numbers in any range |
+| [Dice Roller](tools/dice-roller.html) | Roll dice from d4 to d100 |
+| [Typing Speed Test](tools/typing-test.html) | Test your typing speed and accuracy |
+| [Tip Calculator](tools/tip-calculator.html) | Calculate tips and split bills |
+| [HTML to Screenshot](tools/webpage-screenshot.html) | Capture web pages as screenshots |
 
 ---
 

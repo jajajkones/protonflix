@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roman Numeral Converter</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+a{color:#fff;text-decoration:none}
+.header{width:100%;background:#111;border-bottom:1px solid #222;padding:16px 24px;display:flex;align-items:center;gap:16px}
+.header h1{font-size:1.2rem;font-weight:600}
+.back{padding:6px 12px;border:1px solid #222;border-radius:6px;font-size:.85rem;transition:.2s}
+.back:hover{background:#222}
+.container{width:100%;max-width:500px;margin:40px auto;padding:0 20px}
+.panel{background:#111;border:1px solid #222;border-radius:12px;padding:28px;margin-bottom:24px}
+.field{margin-bottom:20px}
+.field label{display:block;font-size:.85rem;color:#737373;margin-bottom:8px}
+.field input{width:100%;padding:14px 16px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#fff;font-family:inherit;font-size:1.3rem;outline:none;text-align:center}
+.field input:focus{border-color:#555}
+.result{padding:16px;background:#0a0a0a;border:1px solid #222;border-radius:8px;text-align:center;margin-top:16px}
+.result-label{font-size:.8rem;color:#737373;margin-bottom:4px}
+.result-value{font-size:2rem;font-weight:700;letter-spacing:2px}
+.result-small{font-size:1rem;color:#737373;margin-top:4px}
+.breakdown{margin-top:12px;padding:12px;background:#111;border:1px solid #222;border-radius:8px;font-size:.75rem;color:#737373;line-height:1.8}
+.breakdown span{color:#fff;font-family:'Courier New',monospace}
+.error{color:#ef4444;font-size:.85rem;margin-top:8px}
+.roman-map{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:16px;font-size:.7rem}
+.roman-map div{display:flex;justify-content:space-between;padding:4px 8px;background:#0a0a0a;border-radius:4px}
+.roman-map div span:last-child{color:#fff}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html" class="back">← Back</a>
+<h1>Roman Numeral Converter</h1>
+</div>
+<div class="container">
+<div class="panel">
+<div class="field">
+<label>Number (1 - 3999)</label>
+<input id="numberInput" type="number" min="1" max="3999" placeholder="Enter number" oninput="toRoman()">
+</div>
+<div class="result" id="romanResult">
+<div class="result-label">Roman Numeral</div>
+<div class="result-value" id="romanValue">-</div>
+</div>
+<div class="breakdown" id="breakdown"></div>
+<div class="error" id="numError"></div>
+</div>
+<div class="panel">
+<div class="field">
+<label>Roman Numeral</label>
+<input id="romanInput" type="text" placeholder="Enter roman numeral" oninput="toNumber()">
+</div>
+<div class="result" id="numberResult">
+<div class="result-label">Number</div>
+<div class="result-value" id="numberValue">-</div>
+</div>
+<div class="error" id="romError"></div>
+<div class="roman-map">
+<div><span>M</span><span>1000</span></div>
+<div><span>D</span><span>500</span></div>
+<div><span>C</span><span>100</span></div>
+<div><span>L</span><span>50</span></div>
+<div><span>X</span><span>10</span></div>
+<div><span>V</span><span>5</span></div>
+<div><span>I</span><span>1</span></div>
+<div><span>IV</span><span>4</span></div>
+<div><span>IX</span><span>9</span></div>
+<div><span>XL</span><span>40</span></div>
+</div>
+</div>
+</div>
+<script>
+const vals=[[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
+function toRoman(){
+const n=parseInt(document.getElementById('numberInput').value);
+const err=document.getElementById('numError');
+const val=document.getElementById('romanValue');
+const bd=document.getElementById('breakdown');
+if(!n||n<1||n>3999){err.textContent='Please enter a number between 1 and 3999';val.textContent='-';bd.innerHTML='';return;}
+err.textContent='';
+let rem=n;let parts=[];
+for(const[v,s] of vals){
+const c=Math.floor(rem/v);
+if(c>0){parts.push(`${c}×${v} = ${c*v} → ${s.repeat(c)}`);rem-=c*v;}
+}
+val.textContent=parts.reduce((r,p)=>{const s=p.split('→')[1].trim();return r+s;},'');
+bd.innerHTML=parts.map(p=>`<div>${p.split('→')[0]} → <span>${p.split('→')[1].trim()}</span></div>`).join('');
+}
+function toNumber(){
+const roman=document.getElementById('romanInput').value.toUpperCase().trim();
+const err=document.getElementById('romError');
+const val=document.getElementById('numberValue');
+if(!roman){err.textContent='';val.textContent='-';return;}
+const map={M:1000,D:500,C:100,L:50,X:10,V:5,I:1};
+let total=0;let valid=true;
+for(let i=0;i<roman.length;i++){
+const cur=map[roman[i]];
+if(!cur){valid=false;break;}
+const next=map[roman[i+1]];
+if(next&&cur<next){total-=cur;}else{total+=cur;}
+}
+if(!valid||total<1||total>3999){err.textContent='Invalid roman numeral (1-3999)';val.textContent='-';return;}
+err.textContent='';val.textContent=total;
+}
+toRoman();toNumber();
+</script>
+</body>
+</html>

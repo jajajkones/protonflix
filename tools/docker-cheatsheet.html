@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docker Commands Cheat Sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#06b6d4;--radius:6px;--mono:'SF Mono',Consolas,monospace}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}header h1{font-size:20px;font-weight:500}header a{color:var(--muted);text-decoration:none;font-size:13px}header a:hover{color:var(--text)}
+.content{padding:40px;max-width:1000px;margin:0 auto}
+.search{width:100%;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;font-size:14px;font-family:inherit;outline:none;margin-bottom:24px}
+.search:focus{border-color:var(--accent)}
+.section{margin-bottom:24px}
+.section h2{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.cmd{padding:8px 12px;border-bottom:1px solid #1a1a1a;display:flex;gap:16px;align-items:baseline;cursor:pointer;transition:background .2s}
+.cmd:hover{background:rgba(255,255,255,.02)}
+.cmd .code{font-family:var(--mono);font-size:13px;color:var(--accent);min-width:320px;white-space:nowrap}
+.cmd .desc{font-size:13px;color:var(--muted)}
+.copied{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;padding:8px 16px;border-radius:var(--radius);font-size:12px;font-weight:600;opacity:0;transition:opacity .3s;z-index:100}
+.copied.show{opacity:1}
+</style>
+</head>
+<body>
+<header><h1>Docker Commands</h1><a href="index.html">← Back to Tools</a></header>
+<div class="content">
+<input class="search" id="search" placeholder="Search commands..." oninput="filter()">
+<div id="sections"></div>
+</div>
+<div class="copied" id="toast">Copied!</div>
+<script>
+const data=[
+{title:'Images',cmds:[{c:'docker build -t name:tag .',d:'Build image from Dockerfile'},{c:'docker images',d:'List all images'},{c:'docker rmi <image>',d:'Remove image'},{c:'docker image prune',d:'Remove unused images'},{c:'docker pull <image>',d:'Pull image from registry'},{c:'docker push <image>',d:'Push image to registry'},{c:'docker tag src:tag dst:tag',d:'Tag an image'},{c:'docker save -o file.tar image',d:'Save image to tar'},{c:'docker load -i file.tar',d:'Load image from tar'}]},
+{title:'Containers',cmds:[{c:'docker run -d --name n image',d:'Run container detached'},{c:'docker run -it image sh',d:'Run interactive shell'},{c:'docker run -p 8080:80 image',d:'Run with port mapping'},{c:'docker run -v /local:/container image',d:'Run with volume mount'},{c:'docker run -e KEY=val image',d:'Run with env variable'},{c:'docker run --rm image',d:'Run and auto-remove'},{c:'docker start <container>',d:'Start stopped container'},{c:'docker stop <container>',d:'Stop running container'},{c:'docker restart <container>',d:'Restart container'},{c:'docker rm <container>',d:'Remove container'},{c:'docker rm -f <container>',d:'Force remove container'}]},
+{title:'Inspecting',cmds:[{c:'docker ps',d:'List running containers'},{c:'docker ps -a',d:'List all containers'},{c:'docker logs <container>',d:'View container logs'},{c:'docker logs -f <container>',d:'Follow logs'},{c:'docker inspect <container>',d:'Detailed container info'},{c:'docker top <container>',d:'List processes in container'},{c:'docker stats',d:'Live resource usage'},{c:'docker port <container>',d:'Show port mappings'}]},
+{title:'Execute & Copy',cmds:[{c:'docker exec -it container sh',d:'Execute command in container'},{c:'docker exec container cmd',d:'Run command in container'},{c:'docker cp container:/path .',d:'Copy from container'},{c:'docker cp . container:/path',d:'Copy to container'}]},
+{title:'Docker Compose',cmds:[{c:'docker compose up -d',d:'Start services detached'},{c:'docker compose down',d:'Stop and remove services'},{c:'docker compose ps',d:'List services'},{c:'docker compose logs',d:'View service logs'},{c:'docker compose build',d:'Build services'},{c:'docker compose restart',d:'Restart services'},{c:'docker compose exec svc sh',d:'Execute in service'},{c:'docker compose pull',d:'Pull service images'}]},
+{title:'System',cmds:[{c:'docker system df',d:'Show disk usage'},{c:'docker system prune',d:'Remove unused data'},{c:'docker system prune -a',d:'Remove all unused data'},{c:'docker network ls',d:'List networks'},{c:'docker volume ls',d:'List volumes'},{c:'docker volume create name',d:'Create volume'},{c:'docker info',d:'System information'},{c:'docker version',d:'Version information'}]}
+];
+function render(filter=''){
+document.getElementById('sections').innerHTML=data.map(s=>{
+const cmds=s.cmds.filter(c=>!filter||c.c.toLowerCase().includes(filter)||c.d.toLowerCase().includes(filter));
+if(!cmds.length)return'';
+return`<div class="section"><h2>${s.title}</h2>${cmds.map(c=>`<div class="cmd" onclick="copyCmd('${c.c.replace(/'/g,"\\'")}')"><span class="code">${esc(c.c)}</span><span class="desc">${esc(c.d)}</span></div>`).join('')}</div>`;
+}).join('');
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function copyCmd(cmd){navigator.clipboard.writeText(cmd);const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+function filter(){render(document.getElementById('search').value.toLowerCase())}
+render();
+</script>
+</body>
+</html>

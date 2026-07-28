@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaScript Array Methods</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#f59e0b;--radius:6px;--mono:'SF Mono',Consolas,monospace}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}header h1{font-size:20px;font-weight:500}header a{color:var(--muted);text-decoration:none;font-size:13px}header a:hover{color:var(--text)}
+.content{padding:40px;max-width:1000px;margin:0 auto}
+.search{width:100%;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;font-size:14px;font-family:inherit;outline:none;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.method{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;cursor:pointer;transition:all .2s}
+.method:hover{border-color:#444}
+.method .name{font-family:var(--mono);font-size:14px;color:var(--accent);margin-bottom:4px}
+.method .mutates{font-size:10px;color:#ef4444;text-transform:uppercase;letter-spacing:1px;display:inline-block;background:rgba(239,68,68,.1);padding:2px 6px;border-radius:3px;margin-left:8px}
+.method .returns{font-size:10px;color:#22c55e;text-transform:uppercase;letter-spacing:1px;display:inline-block;background:rgba(34,197,94,.1);padding:2px 6px;border-radius:3px;margin-left:8px}
+.method .desc{font-size:13px;color:var(--muted);margin-top:6px}
+.method .example{font-family:var(--mono);font-size:12px;color:#888;margin-top:8px;padding:8px;background:var(--bg);border-radius:4px;white-space:pre}
+.copied{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;padding:8px 16px;border-radius:var(--radius);font-size:12px;font-weight:600;opacity:0;transition:opacity .3s;z-index:100}
+.copied.show{opacity:1}
+</style>
+</head>
+<body>
+<header><h1>JavaScript Array Methods</h1><a href="index.html">← Back to Tools</a></header>
+<div class="content">
+<input class="search" id="search" placeholder="Search methods..." oninput="filter()">
+<div class="grid" id="grid"></div>
+</div>
+<div class="copied" id="toast">Copied!</div>
+<script>
+const methods=[
+{name:'push',mutates:true,returns:'new length',desc:'Add elements to end',ex:'arr.push(4, 5) // [1,2,3,4,5]'},
+{name:'pop',mutates:true,returns:'removed element',desc:'Remove last element',ex:'arr.pop() // [1,2]'},
+{name:'shift',mutates:true,returns:'removed element',desc:'Remove first element',ex:'arr.shift() // [2,3]'},
+{name:'unshift',mutates:true,returns:'new length',desc:'Add elements to start',ex:'arr.unshift(0) // [0,1,2,3]'},
+{name:'splice',mutates:true,returns:'removed items',desc:'Add/remove at index',ex:'arr.splice(1, 1, "a") // remove 1 at idx 1'},
+{name:'slice',mutates:false,returns:'new array',desc:'Extract section (non-destructive)',ex:'arr.slice(1, 3) // [2,3]'},
+{name:'concat',mutates:false,returns:'new array',desc:'Merge arrays',ex:'arr.concat([4,5]) // [1,2,3,4,5]'},
+{name:'map',mutates:false,returns:'new array',desc:'Transform each element',ex:'arr.map(x => x * 2) // [2,4,6]'},
+{name:'filter',mutates:false,returns:'new array',desc:'Keep elements matching test',ex:'arr.filter(x => x > 1) // [2,3]'},
+{name:'reduce',mutates:false,returns:'single value',desc:'Accumulate into single value',ex:'arr.reduce((a,b) => a+b, 0) // 6'},
+{name:'find',mutates:false,returns:'element',desc:'Find first matching element',ex:'arr.find(x => x > 1) // 2'},
+{name:'findIndex',mutates:false,returns:'index',desc:'Find index of first match',ex:'arr.findIndex(x => x === 2) // 1'},
+{name:'indexOf',mutates:false,returns:'index',desc:'Find index of element',ex:'arr.indexOf(3) // 2'},
+{name:'includes',mutates:false,returns:'boolean',desc:'Check if element exists',ex:'arr.includes(2) // true'},
+{name:'some',mutates:false,returns:'boolean',desc:'Test if any element passes',ex:'arr.some(x => x > 2) // true'},
+{name:'every',mutates:false,returns:'boolean',desc:'Test if all elements pass',ex:'arr.every(x => x > 0) // true'},
+{name:'flat',mutates:false,returns:'new array',desc:'Flatten nested arrays',ex:'[[1,2],[3]].flat() // [1,2,3]'},
+{name:'flatMap',mutates:false,returns:'new array',desc:'Map then flatten one level',ex:'arr.flatMap(x => [x, x*2])'},
+{name:'sort',mutates:true,returns:'sorted array',desc:'Sort elements in place',ex:'arr.sort((a,b) => a-b)'},
+{name:'reverse',mutates:true,returns:'reversed array',desc:'Reverse in place',ex:'arr.reverse() // [3,2,1]'},
+{name:'join',mutates:false,returns:'string',desc:'Join into string',ex:'arr.join(", ") // "1, 2, 3"'},
+{name:'fill',mutates:true,returns:'modified array',desc:'Fill with value',ex:'arr.fill(0) // [0,0,0]'},
+{name:'copyWithin',mutates:true,returns:'modified array',desc:'Copy part of array',ex:'arr.copyWithin(0, 1)'},
+{name:'at',mutates:false,returns:'element',desc:'Access by index (supports negatives)',ex:'arr.at(-1) // last element'},
+{name:'entries',mutates:false,returns:'iterator',desc:'Get [index, value] pairs',ex:'for (const [i,v] of arr.entries())'},
+{name:'keys',mutates:false,returns:'iterator',desc:'Get indices',ex:'for (const i of arr.keys())'},
+{name:'values',mutates:false,returns:'iterator',desc:'Get values',ex:'for (const v of arr.values())'},
+{name:'Array.from',mutates:false,returns:'new array',desc:'Create from iterable',ex:'Array.from("hello") // ["h","e","l","l","o"]'},
+{name:'Array.isArray',mutates:false,returns:'boolean',desc:'Check if array',ex:'Array.isArray([1,2]) // true'},
+{name:'Array.of',mutates:false,returns:'new array',desc:'Create from arguments',ex:'Array.of(1, 2, 3) // [1,2,3]'},
+];
+function render(filter=''){
+document.getElementById('grid').innerHTML=methods.filter(m=>!filter||m.name.includes(filter)||m.desc.toLowerCase().includes(filter)).map(m=>`<div class="method" onclick="copyCmd('${m.name}')"><span class="name">.${m.name}()</span>${m.mutates?'<span class="mutates">mutates</span>':'<span class="returns">pure</span>'}<div class="desc">${m.desc}</div><div class="example">${m.ex}</div></div>`).join('');
+}
+function copyCmd(cmd){navigator.clipboard.writeText(cmd);const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+function filter(){render(document.getElementById('search').value.toLowerCase())}
+render();
+</script>
+</body>
+</html>

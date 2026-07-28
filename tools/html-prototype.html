@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML/CSS/JS Playground</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+a{color:#fff;text-decoration:none}
+.header{background:#111;border-bottom:1px solid #222;padding:10px 20px;display:flex;align-items:center;gap:16px;flex-shrink:0}
+.header h1{font-size:1.1rem;font-weight:600}
+.back{padding:5px 10px;border:1px solid #222;border-radius:6px;font-size:.8rem;transition:.2s}
+.back:hover{background:#222}
+.btn{padding:6px 14px;background:#fff;color:#0a0a0a;border:none;border-radius:6px;font-family:inherit;font-weight:600;cursor:pointer;font-size:.8rem}
+.btn:hover{background:#e0e0e0}
+.btn.secondary{background:#222;color:#fff;border:1px solid #333}
+.btn.secondary:hover{background:#333}
+.actions{display:flex;gap:8px;margin-left:auto}
+.main{display:flex;flex:1;overflow:hidden}
+.editors{display:flex;flex:1;flex-direction:column;border-right:1px solid #222;min-width:0}
+.editor-pane{flex:1;display:flex;flex-direction:column;border-bottom:1px solid #222;min-height:0}
+.editor-pane:last-child{border-bottom:none}
+.pane-header{display:flex;align-items:center;padding:6px 12px;background:#111;border-bottom:1px solid #222;font-size:.75rem;font-weight:600;color:#737373;text-transform:uppercase;letter-spacing:.5px;flex-shrink:0}
+.pane-header span{margin-left:auto;font-size:.65rem;color:#555}
+.editor-pane textarea{flex:1;width:100%;padding:12px;background:#0a0a0a;border:none;color:#fff;font-family:'Courier New',monospace;font-size:.8rem;resize:none;outline:none;line-height:1.5;tab-size:2}
+.preview{flex:1;display:flex;flex-direction:column;min-width:0}
+.preview-header{padding:6px 12px;background:#111;border-bottom:1px solid #222;font-size:.75rem;font-weight:600;color:#737373;text-transform:uppercase;letter-spacing:.5px;flex-shrink:0}
+.preview-frame{flex:1;background:#fff;border:none;width:100%;height:100%}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html" class="back">← Back</a>
+<h1>HTML/CSS/JS Playground</h1>
+<div class="actions">
+<button class="btn secondary" onclick="resetAll()">Reset</button>
+<button class="btn" onclick="runCode()">Run</button>
+</div>
+</div>
+<div class="main">
+<div class="editors">
+<div class="editor-pane">
+<div class="pane-header">HTML<span>auto-run</span></div>
+<textarea id="html" oninput="runCode()" spellcheck="false">&lt;div class="container"&gt;
+  &lt;h1&gt;Hello World&lt;/h1&gt;
+  &lt;p&gt;Edit the HTML, CSS, and JS panels.&lt;/p&gt;
+  &lt;button id="btn"&gt;Click Me&lt;/button&gt;
+  &lt;p id="output"&gt;&lt;/p&gt;
+&lt;/div&gt;</textarea>
+</div>
+<div class="editor-pane">
+<div class="pane-header">CSS<span>auto-run</span></div>
+<textarea id="css" oninput="runCode()" spellcheck="false">body {
+  font-family: system-ui, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0;
+  background: #1a1a2e;
+  color: #fff;
+}
+.container {
+  text-align: center;
+  padding: 2rem;
+}
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+button {
+  padding: 10px 24px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  background: #667eea;
+  color: #fff;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: .2s;
+}
+button:hover { background: #764ba2; transform: scale(1.05); }
+#output { margin-top: 1rem; font-size: 1.1rem; }</textarea>
+</div>
+<div class="editor-pane">
+<div class="pane-header">JavaScript<span>auto-run</span></div>
+<textarea id="js" oninput="runCode()" spellcheck="false">let count = 0;
+document.getElementById('btn').addEventListener('click', () => {
+  count++;
+  document.getElementById('output').textContent = `Clicked ${count} time${count > 1 ? 's' : ''}`;
+});</textarea>
+</div>
+</div>
+<div class="preview">
+<div class="preview-header">Preview</div>
+<iframe id="preview" class="preview-frame" sandbox="allow-scripts"></iframe>
+</div>
+</div>
+<script>
+function runCode(){
+const html=document.getElementById('html').value;
+const css=document.getElementById('css').value;
+const js=document.getElementById('js').value;
+const doc=`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${css}</style></head><body>${html}<script>${js}<\/script></body></html>`;
+const iframe=document.getElementById('preview');
+iframe.srcdoc=doc;
+}
+function resetAll(){
+document.getElementById('html').value='';
+document.getElementById('css').value='';
+document.getElementById('js').value='';
+runCode();
+}
+runCode();
+</script>
+</body>
+</html>

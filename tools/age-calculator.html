@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Age Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#8b5cf6;--radius:6px;--mono:'SF Mono',Consolas,monospace}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}header h1{font-size:20px;font-weight:500}header a{color:var(--muted);text-decoration:none;font-size:13px}header a:hover{color:var(--text)}
+.content{flex:1;padding:40px;max-width:600px;width:100%;margin:0 auto}
+.input-group{margin-bottom:16px}
+.input-group label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px}
+.input-group input{width:100%;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-size:16px;font-family:inherit;outline:none}
+.input-group input:focus{border-color:var(--accent)}
+.result{text-align:center;padding:30px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-top:20px}
+.age-display{font-size:48px;font-weight:300;font-family:var(--mono);margin-bottom:16px}
+.age-details{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.age-details .unit{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-top:4px}
+.age-details .val{font-size:24px;font-family:var(--mono)}
+.facts{margin-top:20px;text-align:left}
+.fact{padding:10px 14px;border-bottom:1px solid #1a1a1a;font-size:13px}
+.fact .label{color:var(--muted)}
+.fact .value{color:var(--accent);font-family:var(--mono)}
+</style>
+</head>
+<body>
+<header><h1>Age Calculator</h1><a href="index.html">← Back to Tools</a></header>
+<div class="content">
+<div class="input-group"><label>Date of Birth</label><input type="date" id="dob" onchange="calc()"></div>
+<div class="input-group"><label>Calculate Age at (optional)</label><input type="date" id="refDate" onchange="calc()"></div>
+<div class="result" id="result"></div>
+<div class="facts" id="facts"></div>
+</div>
+<script>
+function calc(){
+const dob=new Date(document.getElementById('dob').value);
+const ref=document.getElementById('refDate').value?new Date(document.getElementById('refDate').value):new Date();
+if(isNaN(dob))return;
+let years=ref.getFullYear()-dob.getFullYear();let months=ref.getMonth()-dob.getMonth();let days=ref.getDate()-dob.getDate();
+if(days<0){months--;const prevMonth=new Date(ref.getFullYear(),ref.getMonth(),0);days+=prevMonth.getDate()}
+if(months<0){years--;months+=12}
+const totalDays=Math.floor((ref-dob)/(1000*60*60*24));
+const totalWeeks=Math.floor(totalDays/7);
+const totalHours=totalDays*24;
+const totalMinutes=totalHours*60;
+const nextBirthday=new Date(ref.getFullYear(),dob.getMonth(),dob.getDate());
+if(nextBirthday<ref)nextBirthday.setFullYear(nextBirthday.getFullYear()+1);
+const daysUntil=Math.ceil((nextBirthday-ref)/(1000*60*60*24));
+const dayOfWeek=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][dob.getDay()];
+const zodiac=getZodiac(dob);
+const chinese=getChinese(dob.getFullYear());
+document.getElementById('result').innerHTML=`
+<div class="age-display">${years} years</div>
+<div class="age-details">
+<div><div class="val">${months}</div><div class="unit">Months</div></div>
+<div><div class="val">${days}</div><div class="unit">Days</div></div>
+<div><div class="val">${totalWeeks.toLocaleString()}</div><div class="unit">Weeks</div></div>
+<div><div class="val">${totalDays.toLocaleString()}</div><div class="unit">Total Days</div></div>
+</div>`;
+document.getElementById('facts').innerHTML=`
+<div class="fact"><span class="label">Born on a </span><span class="value">${dayOfWeek}</span></div>
+<div class="fact"><span class="label">Next birthday in </span><span class="value">${daysUntil} days</span></div>
+<div class="fact"><span class="label">Total hours lived: </span><span class="value">${totalHours.toLocaleString()}</span></div>
+<div class="fact"><span class="label">Total minutes lived: </span><span class="value">${totalMinutes.toLocaleString()}</span></div>
+<div class="fact"><span class="label">Zodiac: </span><span class="value">${zodiac}</span></div>
+<div class="fact"><span class="label">Chinese Zodiac: </span><span class="value">${chinese}</span></div>
+<div class="fact"><span class="label">Century: </span><span class="value">${Math.ceil(dob.getFullYear()/100)}th</span></div>`;
+}
+function getZodiac(d){const m=d.getMonth()+1;const day=d.getDate();
+if((m===1&&day>=20)||(m===2&&day<=18))return'Aquarius';if((m===2&&day>=19)||(m===3&&day<=20))return'Pisces';if((m===3&&day>=21)||(m===4&&day<=19))return'Aries';if((m===4&&day>=20)||(m===5&&day<=20))return'Taurus';if((m===5&&day>=21)||(m===6&&day<=20))return'Gemini';if((m===6&&day>=21)||(m===7&&day<=22))return'Cancer';if((m===7&&day>=23)||(m===8&&day<=22))return'Leo';if((m===8&&day>=23)||(m===9&&day<=22))return'Virgo';if((m===9&&day>=23)||(m===10&&day<=22))return'Libra';if((m===10&&day>=23)||(m===11&&day<=21))return'Scorpio';if((m===11&&day>=22)||(m===12&&day<=21))return'Sagittarius';return'Capricorn';
+}
+function getChinese(y){const animals=['Rat','Ox','Tiger','Rabbit','Dragon','Snake','Horse','Goat','Monkey','Rooster','Dog','Pig'];return animals[(y-4)%12];}
+document.getElementById('dob').value='1990-06-15';
+calc();
+</script>
+</body>
+</html>

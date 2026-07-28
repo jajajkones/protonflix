@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS Box Model Visualizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh}
+a{color:#fff;text-decoration:none}
+.header{background:#111;border-bottom:1px solid #222;padding:16px 24px;display:flex;align-items:center;gap:16px}
+.header h1{font-size:1.2rem;font-weight:600}
+.back{padding:6px 12px;border:1px solid #222;border-radius:6px;font-size:.85rem;transition:.2s}
+.back:hover{background:#222}
+.container{max-width:1000px;margin:24px auto;padding:0 20px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:768px){.grid{grid-template-columns:1fr}}
+.panel{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:24px}
+.panel h2{font-size:1rem;font-weight:500;margin-bottom:16px;color:#737373}
+.inputs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.field{display:flex;flex-direction:column;gap:2px}
+.field label{font-size:.7rem;color:#737373;text-align:center}
+.field input{padding:6px;background:#0a0a0a;border:1px solid #222;border-radius:4px;color:#fff;font-family:inherit;font-size:.8rem;outline:none;text-align:center;width:100%}
+.field input:focus{border-color:#555}
+.section-label{font-size:.75rem;color:#737373;margin-bottom:6px;text-align:center}
+.visual{display:flex;flex-direction:column;align-items:center;gap:0;margin:20px 0}
+.box-layer{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:.7rem;transition:.3s}
+.box-margin{background:#e74c3c33;border:2px dashed #e74c3c;padding:8px;border-radius:4px}
+.box-padding{background:#f39c1233;border:2px dashed #f39c12;padding:8px;border-radius:4px}
+.box-border{background:#3498db33;border:2px solid #3498db;padding:8px;border-radius:4px}
+.box-content{background:#2ecc7133;border:2px solid #2ecc71;min-width:100px;min-height:60px;display:flex;align-items:center;justify-content:center;border-radius:4px}
+.box-label{font-weight:600;font-size:.65rem;text-transform:uppercase;letter-spacing:.5px}
+.code-box{position:relative}
+.code-box pre{background:#0a0a0a;border:1px solid #222;border-radius:6px;padding:14px;font-size:.75rem;overflow-x:auto;line-height:1.6}
+.copy-btn{position:absolute;top:8px;right:8px;padding:5px 10px;background:#222;border:1px solid #333;border-radius:4px;color:#fff;font-size:.7rem;cursor:pointer;font-family:inherit}
+.copy-btn:hover{background:#333}
+.color-legend{display:flex;gap:12px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:.7rem;color:#737373}
+.legend-dot{width:10px;height:10px;border-radius:2px}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html" class="back">← Back</a>
+<h1>CSS Box Model Visualizer</h1>
+</div>
+<div class="container">
+<div class="grid">
+<div class="panel">
+<h2>Margins</h2>
+<div class="inputs-grid">
+<div class="field"><label>Top</label><input id="mt" type="number" value="10" oninput="update()"></div>
+<div class="field"><label>Right</label><input id="mr" type="number" value="10" oninput="update()"></div>
+<div class="field"><label>Bottom</label><input id="mb" type="number" value="10" oninput="update()"></div>
+<div class="field"><label>Left</label><input id="ml" type="number" value="10" oninput="update()"></div>
+</div>
+<h2>Paddings</h2>
+<div class="inputs-grid">
+<div class="field"><label>Top</label><input id="pt" type="number" value="8" oninput="update()"></div>
+<div class="field"><label>Right</label><input id="pr" type="number" value="8" oninput="update()"></div>
+<div class="field"><label>Bottom</label><input id="pb" type="number" value="8" oninput="update()"></div>
+<div class="field"><label>Left</label><input id="pl" type="number" value="8" oninput="update()"></div>
+</div>
+<h2 style="margin-top:16px">Border</h2>
+<div class="inputs-grid">
+<div class="field"><label>Top</label><input id="bt" type="number" value="2" oninput="update()"></div>
+<div class="field"><label>Right</label><input id="br" type="number" value="2" oninput="update()"></div>
+<div class="field"><label>Bottom</label><input id="bb" type="number" value="2" oninput="update()"></div>
+<div class="field"><label>Left</label><input id="bl" type="number" value="2" oninput="update()"></div>
+</div>
+<h2 style="margin-top:16px">Content</h2>
+<div class="inputs-grid">
+<div class="field"><label>Width</label><input id="cw" type="number" value="200" oninput="update()"></div>
+<div class="field"><label>Height</label><input id="ch" type="number" value="100" oninput="update()"></div>
+<div class="field"></div><div class="field"></div>
+</div>
+</div>
+<div>
+<div class="panel">
+<h2>Visual Diagram</h2>
+<div class="visual" id="visual"></div>
+<div class="color-legend">
+<div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>Margin</div>
+<div class="legend-item"><div class="legend-dot" style="background:#3498db"></div>Border</div>
+<div class="legend-item"><div class="legend-dot" style="background:#f39c12"></div>Padding</div>
+<div class="legend-item"><div class="legend-dot" style="background:#2ecc71"></div>Content</div>
+</div>
+</div>
+<div class="panel">
+<h2>CSS Output</h2>
+<div class="code-box">
+<button class="copy-btn" onclick="copyCode()">Copy</button>
+<pre id="code"></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+function v(id){return+document.getElementById(id).value||0}
+function update(){
+const mt=v('mt'),mr=v('mr'),mb=v('mb'),ml=v('ml');
+const pt=v('pt'),pr=v('pr'),pb=v('pb'),pl=v('pl');
+const bt=v('bt'),br=v('br'),bb=v('bb'),bl=v('bl');
+const cw=v('cw'),ch=v('ch');
+const vis=document.getElementById('visual');
+vis.innerHTML=`
+<div class="box-layer box-margin" style="width:${cw+pl+pr+bl+br+ml+mr}px">
+  <span class="box-label" style="color:#e74c3c">margin: ${mt}/${mr}/${mb}/${ml}</span>
+  <div class="box-layer box-border" style="width:${cw+pl+pr+bl+br}px">
+    <span class="box-label" style="color:#3498db">border: ${bt}/${br}/${bb}/${bl}</span>
+    <div class="box-layer box-padding" style="width:${cw+pl+pr}px">
+      <span class="box-label" style="color:#f39c12">padding: ${pt}/${pr}/${pb}/${pl}</span>
+      <div class="box-layer box-content" style="width:${cw}px;height:${ch}px">
+        <span class="box-label" style="color:#2ecc71">Content ${cw}×${ch}</span>
+      </div>
+    </div>
+  </div>
+</div>`;
+const css=`box-sizing: border-box;
+width: ${cw}px;
+height: ${ch}px;
+margin: ${mt}px ${mr}px ${mb}px ${ml}px;
+padding: ${pt}px ${pr}px ${pb}px ${pl}px;
+border-width: ${bt}px ${br}px ${bb}px ${bl}px;
+border-style: solid;
+border-color: #000;`;
+document.getElementById('code').textContent=css;
+}
+function copyCode(){
+navigator.clipboard.writeText(document.getElementById('code').textContent);
+const b=document.querySelector('.copy-btn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500);
+}
+update();
+</script>
+</body>
+</html>

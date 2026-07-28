@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Typing Test</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#3b82f6;--correct:#22c55e;--wrong:#ef4444;--radius:6px;--mono:'SF Mono',Consolas,monospace}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:60px 40px}
+h1{font-size:20px;font-weight:500;margin-bottom:30px}
+.stats{display:flex;gap:24px;margin-bottom:30px}
+.stat{text-align:center}
+.stat .value{font-size:32px;font-family:var(--mono);font-weight:300}
+.stat .label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.text-area{max-width:700px;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;font-family:var(--mono);font-size:18px;line-height:2;cursor:text;min-height:120px;margin-bottom:20px;user-select:none;position:relative}
+.text-area .char{transition:color .1s}
+.char.correct{color:var(--correct)}
+.char.wrong{color:var(--wrong);text-decoration:underline}
+.char.current{border-bottom:2px solid var(--accent)}
+.char.pending{color:var(--muted)}
+.input{position:absolute;opacity:0;pointer-events:none}
+.controls{display:flex;gap:12px;margin-bottom:20px}
+.btn{background:var(--surface);color:var(--text);border:1px solid var(--border);padding:8px 16px;border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;transition:all .2s}
+.btn:hover{border-color:#444}
+.btn.active{border-color:var(--accent);color:var(--accent)}
+.result-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:100;align-items:center;justify-content:center;flex-direction:column;gap:20px}
+.result-overlay.show{display:flex}
+.result-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:30px;text-align:center;min-width:300px}
+.result-card .big{font-size:64px;font-family:var(--mono);font-weight:300;color:var(--accent)}
+.result-card .label{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-top:4px}
+.result-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
+.result-stats div{text-align:center}
+.result-stats .val{font-size:20px;font-family:var(--mono)}
+.result-stats .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+</style>
+</head>
+<body>
+<h1>Typing Test</h1>
+<div class="controls">
+<button class="btn active" onclick="setTime(30,this)">30s</button>
+<button class="btn" onclick="setTime(60,this)">60s</button>
+<button class="btn" onclick="setTime(120,this)">120s</button>
+<button class="btn" onclick="newTest()">New Test</button>
+</div>
+<div class="stats">
+<div class="stat"><div class="value" id="wpm">0</div><div class="label">WPM</div></div>
+<div class="stat"><div class="value" id="timeLeft">30</div><div class="label">Seconds</div></div>
+<div class="stat"><div class="value" id="accuracy">100</div><div class="label">Accuracy %</div></div>
+<div class="stat"><div class="value" id="chars">0</div><div class="label">Characters</div></div>
+</div>
+<div class="text-area" id="textArea" onclick="startInput()"></div>
+<input class="input" id="input" oninput="handleInput()" onkeydown="handleKey(event)">
+<div class="result-overlay" id="resultOverlay">
+<div class="result-card">
+<div class="big" id="finalWpm">0</div><div class="label">Words Per Minute</div>
+<div class="result-stats">
+<div><div class="val" id="finalAccuracy">0%</div><div class="lbl">Accuracy</div></div>
+<div><div class="val" id="finalChars">0</div><div class="lbl">Characters</div></div>
+<div><div class="val" id="finalCorrect">0</div><div class="lbl">Correct</div></div>
+</div>
+</div>
+<button class="btn" onclick="closeResult();newTest()">Try Again</button>
+</div>
+<script>
+const WORDS=['the','be','to','of','and','a','in','that','have','I','it','for','not','on','with','he','as','you','do','at','this','but','his','by','from','they','we','her','she','or','an','will','my','one','all','would','there','their','what','so','up','out','if','about','who','get','which','go','me','when','make','can','like','time','no','just','him','know','take','people','into','year','your','good','some','could','them','see','other','than','then','now','look','only','come','its','over','think','also','back','after','use','two','how','our','work','first','well','way','even','new','want','because','any','these','give','day','most','us','find','here','thing','many','well','those','tell','one','very','her','own','may','still','should','world','long','keep','let','begin','life','where','need','house','too','high','right','old','large','small','great','young','first','last','next','long','short','good','new','old','big','little','different','important'];
+let text='';let pos=0;let started=false;let timer=null;let timeLeft=30;let totalTime=30;let correct=0;let totalTyped=0;
+function setTime(s,el){totalTime=timeLeft=s;document.querySelectorAll('.controls .btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');document.getElementById('timeLeft').textContent=s;newTest()}
+function newText(){return Array.from({length:80},()=>WORDS[Math.floor(Math.random()*WORDS.length)]).join(' ')}
+function newTest(){text=newText();pos=0;started=false;correct=0;totalTyped=0;clearInterval(timer);timeLeft=totalTime;document.getElementById('wpm').textContent='0';document.getElementById('timeLeft').textContent=timeLeft;document.getElementById('accuracy').textContent='100';document.getElementById('chars').textContent='0';renderText();document.getElementById('input').value='';document.getElementById('input').focus()}
+function renderText(){document.getElementById('textArea').innerHTML=[...text].map((c,i)=>{let cls='pending';if(i<pos)cls=document.getElementById('input').value[i]===c?'correct':'wrong';else if(i===pos)cls='current';return`<span class="char ${cls}">${c}</span>`}).join('')}
+function startInput(){if(!started){started=true;timer=setInterval(()=>{timeLeft--;document.getElementById('timeLeft').textContent=timeLeft;if(timeLeft<=0){clearInterval(timer);showResult()}},1000)}document.getElementById('input').focus()}
+function handleInput(){
+const val=document.getElementById('input').value;pos=val.length;
+correct=[...val].filter((c,i)=>c===text[i]).length;
+totalTyped=val.length;
+const wpm=totalTyped>0?Math.round(correct/5/(totalTime-timeLeft)*60):0;
+const acc=totalTyped>0?Math.round(correct/totalTyped*100):100;
+document.getElementById('wpm').textContent=wpm;document.getElementById('accuracy').textContent=acc;document.getElementById('chars').textContent=totalTyped;
+renderText();
+if(pos>=text.length)newTest();
+}
+function handleKey(e){if(e.key==='Tab'){e.preventDefault();newTest()}}
+function showResult(){const wpm=Math.round(correct/5/totalTime*60);document.getElementById('finalWpm').textContent=wpm;document.getElementById('finalAccuracy').textContent=Math.round(correct/totalTyped*100)+'%';document.getElementById('finalChars').textContent=totalTyped;document.getElementById('finalCorrect').textContent=correct;document.getElementById('resultOverlay').classList.add('show')}
+function closeResult(){document.getElementById('resultOverlay').classList.remove('show')}
+newTest();
+</script>
+</body>
+</html>

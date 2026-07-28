@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Date Difference Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#06b6d4;--radius:6px;--mono:'SF Mono',Consolas,monospace}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}header h1{font-size:20px;font-weight:500}header a{color:var(--muted);text-decoration:none;font-size:13px}header a:hover{color:var(--text)}
+.content{flex:1;padding:40px;max-width:600px;width:100%;margin:0 auto}
+.input-row{display:flex;gap:12px;margin-bottom:16px;align-items:center}
+.input-row label{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);min-width:50px}
+.input-row input{flex:1;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:12px;font-size:14px;font-family:inherit;outline:none}
+.input-row input:focus{border-color:var(--accent)}
+.btn{background:var(--accent);color:#000;border:none;padding:10px 20px;border-radius:var(--radius);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;margin-bottom:16px}
+.result{padding:24px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-top:16px}
+.big-num{font-size:36px;font-weight:300;font-family:var(--mono);color:var(--accent);text-align:center;margin-bottom:16px}
+.breakdown{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.breakdown .val{font-size:20px;font-family:var(--mono)}
+.breakdown .unit{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-top:2px}
+.extras{margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.extras .item{font-size:13px;padding:6px 0}
+.extras .label{color:var(--muted)}
+.extras .value{font-family:var(--mono);color:var(--accent)}
+</style>
+</head>
+<body>
+<header><h1>Date Difference Calculator</h1><a href="index.html">← Back to Tools</a></header>
+<div class="content">
+<div class="input-row"><label>From</label><input type="date" id="from" onchange="calc()"></div>
+<div class="input-row"><label>To</label><input type="date" id="to" onchange="calc()"><button class="btn" onclick="document.getElementById('to').value=new Date().toISOString().split('T')[0];calc()" style="margin:0">Today</button></div>
+<button class="btn" onclick="swap()">Swap Dates</button>
+<div class="result" id="result"></div>
+</div>
+<script>
+function calc(){
+const a=new Date(document.getElementById('from').value);
+const b=new Date(document.getElementById('to').value);
+if(isNaN(a)||isNaN(b))return;
+let diff=Math.abs(b-a);
+const days=Math.floor(diff/(1000*60*60*24));diff%=(1000*60*60*24);
+const hours=Math.floor(diff/(1000*60*60));diff%=(1000*60*60);
+const mins=Math.floor(diff/(1000*60));
+const weeks=Math.floor(days/7);const remDays=days%7;
+const months=Math.floor(days/30.44);const years=Math.floor(days/365.25);
+const weekends=Math.floor(days/7)*2+((days%7>=5)?((days%7)-4):0);
+const workdays=days-weekends;
+const hoursTotal=days*24;
+document.getElementById('result').innerHTML=`
+<div class="big-num">${days} days</div>
+<div class="breakdown">
+<div><div class="val">${years}</div><div class="unit">Years</div></div>
+<div><div class="val">${months}</div><div class="unit">Months</div></div>
+<div><div class="val">${weeks}</div><div class="unit">Weeks</div></div>
+<div><div class="val">${remDays}</div><div class="unit">Days</div></div>
+</div>
+<div class="extras">
+<div class="item"><span class="label">Hours: </span><span class="value">${hoursTotal.toLocaleString()}</span></div>
+<div class="item"><span class="label">Minutes: </span><span class="value">${(hoursTotal*60).toLocaleString()}</span></div>
+<div class="item"><span class="label">Weekends: </span><span class="value">${weekends}</span></div>
+<div class="item"><span class="label">Workdays: </span><span class="value">${workdays}</span></div>
+<div class="item"><span class="label">Hours + Min: </span><span class="value">${days}d ${hours}h ${mins}m</span></div>
+<div class="item"><span class="label">Direction: </span><span class="value">${b>a?'Future':'Past'}</span></div>
+</div>`;
+}
+function swap(){const f=document.getElementById('from'),t=document.getElementById('to');[f.value,t.value]=[t.value,f.value];calc()}
+document.getElementById('from').value='2000-01-01';
+document.getElementById('to').value=new Date().toISOString().split('T')[0];
+calc();
+</script>
+</body>
+</html>

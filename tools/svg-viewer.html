@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SVG Viewer / Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh}
+a{color:#fff;text-decoration:none}
+.header{background:#111;border-bottom:1px solid #222;padding:16px 24px;display:flex;align-items:center;gap:16px}
+.header h1{font-size:1.2rem;font-weight:600}
+.back{padding:6px 12px;border:1px solid #222;border-radius:6px;font-size:.85rem;transition:.2s}
+.back:hover{background:#222}
+.container{max-width:1100px;margin:24px auto;padding:0 20px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:768px){.grid{grid-template-columns:1fr}}
+.panel{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:24px}
+.panel h2{font-size:1rem;font-weight:500;margin-bottom:12px;color:#737373}
+textarea{width:100%;height:300px;padding:12px;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;font-family:'Courier New',monospace;font-size:.8rem;resize:vertical;outline:none}
+textarea:focus{border-color:#555}
+.controls{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.btn{padding:6px 12px;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;cursor:pointer;font-family:inherit;font-size:.8rem;transition:.2s}
+.btn:hover{background:#222}
+.btn.active{background:#fff;color:#0a0a0a;border-color:#fff}
+.preview-area{min-height:300px;display:flex;align-items:center;justify-content:center;border:1px solid #222;border-radius:6px;overflow:hidden;background:repeating-conic-gradient(#1a1a1a 0% 25%, #111 0% 50%) 50%/20px 20px}
+#preview{max-width:100%;max-height:400px}
+.code-box{position:relative}
+.code-box pre{background:#0a0a0a;border:1px solid #222;border-radius:6px;padding:14px;font-size:.75rem;overflow-x:auto;line-height:1.5;max-height:300px;overflow-y:auto;white-space:pre-wrap}
+.copy-btn{padding:5px 10px;background:#222;border:1px solid #333;border-radius:4px;color:#fff;font-size:.7rem;cursor:pointer;font-family:inherit}
+.copy-btn:hover{background:#333}
+.size-info{font-size:.75rem;color:#737373;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html" class="back">← Back</a>
+<h1>SVG Viewer / Editor</h1>
+</div>
+<div class="container">
+<div class="panel">
+<h2>SVG Code</h2>
+<textarea id="input" oninput="update()">&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100"&gt;
+  &lt;circle cx="50" cy="50" r="40" fill="#7c3aed" opacity="0.9"/&gt;
+  &lt;circle cx="50" cy="50" r="25" fill="#a855f7" opacity="0.7"/&gt;
+  &lt;circle cx="50" cy="50" r="10" fill="#fff" opacity="0.9"/&gt;
+&lt;/svg&gt;</textarea>
+</div>
+<div class="grid">
+<div class="panel">
+<h2>Preview</h2>
+<div class="controls">
+<button class="btn" onclick="zoom(-0.2)">Zoom Out</button>
+<button class="btn" onclick="zoom(0.2)">Zoom In</button>
+<button class="btn" onclick="resetZoom()">Reset</button>
+<button class="btn" id="bgBtn" onclick="toggleBg()">Toggle BG</button>
+</div>
+<div class="preview-area" id="previewArea">
+<div id="preview"></div>
+</div>
+</div>
+<div class="panel">
+<h2>Actions</h2>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+<button class="btn" onclick="exportSVG()">Download SVG</button>
+<button class="btn" onclick="exportPNG()">Download PNG</button>
+<button class="btn" onclick="minify()">Minify</button>
+<button class="btn" onclick="copyCode()">Copy Code</button>
+</div>
+<div class="code-box"><pre id="code"></pre></div>
+<div id="sizeInfo" class="size-info"></div>
+</div>
+</div>
+</div>
+<script>
+let zoomLevel=1,showBg=true;
+function update(){
+const code=document.getElementById('input').value;
+document.getElementById('preview').innerHTML=code;
+updateCodeDisplay();
+}
+function updateCodeDisplay(){
+const code=document.getElementById('input').value;
+document.getElementById('code').textContent=code;
+document.getElementById('sizeInfo').textContent=`Size: ${new Blob([code]).size} bytes`;
+}
+function zoom(d){zoomLevel=Math.max(0.1,Math.min(5,zoomLevel+d));applyZoom()}
+function resetZoom(){zoomLevel=1;applyZoom()}
+function applyZoom(){document.getElementById('preview').style.transform=`scale(${zoomLevel})`}
+function toggleBg(){
+showBg=!showBg;
+document.getElementById('previewArea').style.background=showBg?'repeating-conic-gradient(#1a1a1a 0% 25%, #111 0% 50%) 50%/20px 20px':'#0a0a0a';
+}
+function minify(){
+let code=document.getElementById('input').value;
+code=code.replace(/>\s+</g,'><').replace(/\s{2,}/g,' ').trim();
+document.getElementById('input').value=code;update();
+}
+function copyCode(){
+navigator.clipboard.writeText(document.getElementById('input').textContent);
+const b=document.querySelectorAll('.copy-btn')[0];if(b){b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500);}
+}
+function exportSVG(){
+const blob=new Blob([document.getElementById('input').value],{type:'image/svg+xml'});
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='image.svg';a.click();
+}
+function exportPNG(){
+const svg=document.getElementById('input').value;
+const img=new Image();
+img.onload=()=>{
+const c=document.createElement('canvas');
+const m=svg.match(/width="(\d+)"/)||svg.match(/width=(\d+)/);
+const h=svg.match(/height="(\d+)"/)||svg.match(/height=(\d+)/);
+c.width=m?parseInt(m[1]):200;c.height=h?parseInt(h[1]):200;
+c.getContext('2d').drawImage(img,0,0);
+c.toBlob(blob=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='image.png';a.click();});
+};
+img.src='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));
+}
+update();
+</script>
+</body>
+</html>

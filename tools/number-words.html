@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Number to Words Converter</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+a{color:#fff;text-decoration:none}
+.header{width:100%;background:#111;border-bottom:1px solid #222;padding:16px 24px;display:flex;align-items:center;gap:16px}
+.header h1{font-size:1.2rem;font-weight:600}
+.back{padding:6px 12px;border:1px solid #222;border-radius:6px;font-size:.85rem;transition:.2s}
+.back:hover{background:#222}
+.container{width:100%;max-width:600px;margin:40px auto;padding:0 20px}
+.panel{background:#111;border:1px solid #222;border-radius:12px;padding:28px}
+.field{margin-bottom:20px}
+.field label{display:block;font-size:.85rem;color:#737373;margin-bottom:8px}
+.field input{width:100%;padding:14px 16px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#fff;font-family:inherit;font-size:1.3rem;outline:none}
+.field input:focus{border-color:#555}
+.result{padding:20px;background:#0a0a0a;border:1px solid #222;border-radius:8px;text-align:center;margin-top:16px}
+.result-label{font-size:.8rem;color:#737373;margin-bottom:8px}
+.result-value{font-size:1.4rem;font-weight:600;line-height:1.5;word-break:break-word}
+.error{color:#ef4444;font-size:.85rem;margin-top:8px}
+.examples{margin-top:16px;font-size:.75rem;color:#737373;line-height:1.8}
+.examples span{color:#7c3aed;cursor:pointer}
+.examples span:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html" class="back">← Back</a>
+<h1>Number to Words Converter</h1>
+</div>
+<div class="container">
+<div class="panel">
+<div class="field">
+<label>Enter a Number</label>
+<input id="input" type="text" placeholder="e.g. 1234.56" oninput="convert()">
+</div>
+<div class="result" id="result">
+<div class="result-label">In Words</div>
+<div class="result-value" id="output">-</div>
+</div>
+<div id="error" class="error"></div>
+<div class="examples">
+Try: <span onclick="tryExample(0)">0</span> · <span onclick="tryExample(42)">42</span> · <span onclick="tryExample(123)">123</span> · <span onclick="tryExample(1234)">1,234</span> · <span onclick="tryExample(1234567)">1,234,567</span> · <span onclick="tryExample(1000000000)">1 billion</span> · <span onclick="tryExample(999999999.99)">999,999,999.99</span>
+</div>
+</div>
+</div>
+<script>
+const ones=['','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+const tens=['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+const scales=['','thousand','million','billion','trillion','quadrillion','quintillion'];
+function threeDigits(n){
+if(n===0)return'';
+let s='';
+if(n>=100){s+=ones[Math.floor(n/100)]+' hundred';n%=100;if(n>0)s+=' ';}
+if(n>=20){s+=tens[Math.floor(n/10)]+' ';n%=10;}
+if(n>0)s+=ones[n];
+return s.trim();
+}
+function convert(){
+const raw=document.getElementById('input').value.replace(/,/g,'').trim();
+const err=document.getElementById('error');
+const out=document.getElementById('output');
+if(!raw){err.textContent='';out.textContent='-';return;}
+const num=parseFloat(raw);
+if(isNaN(num)){err.textContent='Please enter a valid number';out.textContent='-';return;}
+if(Math.abs(num)>=1e21){err.textContent='Number too large (max ~10^21)';out.textContent='-';return;}
+err.textContent='';
+const neg=num<0;
+const abs=Math.abs(num);
+const intPart=Math.floor(abs);
+const decPart=Math.round((abs-intPart)*100);
+let words='';
+if(intPart===0){words='zero';}
+else{
+const str=intPart.toString();
+const chunks=[];
+for(let i=str.length;i>0;i-=3){chunks.unshift(str.slice(Math.max(0,i-3),i));}
+const parts=[];
+for(let i=0;i<chunks.length;i++){
+const chunk=parseInt(chunks[i]);
+if(chunk===0)continue;
+const scaleIdx=chunks.length-1-i;
+parts.push(threeDigits(chunk)+(scales[scaleIdx]?' '+scales[scaleIdx]:''));
+}
+words=parts.join(' ');
+}
+if(decPart>0){
+words+=' point';
+const dStr=decPart.toString();
+for(const ch of dStr){words+=' '+ones[parseInt(ch)];}
+}
+if(neg)words='negative '+words;
+out.textContent=words;
+}
+function tryExample(n){
+document.getElementById('input').value=n.toLocaleString();
+convert();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROT13 / Caesar / Morse / Binary Encoder</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#8b5cf6;--radius:6px;--mono:'SF Mono',Consolas,'Courier New',monospace}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}header h1{font-size:20px;font-weight:500}header a{color:var(--muted);text-decoration:none;font-size:13px}header a:hover{color:var(--text)}
+.content{flex:1;padding:40px;max-width:900px;width:100%;margin:0 auto}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:20px}
+.tab{background:var(--surface);color:var(--muted);border:1px solid var(--border);padding:8px 16px;border-radius:var(--radius);font-size:12px;font-family:inherit;cursor:pointer;transition:all .2s}.tab.active{color:var(--text);border-color:var(--accent)}
+textarea{width:100%;height:150px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-family:var(--mono);font-size:14px;resize:vertical;outline:none;margin-bottom:12px}textarea:focus{border-color:#444}
+.btn-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.btn{background:var(--accent);color:#fff;border:none;padding:8px 18px;border-radius:var(--radius);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}
+.btn-outline{background:var(--surface);color:var(--text);border:1px solid var(--border);padding:8px 18px;border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;transition:all .2s}.btn-outline:hover{border-color:#444}
+.output{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-family:var(--mono);font-size:14px;min-height:80px;white-space:pre-wrap;word-break:break-all;cursor:pointer;transition:border-color .2s}.output:hover{border-color:#444}
+.label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px}
+.shift-row{display:flex;gap:10px;align-items:center;margin-bottom:12px}.shift-row input{width:60px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:8px;font-family:var(--mono);font-size:14px;text-align:center;outline:none}.shift-row span{font-size:13px;color:var(--muted)}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header><h1>Cipher & Encoding Toolkit</h1><a href="index.html">← Back to Tools</a></header>
+<div class="content">
+<div class="tabs">
+<div class="tab active" onclick="switchTab('rot13')">ROT13</div>
+<div class="tab" onclick="switchTab('caesar')">Caesar</div>
+<div class="tab" onclick="switchTab('morse')">Morse Code</div>
+<div class="tab" onclick="switchTab('binary')">Binary</div>
+<div class="tab" onclick="switchTab('ascii')">ASCII Art</div>
+<div class="tab" onclick="switchTab('atbash')">Atbash</div>
+<div class="tab" onclick="switchTab('rail')">Rail Fence</div>
+<div class="tab" onclick="switchTab('reverse')">Reverse</div>
+<div class="tab" onclick="switchTab('piglatin')">Pig Latin</div>
+<div class="tab" onclick="switchTab('leetspeak')">Leet Speak</div>
+</div>
+<div id="rot13Panel">
+<div class="label">ROT13 / ROT47 Encoder</div>
+<textarea id="rot13Input" oninput="doROT13()" placeholder="Enter text...">Hello, World!</textarea>
+<div class="btn-row"><button class="btn" onclick="doROT13()">Encode</button><button class="btn-outline" onclick="copyOut('rot13Out')">Copy</button></div>
+<div class="output" id="rot13Out"></div>
+</div>
+<div id="caesarPanel" class="hidden">
+<div class="label">Caesar Cipher</div>
+<div class="shift-row"><span>Shift:</span><input type="number" id="caesarShift" value="3" min="1" max="25" oninput="doCaesar()"><span>(1-25)</span></div>
+<textarea id="caesarInput" oninput="doCaesar()" placeholder="Enter text...">Hello, World!</textarea>
+<div class="btn-row"><button class="btn" onclick="doCaesar()">Encode</button><button class="btn" onclick="doCaesarDecode()">Decode</button><button class="btn-outline" onclick="copyOut('caesarOut')">Copy</button></div>
+<div class="output" id="caesarOut"></div>
+</div>
+<div id="morsePanel" class="hidden">
+<div class="label">Morse Code</div>
+<textarea id="morseInput" oninput="doMorse()" placeholder="Enter text or morse code...">SOS</textarea>
+<div class="btn-row"><button class="btn" onclick="doMorse()">Encode</button><button class="btn" onclick="doMorseDecode()">Decode</button><button class="btn-outline" onclick="copyOut('morseOut')">Copy</button></div>
+<div class="output" id="morseOut"></div>
+</div>
+<div id="binaryPanel" class="hidden">
+<div class="label">Binary Text Converter</div>
+<textarea id="binaryInput" oninput="doBinary()" placeholder="Enter text or binary...">Hello</textarea>
+<div class="btn-row"><button class="btn" onclick="doBinary()">Text → Binary</button><button class="btn" onclick="doBinaryDecode()">Binary → Text</button><button class="btn-outline" onclick="copyOut('binaryOut')">Copy</button></div>
+<div class="output" id="binaryOut"></div>
+</div>
+<div id="asciiPanel" class="hidden">
+<div class="label">ASCII Art Text (Figlet-style)</div>
+<textarea id="asciiInput" oninput="doASCII()" placeholder="Enter text...">HELLO</textarea>
+<div class="btn-row"><button class="btn" onclick="doASCII()">Generate</button><button class="btn-outline" onclick="copyOut('asciiOut')">Copy</button></div>
+<div class="output" id="asciiOut" style="font-size:10px;line-height:1.1"></div>
+</div>
+<div id="atbashPanel" class="hidden">
+<div class="label">Atbash Cipher</div>
+<textarea id="atbashInput" oninput="doAtbash()" placeholder="Enter text...">Hello</textarea>
+<div class="btn-row"><button class="btn" onclick="doAtbash()">Encode/Decode</button><button class="btn-outline" onclick="copyOut('atbashOut')">Copy</button></div>
+<div class="output" id="atbashOut"></div>
+</div>
+<div id="railPanel" class="hidden">
+<div class="label">Rail Fence Cipher</div>
+<div class="shift-row"><span>Rails:</span><input type="number" id="railCount" value="3" min="2" max="10" oninput="doRail()"></div>
+<textarea id="railInput" oninput="doRail()" placeholder="Enter text...">Hello World</textarea>
+<div class="btn-row"><button class="btn" onclick="doRail()">Encode</button><button class="btn" onclick="doRailDecode()">Decode</button><button class="btn-outline" onclick="copyOut('railOut')">Copy</button></div>
+<div class="output" id="railOut"></div>
+</div>
+<div id="reversePanel" class="hidden">
+<div class="label">Reverse Text / Words</div>
+<textarea id="reverseInput" oninput="doReverse()" placeholder="Enter text...">Hello World</textarea>
+<div class="btn-row"><button class="btn" onclick="doReverse()">Reverse Text</button><button class="btn" onclick="doReverseWords()">Reverse Words</button><button class="btn-outline" onclick="copyOut('reverseOut')">Copy</button></div>
+<div class="output" id="reverseOut"></div>
+</div>
+<div id="piglatinPanel" class="hidden">
+<div class="label">Pig Latin Converter</div>
+<textarea id="pigInput" oninput="doPigLatin()" placeholder="Enter text...">Hello World this is a test</textarea>
+<div class="btn-row"><button class="btn" onclick="doPigLatin()">Convert</button><button class="btn-outline" onclick="copyOut('pigOut')">Copy</button></div>
+<div class="output" id="pigOut"></div>
+</div>
+<div id="leetspeakPanel" class="hidden">
+<div class="label">Leet Speak Converter</div>
+<textarea id="leetInput" oninput="doLeet()" placeholder="Enter text...">Hello World</textarea>
+<div class="btn-row"><button class="btn" onclick="doLeet()">Convert</button><button class="btn-outline" onclick="copyOut('leetOut')">Copy</button></div>
+<div class="output" id="leetOut"></div>
+</div>
+</div>
+<script>
+function copyOut(id){navigator.clipboard.writeText(document.getElementById(id).textContent)}
+function switchTab(tab){document.querySelectorAll('.tab').forEach((t,i)=>t.classList.remove('active'));document.querySelectorAll('[id$="Panel"]').forEach(p=>p.classList.add('hidden'));event.target.classList.add('active');document.getElementById(tab+'Panel').classList.remove('hidden')}
+function doROT13(){const s=document.getElementById('rot13Input').value;const rot13=s.replace(/[a-zA-Z]/g,c=>{const base=c<='Z'?65:97;return String.fromCharCode((c.charCodeAt(0)-base+13)%26+base)});const rot47=s.replace(/[!-~]/g,c=>String.fromCharCode(33+((c.charCodeAt(0)-33+47)%94)));document.getElementById('rot13Out').textContent='ROT13: '+rot13+'\nROT47: '+rot47}
+function doCaesar(){const s=document.getElementById('caesarInput').value;const n=+document.getElementById('caesarShift').value;document.getElementById('caesarOut').textContent=s.replace(/[a-zA-Z]/g,c=>{const base=c<='Z'?65:97;return String.fromCharCode((c.charCodeAt(0)-base+n)%26+base)})}
+function doCaesarDecode(){const s=document.getElementById('caesarInput').value;const n=26-(+document.getElementById('caesarShift').value);document.getElementById('caesarOut').textContent=s.replace(/[a-zA-Z]/g,c=>{const base=c<='Z'?65:97;return String.fromCharCode((c.charCodeAt(0)-base+n)%26+base)})}
+const MORSE={A:'.-',B:'-...',C:'-.-.',D:'-..',E:'.',F:'..-.',G:'--.',H:'....',I:'..',J:'.---',K:'-.-',L:'.-..',M:'--',N:'-.',O:'---',P:'.--.',Q:'--.-',R:'.-.',S:'...',T:'-',U:'..-',V:'...-',W:'.--',X:'-..-',Y:'-.--',Z:'--..','0':'-----','1':'.----','2':'..---','3':'...--','4':'....-','5':'.....','6':'-....','7':'--...', '8':'---..','9':'----.',' ':'/'};
+const MORSE_REV=Object.fromEntries(Object.entries(MORSE).map(([k,v])=>[v,k]));
+function doMorse(){const s=document.getElementById('morseInput').value.toUpperCase();document.getElementById('morseOut').textContent=[...s].map(c=>MORSE[c]||c).join(' ')}
+function doMorseDecode(){const s=document.getElementById('morseInput').value;document.getElementById('morseOut').textContent=s.split(' ').map(c=>MORSE_REV[c]||c).join('')}
+function doBinary(){const s=document.getElementById('binaryInput').value;document.getElementById('binaryOut').textContent=[...s].map(c=>c.charCodeAt(0).toString(2).padStart(8,'0')).join(' ')}
+function doBinaryDecode(){const s=document.getElementById('binaryInput').value.trim();document.getElementById('binaryOut').textContent=s.split(/\s+/).map(b=>String.fromCharCode(parseInt(b,2))).join('')}
+function doASCII(){const s=document.getElementById('asciiInput').value;const chars=[[' ',' ',' ',' ',' '],[' ',' ',' ',' ',' '],[' ',' ',' ',' ',' '],[' ',' ',' ',' ',' '],[' ',' ',' ',' ',' '],[' ',' ',' ',' ',' '],[' ',' ',' ',' ',' '],[' ',' ',' ',' ',' '],[' ',' ',' ',' ',' ']];const simple={A:[' ### ','#   #','#####','#   #','#   #'],B:['#### ','#   #','#### ','#   #','#### '],C:[' ####','#    ','#    ','#    ',' ####'],D:['#### ','#   #','#   #','#   #','#### '],E:['#####','#    ','#### ','#    ','#####'],F:['#####','#    ','#### ','#    ','#    '],G:[' ####','#    ','# ###','#   #',' ####'],H:['#   #','#   #','#####','#   #','#   #'],I:['#####','  #  ','  #  ','  #  ','#####'],J:['#####','   # ','   # ','#  # ',' ## '],K:['#   #','#  # ','##   ','#  # ','#   #'],L:['#    ','#    ','#    ','#    ','#####'],M:['#   #','## ##','# # #','#   #','#   #'],N:['#   #','##  #','# # #','#  ##','#   #'],O:[' ### ','#   #','#   #','#   #',' ### '],P:['#### ','#   #','#### ','#    ','#    '],Q:[' ### ','#   #','# # #','#  # ',' ## #'],R:['#### ','#   #','#### ','# #  ','#  # '],S:[' ####','#    ',' ### ','    #','#### '],T:['#####','  #  ','  #  ','  #  ','  #  '],U:['#   #','#   #','#   #','#   #',' ### '],V:['#   #','#   #','#   #',' # # ','  #  '],W:['#   #','#   #','# # #','## ##','#   #'],X:['#   #',' # # ','  #  ',' # # ','#   #'],Y:['#   #',' # # ','  #  ','  #  ','  #  '],Z:['#####','   # ','  #  ',' #   ','#####'],'0':[' ### ','#   #','#   #','#   #',' ### '],1:['  #  ',' ##  ','  #  ','  #  ','#####'],2:[' ### ','    #',' ### ','#    ','#####'],3:['#### ','   # ',' ### ','   # ','#### '],4:['#   #','#   #','#####','    #','    #'],5:['#####','#    ','#### ','    #','#### '],6:[' ####','#    ','#### ','#   #',' ####'],7:['#####','    #','   # ','  #  ',' #   '],8:[' ####','#   #',' ####','#   #',' ####'],9:[' ####','#   #',' ####','    #',' ####']};let out='';for(let row=0;row<5;row++){let line='';for(const ch of s.toUpperCase()){const glyph=simple[ch]||simple[' '];line+=(glyph?glyph[row]:'     ')+' '}out+=line+'\n'}document.getElementById('asciiOut').textContent=out}
+function doAtbash(){const s=document.getElementById('atbashInput').value;document.getElementById('atbashOut').textContent=s.replace(/[a-zA-Z]/g,c=>{const base=c<='Z'?65:97;return String.fromCharCode(base+25-(c.charCodeAt(0)-base))})}
+function doRail(){const text=document.getElementById('railInput').value;const rails=+document.getElementById('railCount').value;if(rails<2){document.getElementById('railOut').textContent=text;return}let fence=Array.from({length:rails},()=>[]);let dir=1,row=0;for(const c of text){fence[row].push(c);if(row===0)dir=1;else if(row===rails-1)dir=-1;row+=dir}document.getElementById('railOut').textContent=fence.flat().join('')}
+function doRailDecode(){const cipher=document.getElementById('railInput').value;const rails=+document.getElementById('railCount').value;const n=cipher.length;const fence=Array.from({length:rails},()=>Array(n).fill(null));let dir=1,row=0;for(let col=0;col<n;col++){fence[row][col]='*';if(row===0)dir=1;else if(row===rails-1)dir=-1;row+=dir}let idx=0;for(let r=0;r<rails;r++)for(let c=0;c<n;c++)if(fence[r][c]==='*')fence[r][c]=cipher[idx++];let out='';let d=1;row=0;for(let col=0;col<n;col++){out+=fence[row][col];if(row===0)d=1;else if(row===rails-1)d=-1;row+=d}document.getElementById('railOut').textContent=out}
+function doReverse(){const s=document.getElementById('reverseInput').value;document.getElementById('reverseOut').textContent=[...s].reverse().join('')}
+function doReverseWords(){const s=document.getElementById('reverseInput').value;document.getElementById('reverseOut').textContent=s.split(/\s+/).reverse().join(' ')}
+function doPigLatin(){const s=document.getElementById('pigInput').value;document.getElementById('pigOut').textContent=s.split(/\s+/).map(w=>{if(/^[aeiou]/i.test(w))return w+'way';const m=w.match(/^([^aeiou]+)(.*)/i);return m[2]+m[1]+'ay'}).join(' ')}
+function doLeet(){const map={a:'4',e:'3',i:'1',o:'0',s:'5',t:'7',l:'1',g:'9',b:'8'};document.getElementById('leetOut').textContent=document.getElementById('leetInput').value.split('').map(c=>map[c.toLowerCase()]||c).join('')}
+doROT13();
+</script>
+</body>
+</html>

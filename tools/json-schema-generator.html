@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON Schema Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh}
+a{color:#fff;text-decoration:none}
+.header{background:#111;border-bottom:1px solid #222;padding:16px 24px;display:flex;align-items:center;gap:16px}
+.header h1{font-size:1.2rem;font-weight:600}
+.back{padding:6px 12px;border:1px solid #222;border-radius:6px;font-size:.85rem;transition:.2s}
+.back:hover{background:#222}
+.container{max-width:1000px;margin:24px auto;padding:0 20px}
+.panel{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:24px}
+.panel h2{font-size:1rem;font-weight:500;margin-bottom:16px;color:#737373}
+textarea{width:100%;height:250px;padding:12px;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;font-family:'Courier New',monospace;font-size:.8rem;resize:vertical;outline:none}
+textarea:focus{border-color:#555}
+.btn{padding:8px 16px;background:#fff;color:#0a0a0a;border:none;border-radius:6px;font-family:inherit;font-weight:600;cursor:pointer;font-size:.85rem}
+.btn:hover{background:#e0e0e0}
+.copy-btn{padding:8px 16px;background:#222;border:1px solid #333;border-radius:6px;color:#fff;font-family:inherit;cursor:pointer;font-size:.85rem}
+.copy-btn:hover{background:#333}
+.code-box{position:relative}
+.code-box pre{background:#0a0a0a;border:1px solid #222;border-radius:6px;padding:14px;font-size:.75rem;overflow-x:auto;line-height:1.5;max-height:500px;overflow-y:auto}
+.error{color:#ef4444;font-size:.85rem;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html" class="back">← Back</a>
+<h1>JSON Schema Generator</h1>
+</div>
+<div class="container">
+<div class="panel">
+<h2>JSON Input</h2>
+<textarea id="input" oninput="update()">{
+  "name": "John Doe",
+  "age": 30,
+  "email": "john@example.com",
+  "active": true,
+  "tags": ["admin", "user"],
+  "address": {
+    "street": "123 Main St",
+    "city": "Springfield",
+    "zip": "62701"
+  }
+}</textarea>
+</div>
+<div class="panel">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<h2 style="margin:0">JSON Schema (draft-07)</h2>
+<button class="copy-btn" onclick="copyCode()">Copy</button>
+</div>
+<div class="code-box"><pre id="code"></pre></div>
+<div id="error" class="error"></div>
+</div>
+</div>
+<script>
+function generateSchema(obj){
+if(obj===null)return{type:'null'};
+if(Array.isArray(obj)){
+if(obj.length===0)return{type:'array',items:{}};
+const items=generateSchema(obj[0]);
+return{type:'array',items};
+}
+if(typeof obj==='object'){
+const props={};const required=[];
+for(const[k,v] of Object.entries(obj)){
+props[k]=generateSchema(v);
+required.push(k);
+}
+return{type:'object',properties:props,required};
+}
+if(typeof obj==='string')return{type:'string'};
+if(typeof obj==='number')return Number.isInteger(obj)?{type:'integer'}:{type:'number'};
+if(typeof obj==='boolean')return{type:'boolean'};
+return{};
+}
+function update(){
+const input=document.getElementById('input').value;
+const errEl=document.getElementById('error');
+try{
+const obj=JSON.parse(input);
+errEl.textContent='';
+const schema={
+"$schema":"http://json-schema.org/draft-07/schema#",
+"title":"Generated Schema",
+type:"object",
+properties:{},
+required:[]
+};
+const gen=generateSchema(obj);
+schema.properties=gen.properties||{};
+schema.required=gen.required||[];
+document.getElementById('code').textContent=JSON.stringify(schema,null,2);
+}catch(e){
+errEl.textContent='Invalid JSON: '+e.message;
+document.getElementById('code').textContent='';
+}
+}
+function copyCode(){
+navigator.clipboard.writeText(document.getElementById('code').textContent);
+const b=document.querySelector('.copy-btn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500);
+}
+update();
+</script>
+</body>
+</html>

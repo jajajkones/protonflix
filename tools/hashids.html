@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hash ID Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+a{color:#fff;text-decoration:none}
+.header{width:100%;background:#111;border-bottom:1px solid #222;padding:16px 24px;display:flex;align-items:center;gap:16px}
+.header h1{font-size:1.2rem;font-weight:600}
+.back{padding:6px 12px;border:1px solid #222;border-radius:6px;font-size:.85rem;transition:.2s}
+.back:hover{background:#222}
+.container{width:100%;max-width:500px;margin:40px auto;padding:0 20px}
+.panel{background:#111;border:1px solid #222;border-radius:12px;padding:28px;margin-bottom:24px}
+.panel h2{font-size:1rem;font-weight:500;margin-bottom:16px;color:#737373}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:.8rem;color:#737373;margin-bottom:6px}
+.field input{width:100%;padding:10px 14px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#fff;font-family:inherit;font-size:.9rem;outline:none}
+.field input:focus{border-color:#555}
+.btn{width:100%;padding:12px;background:#fff;color:#0a0a0a;border:none;border-radius:8px;font-family:inherit;font-weight:600;cursor:pointer;font-size:.9rem;margin-bottom:8px}
+.btn:hover{background:#e0e0e0}
+.btn.secondary{background:#222;color:#fff;border:1px solid #333}
+.btn.secondary:hover{background:#333}
+.result{padding:16px;background:#0a0a0a;border:1px solid #222;border-radius:8px;text-align:center;margin-top:12px}
+.result-label{font-size:.75rem;color:#737373;margin-bottom:4px}
+.result-value{font-size:1.3rem;font-weight:700;font-family:'Courier New',monospace;letter-spacing:1px;word-break:break-all}
+.result-value.copyable{cursor:pointer;transition:.2s}
+.result-value.copyable:hover{color:#7c3aed}
+.error{color:#ef4444;font-size:.8rem;margin-top:8px}
+.examples{margin-top:12px;font-size:.75rem;color:#737373;line-height:1.8}
+.examples span{color:#7c3aed;cursor:pointer}
+.examples span:hover{text-decoration:underline}
+.mini-label{font-size:.65rem;color:#555;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html" class="back">← Back</a>
+<h1>Hash ID Generator</h1>
+</div>
+<div class="container">
+<div class="panel">
+<h2>Encode</h2>
+<div class="field"><label>Number(s) - comma separated</label><input id="numbers" placeholder="e.g. 1, 2, 3" value="1, 2, 3"></div>
+<div class="field"><label>Salt (optional)</label><input id="salt" placeholder="e.g. my-secret-salt" value=""></div>
+<div class="field"><label>Alphabet (optional)</label><input id="alphabet" placeholder="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890" value=""></div>
+<button class="btn" onclick="encode()">Encode →</button>
+<div class="result" id="encResult"><div class="result-label">Hash IDs</div><div class="result-value" id="encValue">-</div></div>
+<div class="error" id="encError"></div>
+</div>
+<div class="panel">
+<h2>Decode</h2>
+<div class="field"><label>Hash ID(s) - comma separated</label><input id="hashids" placeholder="e.g. O2bM9x, VwZ3Y7"></div>
+<div class="field"><label>Salt (must match encode salt)</label><input id="salt2" placeholder="e.g. my-secret-salt" value=""></div>
+<div class="field"><label>Alphabet (must match encode alphabet)</label><input id="alphabet2" placeholder="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890" value=""></div>
+<button class="btn secondary" onclick="decode()">Decode →</button>
+<div class="result" id="decResult"><div class="result-label">Numbers</div><div class="result-value" id="decValue">-</div></div>
+<div class="error" id="decError"></div>
+</div>
+</div>
+<script>
+const ALPHABET='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+const MIN_LENGTH=6;
+function hashidsEncode(numbers,salt='',alphabet=ALPHABET,minLength=MIN_LENGTH){
+if(!alphabet||alphabet.length<16)alphabet=ALPHABET;
+const seps=[];
+const saltArr=salt.split('');
+let a=alphabet.split('');
+if(saltArr.length){
+let h=0;
+for(let i=0;i<a.length;i++){h=(h+a[i].charCodeAt(0)+saltArr[i%saltArr.length].charCodeAt(0))%a.length;}
+for(let i=0;i<Math.min(4,Math.floor(a.length/3))+1;i++){
+const idx=(h+i)%a.length;
+seps.push(a[idx]);a.splice(idx,1);h=(h*a[idx].charCodeAt(0))%a.length;
+}
+}
+if(!seps.length)seps.push(a[0],a[Math.floor(a.length/2)]);
+const guards=[];
+if(a.length>3){guards.push(seps.pop());if(a.length>10)guards.push(seps.shift());}
+let result='';
+numbers.forEach((num,idx)=>{
+let n=num;if(n<0){result+=('-');n=Math.abs(n);}
+const lottery=a[((n%a.length)+idx)%a.length];
+result+=lottery;
+const lotteryCode=lottery.charCodeAt(0);
+let rest=String.fromCharCode(...a.map((_,i)=>((n+lotteryCode*(i+1))%a.length).toFixed()));
+for(let i=0;i<rest.length;i+=2){
+const s=seps[rest.charCodeAt(i)%seps.length]||seps[0];
+result+=s+rest[i+1];
+}
+result+=rest.slice(-1);
+const pad=Math.max(0,minLength-result.length);
+if(pad>0)result=result+guards[0]+(a[0]+'x'.repeat(pad)).slice(0,pad-1)+guards[guards.length>1?1:0];
+if(idx<numbers.length-1&&seps.length)result+=seps[num%seps.length];
+});
+return result;
+}
+function hashidsDecode(hash,salt='',alphabet=ALPHABET){
+if(!alphabet||alphabet.length<16)alphabet=ALPHABET;
+const result=[];
+const a=alphabet.split('');
+const saltArr=salt.split('');
+const seps=[];
+if(saltArr.length){
+let h=0;
+for(let i=0;i<a.length;i++){h=(h+a[i].charCodeAt(0)+saltArr[i%saltArr.length].charCodeAt(0))%a.length;}
+for(let i=0;i<Math.min(4,Math.floor(a.length/3))+1;i++){
+const idx=(h+i)%a.length;
+seps.push(a[idx]);a.splice(idx,1);h=(h*a[idx].charCodeAt(0))%a.length;
+}
+}
+if(!seps.length)seps.push(a[0],a[Math.floor(a.length/2)]);
+const guards=[];
+if(a.length>3){guards.push(seps.pop());if(a.length>10)guards.push(seps.shift());}
+let work=hash;
+if(guards.length>1)work=work.split(guards[1]).pop();
+work=work.split(guards[0]||seps[0]).pop();
+let lottery=work[0];
+work=work.slice(1);
+const parts=work.split(new RegExp(seps.map(s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')));
+let num=0;
+parts.forEach(part=>{
+let n=0;
+for(let i=0;i<part.length;i++){
+n=(n*a.length+(a.indexOf(part[i])>=0?a.indexOf(part[i]):0));
+}
+num=num===0?n:num*1000+n;
+});
+if(num>0)result.push(num);
+return result;
+}
+function encode(){
+const numsStr=document.getElementById('numbers').value;
+const salt=document.getElementById('salt').value;
+const alpha=document.getElementById('alphabet2').value||document.getElementById('alphabet').value;
+const err=document.getElementById('encError');
+const nums=numsStr.split(/[,\s]+/).map(Number).filter(n=>!isNaN(n)&&n>0);
+if(!nums.length){err.textContent='Enter valid positive numbers';document.getElementById('encValue').textContent='-';return;}
+err.textContent='';
+const encoded=hashidsEncode(nums,salt,alpha);
+document.getElementById('encValue').textContent=encoded;
+document.getElementById('encValue').onclick=()=>{navigator.clipboard.writeText(encoded);};
+}
+function decode(){
+const hashStr=document.getElementById('hashids').value.trim();
+const salt=document.getElementById('salt2').value;
+const alpha=document.getElementById('alphabet').value||document.getElementById('alphabet2').value;
+const err=document.getElementById('decError');
+if(!hashStr){err.textContent='Enter a hash ID';document.getElementById('decValue').textContent='-';return;}
+err.textContent='';
+const hashes=hashStr.split(/[,\s]+/).filter(Boolean);
+const decoded=hashes.map(h=>hashidsDecode(h,salt,alpha));
+const flat=decoded.flat();
+document.getElementById('decValue').textContent=flat.length?flat.join(', '):'No valid numbers found';
+document.getElementById('decValue').onclick=()=>{navigator.clipboard.writeText(flat.join(', '));};
+}
+</script>
+</body>
+</html>

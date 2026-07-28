@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Text Encoder (Unicode)</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh}
+a{color:#fff;text-decoration:none}
+.header{background:#111;border-bottom:1px solid #222;padding:16px 24px;display:flex;align-items:center;gap:16px}
+.header h1{font-size:1.2rem;font-weight:600}
+.back{padding:6px 12px;border:1px solid #222;border-radius:6px;font-size:.85rem;transition:.2s}
+.back:hover{background:#222}
+.container{max-width:900px;margin:24px auto;padding:0 20px}
+.panel{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:24px}
+.panel h2{font-size:1rem;font-weight:500;margin-bottom:16px;color:#737373}
+textarea{width:100%;height:100px;padding:12px;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;font-family:'Courier New',monospace;font-size:.9rem;resize:vertical;outline:none}
+textarea:focus{border-color:#555}
+.char-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.char-card{background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:12px;text-align:center}
+.char-display{font-size:1.5rem;margin-bottom:8px;min-height:36px;display:flex;align-items:center;justify-content:center}
+.char-info{font-size:.65rem;color:#737373;line-height:1.6}
+.char-info div{display:flex;justify-content:space-between}
+.char-info span:last-child{color:#fff;font-family:'Courier New',monospace}
+.emoji-badge{display:inline-block;padding:2px 6px;background:#7c3aed;border-radius:4px;font-size:.6rem;color:#fff;margin-top:4px}
+.code-box{position:relative}
+.code-box pre{background:#0a0a0a;border:1px solid #222;border-radius:6px;padding:14px;font-size:.75rem;overflow-x:auto;line-height:1.6;max-height:300px;overflow-y:auto}
+.copy-btn{position:absolute;top:8px;right:8px;padding:5px 10px;background:#222;border:1px solid #333;border-radius:4px;color:#fff;font-size:.7rem;cursor:pointer;font-family:inherit}
+.copy-btn:hover{background:#333}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html" class="back">← Back</a>
+<h1>Text Encoder (Unicode)</h1>
+</div>
+<div class="container">
+<div class="panel">
+<h2>Input Text</h2>
+<textarea id="input" oninput="update()" placeholder="Type or paste text here...">Hello 🌍</textarea>
+</div>
+<div class="panel">
+<h2>Character Breakdown</h2>
+<div class="char-grid" id="charGrid"></div>
+</div>
+<div class="panel">
+<h2>Encodings</h2>
+<div class="code-box">
+<button class="copy-btn" onclick="copyAll()">Copy All</button>
+<pre id="code"></pre>
+</div>
+</div>
+</div>
+<script>
+function toHex(n,pad=2){return n.toString(16).toUpperCase().padStart(pad,'0')}
+function utf8Encode(str){
+const bytes=new TextEncoder().encode(str);
+return Array.from(bytes).map(b=>toHex(b)).join(' ');
+}
+function utf16Encode(str){
+const codes=[];
+for(let i=0;i<str.length;i++){
+const c=str.charCodeAt(i);
+codes.push(toHex(c,4));
+}
+return codes.join(' ');
+}
+function utf32Encode(str){
+const codes=[];
+for(let i=0;i<str.length;i++){
+let cp=str.codePointAt(i);
+if(cp>0xFFFF)i++;
+codes.push(toHex(cp,8));
+}
+return codes.join(' ');
+}
+function isEmoji(ch){
+const cp=ch.codePointAt(0);
+return(cp>=0x1F600&&cp<=0x1F64F)||(cp>=0x1F300&&cp<=0x1F5FF)||(cp>=0x1F680&&cp<=0x1F6FF)||(cp>=0x1F900&&cp<=0x1F9FF)||(cp>=0x2600&&cp<=0x26FF)||(cp>=0x2700&&cp<=0x27BF)||(cp>=0xFE00&&cp<=0xFE0F)||(cp>=0x1F1E0&&cp<=0x1F1FF);
+}
+function getEmojiName(ch){
+const cp=ch.codePointAt(0);
+const names={0x1F600:'grinning face',0x1F601:'beaming face',0x1F602:'joy',0x1F603:'smiling',0x1F44D:'thumbs up',0x1F44E:'thumbs down',0x1F44B:'wave',0x1F525:'fire',0x1F680:'rocket',0x1F308:'rainbow',0x1F4A4:'sleeping',0x1F480:'skull',0x1F440:'eyes',0x1F3A9:'top hat',0x1F451:'crown',0x1F9E9:'puzzle',0x1F30D:'globe',0x1F30E:'globe americas',0x1F30F:'globe asia',0x1F310:'globe meridian'};
+return names[cp]||'emoji U+'+toHex(cp,4);
+}
+function update(){
+const text=document.getElementById('input').value;
+const grid=document.getElementById('charGrid');
+const codeEl=document.getElementById('code');
+let cards='';let allCodes=`UTF-8:\n  ${utf8Encode(text)}\n\nUTF-16:\n  ${utf16Encode(text)}\n\nUTF-32:\n  ${utf32Encode(text)}\n\nCode Points:\n`;
+for(let i=0;i<text.length;i++){
+const ch=text[i];
+const cp=text.codePointAt(i);
+if(cp>0xFFFF)i++;
+const isE=isEmoji(ch);
+cards+=`<div class="char-card"><div class="char-display">${ch}${isE?'<span class="emoji-badge">emoji</span>':''}</div><div class="char-info"><div><span>Code Point</span><span>U+${toHex(cp,4)}</span></div><div><span>Decimal</span><span>${cp}</span></div><div><span>UTF-8</span><span>${utf8Encode(ch)}</span></div><div><span>UTF-16</span><span>${utf16Encode(ch)}</span></div>${isE?`<div><span>Name</span><span>${getEmojiName(ch)}</span></div>`:''}</div></div>`;
+allCodes+=`  U+${toHex(cp,4)} → ${ch}${isE?' (emoji)':''}\n`;
+}
+grid.innerHTML=cards;
+codeEl.textContent=allCodes;
+}
+function copyAll(){
+navigator.clipboard.writeText(document.getElementById('code').textContent);
+}
+update();
+</script>
+</body>
+</html>

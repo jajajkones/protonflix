@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML Form Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh}
+a{color:#fff;text-decoration:none}
+.header{background:#111;border-bottom:1px solid #222;padding:16px 24px;display:flex;align-items:center;gap:16px}
+.header h1{font-size:1.2rem;font-weight:600}
+.back{padding:6px 12px;border:1px solid #222;border-radius:6px;font-size:.85rem;transition:.2s}
+.back:hover{background:#222}
+.container{max-width:1100px;margin:24px auto;padding:0 20px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:768px){.grid{grid-template-columns:1fr}}
+.panel{background:#111;border:1px solid #222;border-radius:10px;padding:20px}
+.panel h2{font-size:1rem;font-weight:500;margin-bottom:16px;color:#737373}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.field-row.full{grid-template-columns:1fr}
+label{font-size:.8rem;color:#737373;display:block;margin-bottom:4px}
+input[type="text"],input[type="number"],select,textarea{width:100%;padding:8px 10px;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;font-family:inherit;font-size:.85rem;outline:none}
+input:focus,select:focus,textarea:focus{border-color:#555}
+.toggle{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.toggle input{accent-color:#fff}
+.add-btn{width:100%;padding:10px;background:#fff;color:#0a0a0a;border:none;border-radius:6px;font-family:inherit;font-weight:600;cursor:pointer;margin-top:8px}
+.add-btn:hover{background:#e0e0e0}
+.preview-box{background:#fff;border-radius:6px;padding:20px;color:#000;min-height:200px}
+.preview-box .form-group{margin-bottom:14px}
+.preview-box label{color:#333;font-weight:500;font-size:.9rem}
+.preview-box input,.preview-box textarea,.preview-box select{display:block;width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;margin-top:4px}
+.preview-box button{padding:8px 20px;background:#333;color:#fff;border:none;border-radius:4px;cursor:pointer}
+.code-box{position:relative}
+.code-box pre{background:#0a0a0a;border:1px solid #222;border-radius:6px;padding:14px;font-size:.75rem;overflow-x:auto;max-height:400px;overflow-y:auto;line-height:1.5;white-space:pre-wrap}
+.copy-btn{position:absolute;top:8px;right:8px;padding:5px 10px;background:#222;border:1px solid #333;border-radius:4px;color:#fff;font-size:.7rem;cursor:pointer;font-family:inherit}
+.copy-btn:hover{background:#333}
+.field-list{max-height:200px;overflow-y:auto;margin-bottom:12px}
+.field-item{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:#0a0a0a;border:1px solid #222;border-radius:4px;margin-bottom:4px;font-size:.8rem}
+.field-item span{flex:1;margin-left:8px}
+.field-item button{padding:2px 6px;background:#333;border:none;color:#fff;border-radius:3px;cursor:pointer;font-size:.7rem}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html" class="back">← Back</a>
+<h1>HTML Form Builder</h1>
+</div>
+<div class="container">
+<div class="grid">
+<div class="panel">
+<h2>Add Field</h2>
+<div class="field-row">
+<div><label>Type</label><select id="fType">
+<option>text</option><option>email</option><option>password</option><option>number</option>
+<option>textarea</option><option>select</option><option>checkbox</option><option>radio</option>
+<option>date</option><option>file</option><option>range</option>
+</select></div>
+<div><label>Label</label><input id="fLabel" value="Field"></div>
+</div>
+<div class="field-row">
+<div><label>Placeholder</label><input id="fPlaceholder"></div>
+<div><label>Name</label><input id="fName" value="field1"></div>
+</div>
+<div class="field-row">
+<div><label>Options (select/radio)</label><input id="fOptions" placeholder="opt1,opt2,opt3"></div>
+<div><label>Min</label><input id="fMin" type="number"></div>
+</div>
+<div class="field-row">
+<div><label>Max</label><input id="fMax" type="number"></div>
+<div></div>
+</div>
+<div class="toggle"><input type="checkbox" id="fRequired"><label for="fRequired" style="margin:0">Required</label></div>
+<button class="add-btn" onclick="addField()">Add Field</button>
+<h2 style="margin-top:16px">Fields</h2>
+<div id="fieldList" class="field-list"></div>
+</div>
+<div>
+<div class="panel" style="margin-bottom:24px">
+<h2>Live Preview</h2>
+<div id="preview" class="preview-box"></div>
+</div>
+<div class="panel">
+<h2>Generated HTML</h2>
+<div class="code-box">
+<button class="copy-btn" onclick="copyCode()">Copy</button>
+<pre id="codeOutput"></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+let fields=[],fieldCounter=0;
+function addField(){
+const f={
+id:++fieldCounter,type:document.getElementById('fType').value,
+label:document.getElementById('fLabel').value||'Field',
+placeholder:document.getElementById('fPlaceholder').value,
+name:document.getElementById('fName').value||('field'+fieldCounter),
+options:document.getElementById('fOptions').value,
+required:document.getElementById('fRequired').checked,
+min:document.getElementById('fMin').value,max:document.getElementById('fMax').value
+};
+fields.push(f);renderAll();
+}
+function removeField(id){fields=fields.filter(f=>f.id!==id);renderAll()}
+function renderAll(){
+const list=document.getElementById('fieldList');
+list.innerHTML=fields.map(f=>`<div class="field-item"><span>${f.type}: ${f.label}</span><button onclick="removeField(${f.id})">✕</button></div>`).join('');
+renderPreview();renderCode();
+}
+function renderPreview(){
+const p=document.getElementById('preview');
+let html='<form onsubmit="return false">';
+fields.forEach(f=>{
+html+=`<div class="form-group"><label>${f.label}${f.required?' *':''}</label>`;
+if(f.type==='textarea'){
+html+=`<textarea placeholder="${f.placeholder}" ${f.required?'required':''}></textarea>`;
+}else if(f.type==='select'){
+html+=`<select><option value="">Select...</option>${(f.options||'').split(',').map(o=>`<option>${o.trim()}</option>`).join('')}</select>`;
+}else if(f.type==='checkbox'||f.type==='radio'){
+(f.options||'opt1,opt2').split(',').forEach((o,i)=>{
+html+=`<label style="font-weight:400"><input type="${f.type}" name="${f.name}" ${i===0&&f.type==='radio'?'checked':''}> ${o.trim()}</label> `;
+});
+}else{
+html+=`<input type="${f.type}" placeholder="${f.placeholder}" ${f.required?'required':''} ${f.min?'min="'+f.min+'"':''} ${f.max?'max="'+f.max+'"':''}>`;
+}
+html+='</div>';
+});
+html+='<button type="submit">Submit</button></form>';
+p.innerHTML=html;
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function renderCode(){
+let html='<form action="#" method="POST">\n';
+fields.forEach(f=>{
+if(f.type==='textarea'){
+html+=`  <div>\n    <label for="${f.name}">${f.label}</label>\n    <textarea id="${f.name}" name="${f.name}" placeholder="${f.placeholder}"${f.required?' required':''}></textarea>\n  </div>\n`;
+}else if(f.type==='select'){
+html+=`  <div>\n    <label for="${f.name}">${f.label}</label>\n    <select id="${f.name}" name="${f.name}"${f.required?' required':''}>\n      <option value="">Select...</option>\n${(f.options||'').split(',').map(o=>`      <option value="${o.trim()}">${o.trim()}</option>`).join('\n')}\n    </select>\n  </div>\n`;
+}else if(f.type==='checkbox'){
+(f.options||'').split(',').forEach(o=>{
+html+=`  <div>\n    <label><input type="checkbox" name="${f.name}" value="${o.trim()}"> ${o.trim()}</label>\n  </div>\n`;
+});
+}else if(f.type==='radio'){
+(f.options||'').split(',').forEach((o,i)=>{
+html+=`  <div>\n    <label><input type="radio" name="${f.name}" value="${o.trim()}"${i===0?' checked':''}> ${o.trim()}</label>\n  </div>\n`;
+});
+}else{
+let attrs=`type="${f.type}" id="${f.name}" name="${f.name}"`;
+if(f.placeholder)attrs+=` placeholder="${f.placeholder}"`;
+if(f.required)attrs+=' required';
+if(f.min)attrs+=` min="${f.min}"`;
+if(f.max)attrs+=` max="${f.max}"`;
+html+=`  <div>\n    <label for="${f.name}">${f.label}</label>\n    <input ${attrs}>\n  </div>\n`;
+}
+});
+html+='  <button type="submit">Submit</button>\n</form>';
+document.getElementById('codeOutput').textContent=html;
+}
+function copyCode(){
+navigator.clipboard.writeText(document.getElementById('codeOutput').textContent);
+const b=document.querySelector('.copy-btn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500);
+}
+</script>
+</body>
+</html>

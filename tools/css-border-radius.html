@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS Border Radius Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh}
+a{color:#fff;text-decoration:none}
+.header{background:#111;border-bottom:1px solid #222;padding:16px 24px;display:flex;align-items:center;gap:16px}
+.header h1{font-size:1.2rem;font-weight:600}
+.back{padding:6px 12px;border:1px solid #222;border-radius:6px;font-size:.85rem;transition:.2s}
+.back:hover{background:#222}
+.container{max-width:900px;margin:24px auto;padding:0 20px}
+.panel{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:24px}
+.panel h2{font-size:1rem;font-weight:500;margin-bottom:16px;color:#737373}
+.preview-wrap{display:flex;justify-content:center;margin-bottom:24px}
+#preview{width:250px;height:250px;background:#7c3aed;transition:border-radius .2s}
+.inputs-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:.8rem;color:#737373}
+.field input{padding:8px;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;font-family:inherit;font-size:.85rem;outline:none}
+.field input:focus{border-color:#555}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.preset-btn{padding:8px 14px;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;cursor:pointer;font-family:inherit;font-size:.8rem;transition:.2s}
+.preset-btn:hover{background:#222;border-color:#444}
+.code-box{position:relative}
+.code-box pre{background:#0a0a0a;border:1px solid #222;border-radius:6px;padding:14px;font-size:.8rem;overflow-x:auto;line-height:1.6}
+.copy-btn{position:absolute;top:8px;right:8px;padding:5px 10px;background:#222;border:1px solid #333;border-radius:4px;color:#fff;font-size:.7rem;cursor:pointer;font-family:inherit}
+.copy-btn:hover{background:#333}
+.visual-box{display:flex;justify-content:center;align-items:center;margin-bottom:24px}
+.corner-label{position:absolute;font-size:.65rem;color:#737373}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html" class="back">← Back</a>
+<h1>CSS Border Radius Generator</h1>
+</div>
+<div class="container">
+<div class="panel">
+<div class="preview-wrap">
+<div id="preview"></div>
+</div>
+<div class="presets">
+<button class="preset-btn" onclick="applyPreset(4,4,4,4)">Subtle</button>
+<button class="preset-btn" onclick="applyPreset(12,12,12,12)">Rounded</button>
+<button class="preset-btn" onclick="applyPreset(999,999,999,999)">Pill</button>
+<button class="preset-btn" onclick="applyPreset(9999,9999,9999,9999)">Circle</button>
+</div>
+<div class="inputs-grid">
+<div class="field"><label>Top Left</label><input id="tl" type="number" value="0" oninput="update()"></div>
+<div class="field"><label>Top Right</label><input id="tr" type="number" value="0" oninput="update()"></div>
+<div class="field"><label>Bottom Right</label><input id="br" type="number" value="0" oninput="update()"></div>
+<div class="field"><label>Bottom Left</label><input id="bl" type="number" value="0" oninput="update()"></div>
+</div>
+</div>
+<div class="panel">
+<h2>CSS Output</h2>
+<div class="code-box">
+<button class="copy-btn" onclick="copyCode()">Copy</button>
+<pre id="code"></pre>
+</div>
+</div>
+</div>
+<script>
+function update(){
+const tl=document.getElementById('tl').value;
+const tr=document.getElementById('tr').value;
+const br=document.getElementById('br').value;
+const bl=document.getElementById('bl').value;
+document.getElementById('preview').style.borderRadius=`${tl}px ${tr}px ${br}px ${bl}px`;
+document.getElementById('code').textContent=`border-radius: ${tl}px ${tr}px ${br}px ${bl}px;`;
+}
+function applyPreset(tl,tr,br,bl){
+document.getElementById('tl').value=tl;
+document.getElementById('tr').value=tr;
+document.getElementById('br').value=br;
+document.getElementById('bl').value=bl;
+update();
+}
+function copyCode(){
+navigator.clipboard.writeText(document.getElementById('code').textContent);
+const b=document.querySelector('.copy-btn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500);
+}
+</script>
+</body>
+</html>

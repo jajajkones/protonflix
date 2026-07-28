@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML Table Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh}
+a{color:#fff;text-decoration:none}
+.header{background:#111;border-bottom:1px solid #222;padding:16px 24px;display:flex;align-items:center;gap:16px}
+.header h1{font-size:1.2rem;font-weight:600}
+.back{padding:6px 12px;border:1px solid #222;border-radius:6px;font-size:.85rem;transition:.2s}
+.back:hover{background:#222}
+.container{max-width:1100px;margin:24px auto;padding:0 20px}
+.panel{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:24px}
+.panel h2{font-size:1rem;font-weight:500;margin-bottom:16px;color:#737373}
+.controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.field{display:flex;align-items:center;gap:6px}
+.field label{font-size:.8rem;color:#737373}
+.field input,.field select{padding:6px 8px;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;font-family:inherit;font-size:.85rem;outline:none;width:70px}
+.opts{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.opts label{display:flex;align-items:center;gap:6px;font-size:.85rem;cursor:pointer}
+.opts input[type="checkbox"]{accent-color:#fff}
+.btn{padding:8px 16px;background:#fff;color:#0a0a0a;border:none;border-radius:6px;font-family:inherit;font-weight:600;cursor:pointer;font-size:.85rem}
+.btn:hover{background:#e0e0e0}
+.table-editor{overflow-x:auto;margin-bottom:16px}
+.table-editor table{border-collapse:collapse}
+.table-editor td,.table-editor th{padding:0}
+.table-editor input{width:120px;padding:6px 8px;background:#0a0a0a;border:1px solid #222;color:#fff;font-family:inherit;font-size:.8rem;outline:none}
+.table-editor input:focus{border-color:#555}
+.table-editor th input{background:#1a1a1a}
+.preview-wrap{overflow-x:auto;padding:10px;background:#fff;border-radius:6px;margin-bottom:16px}
+.preview-wrap table{border-collapse:collapse}
+.preview-wrap td,.preview-wrap th{padding:8px 12px;border:1px solid #ddd}
+.code-box{position:relative}
+.code-box pre{background:#0a0a0a;border:1px solid #222;border-radius:6px;padding:14px;font-size:.75rem;overflow-x:auto;line-height:1.5;max-height:400px;overflow-y:auto;white-space:pre-wrap}
+.copy-btn{position:absolute;top:8px;right:8px;padding:5px 10px;background:#222;border:1px solid #333;border-radius:4px;color:#fff;font-size:.7rem;cursor:pointer;font-family:inherit}
+.copy-btn:hover{background:#333}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html" class="back">← Back</a>
+<h1>HTML Table Generator</h1>
+</div>
+<div class="container">
+<div class="panel">
+<div class="controls">
+<div class="field"><label>Rows</label><input id="rows" type="number" value="3" min="1" max="20"></div>
+<div class="field"><label>Cols</label><input id="cols" type="number" value="3" min="1" max="10"></div>
+<button class="btn" onclick="generate()">Generate</button>
+</div>
+<div class="opts">
+<label><input type="checkbox" id="optBorder" checked onchange="updateCode()"> Border</label>
+<label><input type="checkbox" id="optStriped" onchange="updateCode()"> Striped rows</label>
+<label><input type="checkbox" id="optHover" onchange="updateCode()"> Hover effect</label>
+<label><input type="checkbox" id="optResponsive" onchange="updateCode()"> Responsive</label>
+<label><input type="checkbox" id="optDark" onchange="updateCode()"> Dark theme</label>
+</div>
+<div id="editor" class="table-editor"></div>
+</div>
+<div class="panel">
+<h2>Preview</h2>
+<div id="preview" class="preview-wrap"></div>
+</div>
+<div class="panel">
+<h2>Generated HTML</h2>
+<div class="code-box">
+<button class="copy-btn" onclick="copyCode()">Copy</button>
+<pre id="code"></pre>
+</div>
+</div>
+</div>
+<script>
+let data=[];
+function generate(){
+const r=+document.getElementById('rows').value,c=+document.getElementById('cols').value;
+data=Array.from({length:r+1},(_,i)=>Array.from({length:c},(_,j)=>i===0?`Header ${j+1}`:`Row ${i} Col ${j+1}`));
+renderEditor();updateCode();
+}
+function renderEditor(){
+const el=document.getElementById('editor');
+let html='<table>';
+data.forEach((row,ri)=>{
+html+=`<tr>${row.map((cell,ci)=>`<td><input value="${cell}" oninput="data[${ri}][${ci}]=this.value;updateCode()"></td>`).join('')}</tr>`;
+});
+html+='</table>';el.innerHTML=html;
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function updateCode(){
+const border=document.getElementById('optBorder').checked;
+const striped=document.getElementById('optStriped').checked;
+const hover=document.getElementById('optHover').checked;
+const responsive=document.getElementById('optResponsive').checked;
+const dark=document.getElementById('optDark').checked;
+let styles='';
+if(border)styles+='border-collapse: collapse;';
+if(dark)styles+='background: #111; color: #fff;';
+if(striped||hover||dark){
+styles+='\n    <style>\n';
+if(dark)styles+='      table { background: #111; color: #fff; }\n      td, th { border-color: #333; }\n';
+if(striped)styles+='      tr:nth-child(even) { background: '+(dark?'#222':'#f5f5f5')+'; }\n';
+if(hover)styles+='      tr:hover { background: '+(dark?'#333':'#e5e5e5')+'; }\n';
+styles+='    </style>';
+}
+const wrapOpen=responsive?'<div style="overflow-x:auto">':'';
+const wrapClose=responsive?'</div>':'';
+let html=esc(wrapOpen)+'<table'+(border?' style="'+esc(styles)+'"':'')+'>\n';
+data.forEach((row,ri)=>{
+const tag=ri===0?'th':'td';
+html+='  <tr>\n'+row.map(cell=>'    <'+tag+'>'+esc(cell)+'</'+tag+'>').join('\n')+'\n  </tr>\n';
+});
+html+='</table>'+esc(wrapClose);
+if(striped||hover||dark)html+='\n'+styles.replace(/</g,'&lt;').replace(/>/g,';');
+const preview=document.getElementById('preview');
+let phtml='<table>';
+data.forEach((row,ri)=>{
+phtml+='<tr>'+row.map(cell=>`<${ri===0?'th':'td'}>${cell}</${ri===0?'th':'td'}>`).join('')+'</tr>';
+});
+phtml+='</table>';preview.innerHTML=phtml;
+const pt=p.querySelector('table');
+if(border)pt.style.borderCollapse='collapse';
+if(border)pt.querySelectorAll('td,th').forEach(td=>td.style.border='1px solid #ddd');
+if(striped)pt.querySelectorAll('tr:nth-child(even)').forEach(tr=>tr.style.background='#f5f5f5');
+if(hover)pt.querySelectorAll('tr').forEach(tr=>tr.onmouseover=()=>tr.style.background='#e5e5e5');
+if(dark){pt.style.background='#111';pt.style.color='#fff';}
+document.getElementById('code').textContent=html;
+}
+function copyCode(){
+navigator.clipboard.writeText(document.getElementById('code').textContent);
+const b=document.querySelector('.copy-btn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500);
+}
+document.getElementById('rows').addEventListener('change',generate);
+document.getElementById('cols').addEventListener('change',generate);
+generate();
+</script>
+</body>
+</html>

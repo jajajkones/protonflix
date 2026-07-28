@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROT13 / Caesar Cipher</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#111;--border:#222;--text:#fff;--muted:#737373;--accent:#ec4899;--radius:6px;--mono:'SF Mono',Consolas,monospace}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:30px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px}header h1{font-size:20px;font-weight:500}header a{color:var(--muted);text-decoration:none;font-size:13px}header a:hover{color:var(--text)}
+.content{flex:1;padding:40px;max-width:800px;width:100%;margin:0 auto}
+textarea{width:100%;height:120px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-family:var(--mono);font-size:14px;resize:vertical;outline:none}
+textarea:focus{border-color:var(--accent)}
+.btn-row{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+.btn{background:var(--surface);color:var(--text);border:1px solid var(--border);padding:8px 16px;border-radius:var(--radius);font-size:13px;font-family:inherit;cursor:pointer;transition:all .2s}
+.btn:hover{border-color:#444}.btn.active{border-color:var(--accent);color:var(--accent)}
+.slider-row{display:flex;gap:12px;align-items:center;margin:12px 0}
+.slider-row input[type=range]{flex:1;accent-color:var(--accent)}
+.slider-row span{font-family:var(--mono);font-size:14px;color:var(--accent);min-width:30px}
+.output{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-family:var(--mono);font-size:14px;min-height:80px;white-space:pre-wrap;word-break:break-all;cursor:pointer;transition:border-color .2s}
+.output:hover{border-color:#444}
+.info{font-size:12px;color:var(--muted);margin-top:12px}
+</style>
+</head>
+<body>
+<header><h1>ROT13 / Caesar Cipher</h1><a href="index.html">← Back to Tools</a></header>
+<div class="content">
+<textarea id="input" placeholder="Enter text to encode/decode..." oninput="process()">The quick brown fox jumps over the lazy dog</textarea>
+<div class="btn-row">
+<button class="btn" onclick="setMode('rot13')">ROT13</button>
+<button class="btn active" onclick="setMode('caesar')">Caesar</button>
+<button class="btn" onclick="setMode('vigenere')">Vigenere</button>
+<button class="btn" onclick="setMode('atbash')">Atbash</button>
+<button class="btn" onclick="setMode('reverse')">Reverse</button>
+<button class="btn" onclick="copyOut()">Copy</button>
+</div>
+<div class="slider-row" id="caesarShift">
+<span>Shift:</span>
+<input type="range" id="shift" min="0" max="25" value="13" oninput="process()">
+<span id="shiftVal">13</span>
+</div>
+<div class="slider-row" id="vigKey" style="display:none">
+<span>Key:</span>
+<input type="text" id="vkey" value="secret" oninput="process()" style="background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;font-family:var(--mono);font-size:13px;outline:none;width:200px">
+</div>
+<div class="output" id="output" onclick="navigator.clipboard.writeText(this.textContent)"></div>
+<div class="info" id="info"></div>
+</div>
+<script>
+let mode='caesar';
+function setMode(m){mode=m;document.querySelectorAll('.btn-row .btn').forEach(b=>b.classList.remove('active'));event.target.classList.add('active');document.getElementById('caesarShift').style.display=m==='caesar'?'flex':'none';document.getElementById('vigKey').style.display=m==='vigenere'?'flex':'none';process()}
+function process(){
+const text=document.getElementById('input').value;const shift=+document.getElementById('shift').value;
+document.getElementById('shiftVal').textContent=shift;
+let result='';
+switch(mode){
+case'rot13':result=rot(text,13);break;
+case'caesar':result=rot(text,shift);break;
+case'vigenere':result=vigenere(text,document.getElementById('vkey').value);break;
+case'atbash':result=[...text].map(c=>{const code=c.charCodeAt(0);if(code>=65&&code<=90)return String.fromCharCode(155-code);if(code>=97&&code<=122)return String.fromCharCode(155-32-code);return c}).join('');break;
+case'reverse':result=[...text].reverse().join('');break;
+}
+document.getElementById('output').textContent=result;
+document.getElementById('info').textContent=`${text.length} chars | Mode: ${mode}`;
+}
+function rot(s,n){return s.replace(/[a-zA-Z]/g,c=>{const base=c<='Z'?65:97;return String.fromCharCode((c.charCodeAt(0)-base+n)%26+base)})}
+function vigenere(s,k){if(!k)return s;let ki=0;return s.replace(/[a-zA-Z]/g,c=>{const base=c<='Z'?65:97;const shift=k[ki%k.length].toLowerCase().charCodeAt(0)-97;ki++;return String.fromCharCode((c.charCodeAt(0)-base+shift)%26+base)})}
+function copyOut(){navigator.clipboard.writeText(document.getElementById('output').textContent)}
+process();
+</script>
+</body>
+</html>

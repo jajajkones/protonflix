@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Webpage Screenshot Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh}
+a{color:#fff;text-decoration:none}
+.header{background:#111;border-bottom:1px solid #222;padding:16px 24px;display:flex;align-items:center;gap:16px}
+.header h1{font-size:1.2rem;font-weight:600}
+.back{padding:6px 12px;border:1px solid #222;border-radius:6px;font-size:.85rem;transition:.2s}
+.back:hover{background:#222}
+.container{max-width:1000px;margin:24px auto;padding:0 20px}
+.panel{background:#111;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:24px}
+.panel h2{font-size:1rem;font-weight:500;margin-bottom:12px;color:#737373}
+textarea{width:100%;height:200px;padding:12px;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;font-family:'Courier New',monospace;font-size:.8rem;resize:vertical;outline:none}
+textarea:focus{border-color:#555}
+.controls{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap;align-items:center}
+.field{display:flex;align-items:center;gap:6px}
+.field label{font-size:.8rem;color:#737373}
+.field input,.field select{padding:6px 8px;background:#0a0a0a;border:1px solid #222;border-radius:6px;color:#fff;font-family:inherit;font-size:.85rem;outline:none}
+.btn{padding:8px 16px;background:#fff;color:#0a0a0a;border:none;border-radius:6px;font-family:inherit;font-weight:600;cursor:pointer;font-size:.85rem}
+.btn:hover{background:#e0e0e0}
+.btn.secondary{background:#222;color:#fff;border:1px solid #333}
+.btn.secondary:hover{background:#333}
+.preview-area{background:#fff;border-radius:8px;padding:20px;min-height:200px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;overflow:hidden}
+#renderTarget{max-width:100%;font-family:system-ui,sans-serif}
+.note{font-size:.8rem;color:#737373;padding:10px;background:#0a0a0a;border-radius:6px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html" class="back">← Back</a>
+<h1>Webpage Screenshot Tool</h1>
+</div>
+<div class="container">
+<div class="panel">
+<h2>HTML/CSS Input</h2>
+<textarea id="htmlInput" oninput="render()">&lt;div style="text-align:center; padding:40px;"&gt;
+  &lt;h1 style="color:#7c3aed; font-size:2.5rem;"&gt;Hello World&lt;/h1&gt;
+  &lt;p style="color:#666; margin:16px 0;"&gt;Edit this HTML to create your design&lt;/p&gt;
+  &lt;div style="display:flex; gap:8px; justify-content:center"&gt;
+    &lt;span style="background:#7c3aed;color:#fff;padding:8px 20px;border-radius:6px"&gt;Button 1&lt;/span&gt;
+    &lt;span style="background:#f59e0b;color:#000;padding:8px 20px;border-radius:6px"&gt;Button 2&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</textarea>
+<div class="controls">
+<div class="field"><label>Width</label><input id="canvasW" type="number" value="800" min="200" max="2000"></div>
+<div class="field"><label>Height</label><input id="canvasH" type="number" value="600" min="200" max="2000"></div>
+<div class="field"><label>BG</label><input id="bgColor" type="color" value="#ffffff"></div>
+<button class="btn" onclick="capture()">Capture to PNG</button>
+<button class="btn secondary" onclick="render()">Preview</button>
+</div>
+</div>
+<div class="panel">
+<h2>Preview</h2>
+<div class="preview-area" id="previewArea">
+<div id="renderTarget"></div>
+</div>
+<canvas id="canvas" style="display:none"></canvas>
+<div class="note">
+Note: This tool renders HTML to a canvas using a foreignObject approach. Complex CSS (animations, external resources, etc.) may not render. For best results, use inline styles.
+</div>
+</div>
+</div>
+<script>
+function render(){
+const html=document.getElementById('htmlInput').value;
+const target=document.getElementById('renderTarget');
+const w=document.getElementById('canvasW').value;
+const h=document.getElementById('canvasH').value;
+const bg=document.getElementById('bgColor').value;
+target.innerHTML=html;
+target.style.width=w+'px';
+target.style.minHeight=h+'px';
+target.style.background=bg;
+}
+function capture(){
+const w=+document.getElementById('canvasW').value;
+const h=+document.getElementById('canvasH').value;
+const bg=document.getElementById('bgColor').value;
+const html=document.getElementById('htmlInput').value;
+const canvas=document.getElementById('canvas');
+canvas.width=w*2;canvas.height=h*2;
+const ctx=canvas.getContext('2d');
+ctx.scale(2,2);
+ctx.fillStyle=bg;
+ctx.fillRect(0,0,w,h);
+const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" style="font-family:system-ui,sans-serif;width:${w}px;min-height:${h}px;background:${bg}">${html}</div></foreignObject></svg>`;
+const img=new Image();
+img.onload=()=>{
+ctx.drawImage(img,0,0,w,h);
+const a=document.createElement('a');
+a.download='screenshot.png';
+a.href=canvas.toDataURL('image/png');
+a.click();
+};
+img.onerror=()=>{
+ctx.fillStyle='#333';
+ctx.font='16px system-ui';
+ctx.fillText('Render failed. Try simpler HTML.',20,40);
+ctx.fillText('Use only inline styles for best results.',20,65);
+const a=document.createElement('a');
+a.download='screenshot.png';
+a.href=canvas.toDataURL('image/png');
+a.click();
+};
+img.src='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));
+}
+render();
+</script>
+</body>
+</html>
