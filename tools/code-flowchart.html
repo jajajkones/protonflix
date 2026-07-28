@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code to Flowchart</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0c0c0c;--surface:#141414;--surface-2:#1a1a1a;--border:#262626;--text:#e5e5e5;--muted:#737373;--accent:#3b82f6;--green:#22c55e;--red:#ef4444;--yellow:#eab308}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6}
+a{color:var(--accent);text-decoration:none}
+.container{max-width:1400px;margin:0 auto;padding:16px}
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);margin-bottom:16px}
+header h1{font-size:1.1rem;font-weight:600}
+.back{font-size:.85rem}
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:16px;height:calc(100vh - 90px)}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;overflow:hidden}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.panel-header h2{font-size:.9rem;font-weight:600}
+.panel-body{flex:1;position:relative;overflow:auto}
+textarea{width:100%;height:100%;background:var(--surface-2);border:none;padding:14px;color:var(--text);font-family:monospace;font-size:.85rem;resize:none;line-height:1.6}
+textarea:focus{outline:none}
+.canvas-wrap{width:100%;height:100%;overflow:auto;background:var(--surface-2)}
+canvas{display:block}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:5px;padding:6px 14px;font-size:.82rem;cursor:pointer;font-family:inherit}
+.btn:hover{opacity:.9}
+.btn-sm{padding:4px 10px;font-size:.78rem}
+.btn-secondary{background:var(--surface-2);color:var(--text);border:1px solid var(--border)}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap}
+.legend{display:flex;gap:12px;padding:8px 14px;border-top:1px solid var(--border);font-size:.75rem;color:var(--muted);flex-shrink:0;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:4px}
+.legend-shape{width:14px;height:14px;border:2px solid var(--muted)}
+.legend-shape.oval{border-radius:50%}
+.legend-shape.diamond{transform:rotate(45deg);width:10px;height:10px}
+.legend-shape.para{transform:skewX(-10deg)}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:#fff;padding:6px 14px;border-radius:5px;font-size:.82rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:99}
+.toast.show{opacity:1}
+@media(max-width:768px){.layout{grid-template-columns:1fr;height:auto}.panel{height:50vh}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>Code to Flowchart</h1>
+<a href="index.html" class="back">&larr; Back</a>
+</header>
+<div class="layout">
+<div class="panel">
+<div class="panel-header">
+<h2>Input Code</h2>
+<div class="btn-row">
+<button class="btn btn-sm" onclick="parseCode()">Generate</button>
+<button class="btn btn-sm btn-secondary" onclick="loadSample()">Sample</button>
+</div>
+</div>
+<div class="panel-body">
+<textarea id="codeInput" placeholder="Paste pseudocode or simple code here...&#10;&#10;Example:&#10;START&#10;INPUT number&#10;IF number > 0 THEN&#10;  PRINT positive&#10;ELSE&#10;  PRINT negative&#10;END IF&#10;STOP"></textarea>
+</div>
+</div>
+<div class="panel">
+<div class="panel-header">
+<h2>Flowchart</h2>
+<div class="btn-row">
+<button class="btn btn-sm btn-secondary" onclick="downloadPNG()">Download PNG</button>
+</div>
+</div>
+<div class="panel-body">
+<div class="canvas-wrap"><canvas id="flowchart"></canvas></div>
+</div>
+<div class="legend">
+<div class="legend-item"><div class="legend-shape oval"></div> Start/End</div>
+<div class="legend-item"><div class="legend-shape"></div> Process</div>
+<div class="legend-item"><div class="legend-shape diamond"></div> Decision</div>
+<div class="legend-item"><div class="legend-shape para"></div> Input/Output</div>
+</div>
+</div>
+</div>
+</div>
+<div class="toast" id="toast">Copied!</div>
+<script>
+const canvas=document.getElementById('flowchart');
+const ctx=canvas.getContext('2d');
+let nodes=[];let edges=[];
+
+function parseCode(){
+const code=document.getElementById('codeInput').value.trim();
+if(!code)return;
+nodes=[];edges=[];
+const lines=code.split('\n').map(l=>l.trim()).filter(l=>l);
+
+lines.forEach((line,i)=>{
+const lower=line.toLowerCase();
+if(lower==='start'){nodes.push({id:i,text:'START',type:'start'});}
+else if(lower==='stop'||lower==='end'||lower==='end stop'){nodes.push({id:i,text:'END',type:'end'});}
+else if(lower.startsWith('if ')){nodes.push({id:i,text:line.replace(/^if\s+/i,'').replace(/\s+then\s*$/i,''),type:'decision'});}
+else if(lower.startsWith('else if ')||lower.startsWith('elseif ')){nodes.push({id:i,text:line.replace(/^else\s*if\s+/i,'').replace(/\s+then\s*$/i,''),type:'decision'});}
+else if(lower==='else'){nodes.push({id:i,text:'ELSE',type:'process'});}
+else if(lower.startsWith('for ')||lower.startsWith('while ')){nodes.push({id:i,text:line.replace(/:$/,''),type:'decision'});}
+else if(lower.startsWith('end if')||lower==='endif'){nodes.push({id:i,text:'END IF',type:'process'});}
+else if(lower.startsWith('end for')||lower==='endfor'){nodes.push({id:i,text:'END LOOP',type:'process'});}
+else if(lower.startsWith('end while')||lower==='endwhile'){nodes.push({id:i,text:'END LOOP',type:'process'});}
+else if(lower.startsWith('input ')||lower.startsWith('read ')||lower.startsWith('scan ')){nodes.push({id:i,text:line.replace(/^(input|read|scan)\s+/i,''),type:'io'});}
+else if(lower.startsWith('print ')||lower.startsWith('output ')||lower.startsWith('write ')||lower.startsWith('display ')||lower.startsWith('echo ')){nodes.push({id:i,text:line.replace(/^(print|output|write|display|echo)\s+/i,''),type:'io'});}
+else if(lower.startsWith('return ')){nodes.push({id:i,text:line,type:'io'});}
+else if(line){nodes.push({id:i,text:line,type:'process'});}
+});
+
+for(let i=0;i<nodes.length-1;i++){
+edges.push({from:nodes[i].id,to:nodes[i+1].id,label:''});
+}
+
+const ifNodes=nodes.filter(n=>n.type==='decision');
+ifNodes.forEach(n=>{
+const next=nodes.find(x=>x.id===n.id+1);
+if(next){
+const afterEndIf=nodes.find(x=>x.id>n.id+1&&(x.text==='END IF'||x.text==='END LOOP'));
+if(afterEndIf){
+edges.push({from:n.id,to:afterEndIf.id,label:'No'});
+}
+}
+});
+
+drawFlowchart();
+}
+
+function drawFlowchart(){
+const nodeW=180,nodeH=50,hGap=60,vGap=40;
+const positions={};
+let curY=40;
+const centerX=canvas.width/2||400;
+
+nodes.forEach((n,i)=>{
+const x=centerX-nodeW/2;
+const y=curY;
+positions[n.id]={x,y,w:nodeW,h:n.type==='decision'?nodeH+10:nodeH};
+if(n.type==='start'||n.type==='end')curY+=nodeH+vGap;
+else if(n.type==='decision')curY+=nodeH+20+vGap;
+else curY+=nodeH+vGap;
+});
+
+canvas.width=Math.max(800,centerX*2);
+canvas.height=curY+40;
+ctx.fillStyle='#1a1a1a';
+ctx.fillRect(0,0,canvas.width,canvas.height);
+
+edges.forEach(e=>{
+const from=positions[e.from];const to=positions[e.to];
+if(!from||!to)return;
+ctx.beginPath();
+ctx.strokeStyle='#555';ctx.lineWidth=2;
+const fx=from.x+from.w/2,fy=from.y+from.h;
+const tx=to.x+to.w/2,ty=to.y;
+ctx.moveTo(fx,fy);
+ctx.lineTo(tx,ty);
+ctx.stroke();
+const angle=Math.atan2(ty-fy,tx-fx);
+ctx.fillStyle='#555';
+ctx.beginPath();
+ctx.moveTo(tx,ty);
+ctx.lineTo(tx-8*Math.cos(angle-0.4),ty-8*Math.sin(angle-0.4));
+ctx.lineTo(tx-8*Math.cos(angle+0.4),ty-8*Math.sin(angle+0.4));
+ctx.closePath();ctx.fill();
+if(e.label){
+ctx.fillStyle='#e5e5e5';ctx.font='12px sans-serif';ctx.textAlign='center';
+ctx.fillText(e.label,(fx+tx)/2-10,(fy+ty)/2);
+}
+});
+
+nodes.forEach(n=>{
+const pos=positions[n.id];if(!pos)return;
+ctx.fillStyle='#1a1a1a';ctx.strokeStyle='#262626';ctx.lineWidth=2;
+if(n.type==='start'||n.type==='end'){
+ctx.fillStyle=n.type==='start'?'#166534':'#7f1d1d';
+ctx.strokeStyle=n.type==='start'?'#22c55e':'#ef4444';
+roundRect(ctx,pos.x,pos.y,pos.w,pos.h,pos.h/2);
+}else if(n.type==='decision'){
+ctx.fillStyle='#422006';ctx.strokeStyle='#eab308';
+ctx.beginPath();
+ctx.moveTo(pos.x+pos.w/2,pos.y);
+ctx.lineTo(pos.x+pos.w,pos.y+pos.h/2);
+ctx.lineTo(pos.x+pos.w/2,pos.y+pos.h);
+ctx.lineTo(pos.x,pos.y+pos.h/2);
+ctx.closePath();ctx.fill();ctx.stroke();
+}else if(n.type==='io'){
+ctx.fillStyle='#172554';ctx.strokeStyle='#3b82f6';
+ctx.beginPath();
+ctx.moveTo(pos.x+20,pos.y);
+ctx.lineTo(pos.x+pos.w,pos.y);
+ctx.lineTo(pos.x+pos.w-20,pos.y+pos.h);
+ctx.lineTo(pos.x,pos.y+pos.h);
+ctx.closePath();ctx.fill();ctx.stroke();
+}else{
+ctx.fillStyle='#1a1a1a';ctx.strokeStyle='#525252';
+roundRect(ctx,pos.x,pos.y,pos.w,pos.h,6);
+}
+ctx.fillStyle='#e5e5e5';ctx.font='13px -apple-system,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+wrapText(ctx,n.text,pos.x+pos.w/2,pos.y+pos.h/2,pos.w-20,16);
+});
+}
+
+function roundRect(ctx,x,y,w,h,r){
+ctx.beginPath();
+ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);
+ctx.closePath();ctx.fill();ctx.stroke();
+}
+
+function wrapText(ctx,text,x,y,maxW,lineH){
+const words=text.split(' ');let line='';let lines=[];
+words.forEach(w=>{
+const test=line?line+' '+w:w;
+if(ctx.measureText(test).width>maxW&&line){lines.push(line);line=w;}
+else line=test;
+});
+if(line)lines.push(line);
+const startY=y-((lines.length-1)*lineH)/2;
+lines.forEach((l,i)=>ctx.fillText(l,x,startY+i*lineH));
+}
+
+function downloadPNG(){
+const a=document.createElement('a');
+a.href=canvas.toDataURL('image/png');
+a.download='flowchart.png';
+a.click();
+}
+
+function loadSample(){
+document.getElementById('codeInput').value=`START
+INPUT number
+IF number > 0 THEN
+  PRINT "positive"
+ELSE
+  IF number < 0 THEN
+    PRINT "negative"
+  ELSE
+    PRINT "zero"
+  END IF
+END IF
+STOP`;
+parseCode();
+}
+</script>
+</body>
+</html>

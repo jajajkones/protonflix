@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Keyboard Layout Viewer</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0c0c0c;color:#e5e5e5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:2rem;min-height:100vh}
+a{color:#737373;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:1.5rem}
+a:hover{color:#e5e5e5}
+h1{font-size:1.5rem;font-weight:600;margin-bottom:.25rem}
+.sub{color:#737373;font-size:.85rem;margin-bottom:2rem}
+.card{background:#141414;border:1px solid #262626;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
+.card h2{font-size:1rem;font-weight:600;margin-bottom:1rem}
+select,input{padding:.5rem .75rem;background:#1a1a1a;border:1px solid #262626;border-radius:8px;color:#e5e5e5;font-size:.85rem;font-family:inherit;outline:none}
+select:focus,input:focus{border-color:#e5e5e5}
+.row{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem}
+.btn-group{display:flex;gap:0;border:1px solid #262626;border-radius:8px;overflow:hidden}
+.btn{padding:.45rem .8rem;background:#1a1a1a;border:none;color:#737373;font-size:.8rem;cursor:pointer;font-family:inherit;border-right:1px solid #262626}
+.btn:last-child{border-right:none}
+.btn.active{background:#262626;color:#e5e5e5}
+.btn:hover{background:#262626}
+button.primary{background:#e5e5e5;color:#0c0c0c;border:1px solid #e5e5e5;border-radius:8px;padding:.5rem 1rem;font-size:.85rem;cursor:pointer;font-family:inherit}
+button.primary:hover{background:#d4d4d4}
+.kb{display:flex;flex-direction:column;align-items:center;gap:4px;padding:1rem;overflow-x:auto}
+.row-keys{display:flex;gap:4px}
+.key{min-width:48px;height:48px;background:#1a1a1a;border:1px solid #262626;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.75rem;cursor:pointer;transition:all .15s;user-select:none;position:relative}
+.key:hover{background:#262626;border-color:#737373}
+.key.active{background:#333;border-color:#e5e5e5}
+.key.highlight{border-color:#6366f1;background:rgba(99,102,241,.15)}
+.key .primary{font-weight:600}
+.key .secondary{font-size:.6rem;color:#737373;margin-top:1px}
+.key.wide{min-width:72px}
+.key.wider{min-width:96px}
+.key.widest{min-width:130px}
+.key.space{min-width:280px}
+.finger-legend{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem}
+.finger{display:flex;align-items:center;gap:.3rem;font-size:.7rem;color:#737373}
+.finger .dot{width:10px;height:10px;border-radius:50%}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem}
+.stat{background:#1a1a1a;border-radius:8px;padding:1rem;text-align:center}
+.stat-value{font-size:1.3rem;font-weight:600;margin-bottom:.2rem}
+.stat-label{font-size:.7rem;color:#737373;text-transform:uppercase;letter-spacing:.05em}
+.remap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.5rem}
+.remap-row{display:flex;align-items:center;gap:.5rem;font-size:.8rem}
+.remap-row span{color:#737373}
+.remap-row input{width:50px;text-align:center;padding:.3rem;font-size:.8rem}
+.output-box{background:#1a1a1a;border:1px solid #262626;border-radius:8px;padding:1rem;font-family:monospace;font-size:.75rem;white-space:pre-wrap;max-height:300px;overflow-y:auto;position:relative;margin-top:1rem}
+.copy-btn{position:absolute;top:.5rem;right:.5rem;padding:.3rem .6rem;font-size:.7rem;background:#262626;border:1px solid #737373;border-radius:4px;color:#e5e5e5;cursor:pointer}
+.finger-colors{['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6','#ec4899','#06b6d4']}
+</style>
+</head>
+<body>
+<a href="index.html">&larr; Back</a>
+<h1>Keyboard Layout Viewer</h1>
+<p class="sub">Compare keyboard layouts and analyze key distribution</p>
+
+<div class="card">
+<div class="row">
+<select id="layoutSelect">
+<option value="qwerty">QWERTY</option>
+<option value="azerty">AZERTY</option>
+<option value="qwertz">QWERTZ</option>
+<option value="dvorak">Dvorak</option>
+<option value="colemak">Colemak</option>
+</select>
+<div class="btn-group">
+<button class="btn active" data-highlight="none">Normal</button>
+<button class="btn" data-highlight="finger">Finger Zones</button>
+<button class="btn" data-highlight="hand">Hands</button>
+</div>
+<button class="btn" id="remapToggle" style="margin-left:auto">Custom Remap</button>
+</div>
+</div>
+
+<div class="card">
+<div class="kb" id="keyboard"></div>
+<div class="finger-legend" id="fingerLegend"></div>
+</div>
+
+<div class="card">
+<h2>Typing Statistics</h2>
+<div class="stats-grid" id="statsGrid"></div>
+</div>
+
+<div class="card" id="remapCard" style="display:none">
+<h2>Custom Remapping</h2>
+<p style="font-size:.8rem;color:#737373;margin-bottom:1rem">Click a key on the keyboard, then type the replacement character</p>
+<div class="remap-grid" id="remapGrid"></div>
+<div style="margin-top:1rem;display:flex;gap:.5rem">
+<button class="primary" id="exportBtn">Export as JSON</button>
+<button class="btn" id="resetRemap">Reset</button>
+</div>
+<div class="output-box" id="exportOutput" style="display:none"><button class="copy-btn" id="copyBtn">Copy</button></div>
+</div>
+
+<script>
+const LAYOUTS={
+qwerty:{name:'QWERTY',rows:[['`','1','2','3','4','5','6','7','8','9','0','-','='],['q','w','e','r','t','y','u','i','o','p','[',']','\\'],['a','s','d','f','g','h','j','k','l',';',"'"],['z','x','c','v','b','n','m',',','.','/']],home:['a','s','d','f','g','h','j','k','l',';']},
+azerty:{name:'AZERTY',rows:[['²','1','2','3','4','5','6','7','8','9','0','°','+'],['a','z','e','r','t','y','u','i','o','p','^','$'],['q','s','d','f','g','h','j','k','l','m','ù'],['w','x','c','v','b','n',',',';',':','!']],home:['q','s','d','f','g','h','j','k','l','m']},
+qwertz:{name:'QWERTZ',rows:[['^','1','2','3','4','5','6','7','8','9','0','ß','´'],['q','w','e','r','t','z','u','i','o','p','ü','+'],['a','s','d','f','g','h','j','k','l','ö','ä'],['y','x','c','v','b','n','m',',','.','-']],home:['a','s','d','f','g','h','j','k','l','ö']},
+dvorak:{name:'Dvorak',rows:[['`','1','2','3','4','5','6','7','8','9','0','[',']'],['\'',',','.','p','y','f','g','c','r','l','/','=','\\'],['a','o','e','u','i','d','h','t','n','s','-'],[';','q','j','k','x','b','m','w','v','z']],home:['a','o','e','u','i','d','h','t','n','s']},
+colemak:{name:'Colemak',rows:[['`','1','2','3','4','5','6','7','8','9','0','-','='],['q','w','f','p','g','j','l','u','y',';','[',']','\\'],['a','r','s','t','d','h','n','e','i','o',"'"],['z','x','c','v','b','k','m',',','.','/']],home:['a','r','s','t','d','h','n','e','i','o']}
+};
+const FINGER_COLORS=['#ef4444','#f97316','#eab308','#22c55e','#22c55e','#3b82f6','#8b5cf6','#ec4899'];
+const FINGER_MAP={
+qwerty:{1:['`','1','q','a','z'],2:['2','w','s','x'],3:['3','e','d','c'],4:['4','r','f','v','5','t','g','b'],5:['6','y','h','n'],6:['7','u','j','m'],7:['8','i','k',','],8:['9','o','l','.'],9:['0','p',';','/'],10:['-','[',"'"],11:['=','\\']},
+dvorak:{1:['`','1','\'','a',';'],2:['2',',','o','q'],3:['3','.','e','j'],4:['4','p','u','k','5','y','i','x'],5:['6','f','d',','],6:['7','g','t','m'],7:['8','c','h','b'],8:['9','r','n','w'],9:['0','l','s','v'],10:['-','/','-'],11:['=','\\']},
+colemak:{1:['`','1','q','a','z'],2:['2','w','r','x'],3:['3','f','s','c'],4:['4','p','t','v','5','g','d','b'],5:['6','j','h','n'],6:['7','l','e','m'],7:['8','u','i',','],8:['9','y','o','.'],9:['0',';','/'],10:['-','[',"'"],11:['=','\\']}
+};
+const KEY_WIDTHS={'\\':1,'[':1,']':1,"'":1,';':1,',':1,'.':1,'/':1,'-':1,'=':1};
+const SPECIAL_WIDE=['Backspace','Tab','Enter','Shift','CapsLock','Space'];
+let currentLayout='qwerty',highlightMode='none',remapping=false,remapKey=null,remaps={},selectedKey=null;
+const $=id=>document.getElementById(id);
+const isHome=key=>LAYOUTS[currentLayout].home.includes(key);
+const getFinger=key=>{
+  const map=FINGER_MAP[currentLayout];
+  if(!map){if(isHome(key)){const i=LAYOUTS[currentLayout].home.indexOf(key);return i<5?i+1:i+2}return 4}
+  for(const[f,keys]of Object.entries(map)){if(keys.includes(key))return+f}return 4
+};
+const getHand=key=>{const f=getFinger(key);return f<=4?'left':'right'};
+const renderKeyboard=()=>{
+  const layout=LAYOUTS[currentLayout];
+  const kb=$('keyboard');kb.innerHTML='';
+  const allKeys=[].concat(...layout.rows);
+  layout.rows.forEach(row=>{
+    const rowDiv=document.createElement('div');rowDiv.className='row-keys';
+    row.forEach(key=>{
+      const k=document.createElement('div');k.className='key';
+      const disp=remaps[key]||key;
+      k.innerHTML=`<span class="primary">${disp}</span>`;
+      if(isHome(key))k.classList.add('highlight');
+      if(highlightMode==='finger'){const f=getFinger(key);k.style.borderColor=FINGER_COLORS[f-1]||FINGER_COLORS[4];k.style.background=`${FINGER_COLORS[f-1]||FINGER_COLORS[4]}15`}
+      if(highlightMode==='hand'){const h=getHand(key);k.style.borderColor=h==='left'?'#3b82f6':'#f97316';k.style.background=h==='left'?'rgba(59,130,246,.1)':'rgba(249,115,22,.1)'}
+      if(key===selectedKey){k.style.borderColor='#e5e5e5';k.style.background='#333'}
+      k.onclick=()=>{if(remapping){selectedKey=key;renderKeyboard()}};
+      rowDiv.appendChild(k);
+    });
+    kb.appendChild(rowDiv);
+  });
+  const special=[['Tab',72],['CapsLock',84],['Shift',108],['Shift',108]];
+  const legend=$('fingerLegend');
+  legend.innerHTML=FINGER_COLORS.map((c,i)=>`<span class="finger"><span class="dot" style="background:${c}"></span>Finger ${i+1}</span>`).join('');
+  calcStats();
+};
+const calcStats=()=>{
+  const layout=LAYOUTS[currentLayout];
+  const allKeys=[].concat(...layout.rows);
+  const fingerCount={},handCount={left:0,right:0};
+  allKeys.forEach(k=>{const f=getFinger(k);fingerCount[f]=(fingerCount[f]||0)+1;handCount[getHand(k)]++});
+  const homeCount=allKeys.filter(k=>isHome(k)).length;
+  const total=allKeys.length;
+  const efficiency=((homeCount/total)*100).toFixed(1);
+  const sameFingerBigrams=0;
+  const leftPct=((handCount.left/total)*100).toFixed(0);
+  const rightPct=((handCount.right/total)*100).toFixed(0);
+  $('statsGrid').innerHTML=`
+    <div class="stat"><div class="stat-value">${total}</div><div class="stat-label">Total Keys</div></div>
+    <div class="stat"><div class="stat-value">${homeCount}</div><div class="stat-label">Home Row Keys</div></div>
+    <div class="stat"><div class="stat-value">${efficiency}%</div><div class="stat-label">Home Row Efficiency</div></div>
+    <div class="stat"><div class="stat-value">${leftPct}% / ${rightPct}%</div><div class="stat-label">Left / Right Hand</div></div>
+    <div class="stat"><div class="stat-value">${Object.keys(fingerCount).length}</div><div class="stat-label">Fingers Used</div></div>
+  `;
+};
+document.querySelectorAll('.btn[data-highlight]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.btn[data-highlight]').forEach(x=>x.classList.remove('active'));b.classList.add('active');highlightMode=b.dataset.highlight;renderKeyboard()});
+$('layoutSelect').onchange=e=>{currentLayout=e.target.value;remaps={};renderKeyboard()};
+$('remapToggle').onclick=()=>{remapping=!remapping;$('remapCard').style.display=remapping?'':'none';$('remapToggle').classList.toggle('active',remapping);selectedKey=null;renderKeyboard()};
+$('resetRemap').onclick=()=>{remaps={};selectedKey=null;renderKeyboard()};
+$('exportBtn').onclick=()=>{const obj={layout:currentLayout,remaps};$('exportOutput').textContent=JSON.stringify(obj,null,2);$('exportOutput').style.display='block'};
+$('copyBtn').onclick=()=>{navigator.clipboard.writeText($('exportOutput').textContent);$('copyBtn').textContent='Copied!';setTimeout(()=>$('copyBtn').textContent='Copy',1500)};
+document.addEventListener('keydown',e=>{if(remapping&&selectedKey&&e.key.length===1){remaps[selectedKey]=e.key;selectedKey=null;renderKeyboard()}});
+renderKeyboard();
+</script>
+</body>
+</html>

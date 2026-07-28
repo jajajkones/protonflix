@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API Documentation Generator</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0c0c0c;color:#e5e5e5;min-height:100vh;padding:20px}
+a{color:#e5e5e5;text-decoration:none}
+a:hover{text-decoration:underline}
+.header{display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #262626}
+.header h1{font-size:1.4rem;font-weight:600}
+.back{color:#737373;font-size:.875rem}
+.back:hover{color:#e5e5e5}
+.container{max-width:1000px;margin:0 auto}
+.panel{background:#141414;border:1px solid #262626;border-radius:8px;padding:20px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+label{display:block;font-size:.8rem;color:#737373;margin-bottom:4px}
+input[type=text],textarea,select{width:100%;background:#1a1a1a;border:1px solid #262626;border-radius:6px;padding:8px 10px;color:#e5e5e5;font-size:.85rem;font-family:inherit}
+textarea{height:120px;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:none;border-color:#555}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23737373'%3E%3Cpath d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.btn-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+button{background:#1a1a1a;border:1px solid #262626;border-radius:6px;padding:8px 16px;color:#e5e5e5;font-size:.8rem;cursor:pointer;font-family:inherit}
+button:hover{background:#262626}
+button.primary{background:#e5e5e5;color:#0c0c0c;border-color:#e5e5e5}
+button.primary:hover{background:#d4d4d4}
+.method{display:inline-block;border-radius:3px;padding:2px 8px;font-size:.75rem;font-weight:600;font-family:monospace;min-width:60px;text-align:center}
+.get{background:#22c55e20;color:#22c55e;border:1px solid #22c55e40}
+.post{background:#3b82f620;color:#3b82f6;border:1px solid #3b82f640}
+.put{background:#f59e0b20;color:#f59e0b;border:1px solid #f59e0b40}
+.delete{background:#ef444420;color:#ef4444;border:1px solid #ef444440}
+.patch{background:#a855f720;color:#a855f7;border:1px solid #a855f740}
+.endpoint-row{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid #1a1a1a;font-size:.85rem}
+.endpoint-row:last-child{border-bottom:none}
+.endpoint-path{font-family:monospace;flex:1}
+.endpoint-desc{color:#737373;font-size:.8rem}
+.remove-btn{background:none;border:none;color:#737373;cursor:pointer;font-size:1rem;padding:2px 6px}
+.remove-btn:hover{color:#ef4444}
+.code-block{background:#0c0c0c;border:1px solid #262626;border-radius:6px;padding:12px;font-family:monospace;font-size:.8rem;white-space:pre-wrap;word-break:break-all;max-height:400px;overflow-y:auto;line-height:1.6;color:#a3a3a3}
+.section-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;color:#737373;margin-bottom:8px;font-weight:600}
+.preset-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.preset{font-size:.75rem;padding:4px 10px}
+.toast{position:fixed;bottom:20px;right:20px;background:#262626;color:#e5e5e5;padding:10px 20px;border-radius:6px;font-size:.85rem;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+.preview{max-height:500px;overflow-y:auto;padding:16px;line-height:1.7}
+.preview h1{font-size:1.3rem;margin-bottom:8px}
+.preview h2{font-size:1.1rem;margin-top:20px;margin-bottom:8px;color:#e5e5e5}
+.preview h3{font-size:.95rem;margin-top:16px;margin-bottom:4px}
+.preview p{color:#a3a3a3;font-size:.85rem;margin-bottom:8px}
+.preview code{background:#1a1a1a;padding:2px 6px;border-radius:3px;font-size:.8rem;font-family:monospace}
+.preview pre{background:#0c0c0c;border:1px solid #262626;border-radius:6px;padding:12px;font-size:.8rem;overflow-x:auto;margin:8px 0}
+.preview table{width:100%;border-collapse:collapse;font-size:.8rem;margin:8px 0}
+.preview th,.preview td{text-align:left;padding:6px 10px;border-bottom:1px solid #262626}
+.preview th{color:#737373;font-weight:500}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html" class="back">&larr; Back</a>
+<h1>API Documentation Generator</h1>
+</div>
+<div class="panel">
+<label>Template</label>
+<div class="preset-row">
+<button class="preset" onclick="loadTemplate('rest')">REST API</button>
+<button class="preset" onclick="loadTemplate('graphql')">GraphQL</button>
+<button class="preset" onclick="loadTemplate('auth')">Auth API</button>
+<button class="preset" onclick="loadTemplate('crud')">CRUD API</button>
+</div>
+<div class="grid">
+<div>
+<label for="apiName">API Name</label>
+<input type="text" id="apiName" placeholder="My API" oninput="renderPreview()">
+<label for="apiBase" style="margin-top:8px">Base URL</label>
+<input type="text" id="apiBase" placeholder="https://api.example.com/v1" oninput="renderPreview()">
+<label for="apiDesc" style="margin-top:8px">Description</label>
+<textarea id="apiDesc" style="height:60px" placeholder="API description..." oninput="renderPreview()"></textarea>
+<label for="apiKey" style="margin-top:8px">Auth Type</label>
+<select id="apiKey" onchange="renderPreview()">
+<option value="bearer">Bearer Token</option>
+<option value="apikey">API Key</option>
+<option value="basic">Basic Auth</option>
+<option value="none">None</option>
+</select>
+</div>
+<div>
+<div class="section-label">Endpoints</div>
+<div id="endpointList"></div>
+<div style="margin-top:8px">
+<div class="grid" style="gap:6px">
+<select id="epMethod" style="width:auto">
+<option value="GET">GET</option><option value="POST">POST</option><option value="PUT">PUT</option><option value="DELETE">DELETE</option><option value="PATCH">PATCH</option>
+</select>
+<input type="text" id="epPath" placeholder="/resource" style="flex:1">
+</div>
+<input type="text" id="epDesc" placeholder="Description" style="margin-top:6px">
+<div style="display:flex;gap:6px;margin-top:6px">
+<input type="text" id="epParams" placeholder='Params: name:type:required, ...' style="flex:1;font-size:.8rem">
+<button onclick="addEndpoint()">Add</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="panel">
+<div class="tabs" style="display:flex;gap:4px;margin-bottom:12px">
+<div class="tab active" onclick="switchView('preview',this)" style="background:#1a1a1a;border:1px solid #262626;border-radius:6px;padding:6px 14px;color:#e5e5e5;font-size:.8rem;cursor:pointer">Preview</div>
+<div class="tab" onclick="switchView('markdown',this)" style="background:#1a1a1a;border:1px solid #262626;border-radius:6px;padding:6px 14px;color:#737373;font-size:.8rem;cursor:pointer">Markdown</div>
+<div class="tab" onclick="switchView('html',this)" style="background:#1a1a1a;border:1px solid #262626;border-radius:6px;padding:6px 14px;color:#737373;font-size:.8rem;cursor:pointer">HTML</div>
+</div>
+<div id="previewView" class="panel preview" style="margin-bottom:0;max-height:500px;overflow-y:auto"></div>
+<div id="markdownView" class="code-block" style="display:none;max-height:500px"></div>
+<div id="htmlView" class="code-block" style="display:none;max-height:500px"></div>
+<div class="btn-row">
+<button class="primary" onclick="copyOutput()">Copy Output</button>
+<button onclick="downloadFile()">Download</button>
+</div>
+</div>
+</div>
+<div class="toast" id="toast">Copied!</div>
+<script>
+let endpoints=[];
+let currentView='preview';
+function loadTemplate(type){
+const templates={
+rest:{name:'REST API',base:'https://api.example.com/v1',desc:'A complete RESTful API',auth:'bearer',eps:[
+{method:'GET',path:'/users',desc:'List all users',params:'limit:number:false,offset:number:false'},
+{method:'GET',path:'/users/:id',desc:'Get user by ID'},
+{method:'POST',path:'/users',desc:'Create a new user'},
+{method:'PUT',path:'/users/:id',desc:'Update a user'},
+{method:'DELETE',path:'/users/:id',desc:'Delete a user'},
+{method:'GET',path:'/posts',desc:'List posts',params:'userId:number:false'}
+]},
+graphql:{name:'GraphQL API',base:'https://api.example.com/graphql',desc:'GraphQL endpoint',auth:'bearer',eps:[
+{method:'POST',path:'/',desc:'Query: users, user(id), posts, createPost, updateUser, deleteUser'}
+]},
+auth:{name:'Auth API',base:'https://auth.example.com',desc:'Authentication and authorization',auth:'none',eps:[
+{method:'POST',path:'/register',desc:'Register new account'},
+{method:'POST',path:'/login',desc:'Login and receive token'},
+{method:'POST',path:'/refresh',desc:'Refresh access token'},
+{method:'POST',path:'/logout',desc:'Invalidate token'},
+{method:'POST',path:'/forgot-password',desc:'Request password reset'},
+{method:'POST',path:'/reset-password',desc:'Reset password with token'}
+]},
+crud:{name:'CRUD API',base:'https://api.example.com/v1',desc:'Basic CRUD operations',auth:'apikey',eps:[
+{method:'GET',path:'/items',desc:'List items'},
+{method:'POST',path:'/items',desc:'Create item'},
+{method:'GET',path:'/items/:id',desc:'Get item'},
+{method:'PUT',path:'/items/:id',desc:'Update item'},
+{method:'DELETE',path:'/items/:id',desc:'Delete item'}
+]}
+};
+const t=templates[type];
+document.getElementById('apiName').value=t.name;
+document.getElementById('apiBase').value=t.base;
+document.getElementById('apiDesc').value=t.desc;
+document.getElementById('apiKey').value=t.auth;
+endpoints=t.eps.map(e=>({...e,params:e.params?e.params.split(',').map(p=>{const[n,t,r]=p.split(':');return{name:n,type:t||'string',required:r==='true'}}):[]}));
+renderEndpoints();renderPreview();
+}
+function addEndpoint(){
+const method=document.getElementById('epMethod').value;
+const path=document.getElementById('epPath').value.trim();
+const desc=document.getElementById('epDesc').value.trim();
+const paramsStr=document.getElementById('epParams').value.trim();
+if(!path)return;
+const params=paramsStr?paramsStr.split(',').map(p=>{const[n,t,r]=p.split(':');return{name:n.trim(),type:(t||'string').trim(),required:r==='true'};}):[];
+endpoints.push({method,path,desc,params});
+document.getElementById('epPath').value='';document.getElementById('epDesc').value='';document.getElementById('epParams').value='';
+renderEndpoints();renderPreview();
+}
+function removeEndpoint(i){endpoints.splice(i,1);renderEndpoints();renderPreview()}
+function renderEndpoints(){
+const el=document.getElementById('endpointList');
+el.innerHTML=endpoints.map((e,i)=>`<div class="endpoint-row"><span class="method ${e.method.toLowerCase()}">${e.method}</span><span class="endpoint-path">${e.path}</span><span class="endpoint-desc">${e.desc}</span><button class="remove-btn" onclick="removeEndpoint(${i})">&times;</button></div>`).join('');
+}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function generateMarkdown(){
+const name=document.getElementById('apiName').value||'API';
+const base=document.getElementById('apiBase').value||'';
+const desc=document.getElementById('apiDesc').value||'';
+const auth=document.getElementById('apiKey').value;
+let md=`# ${esc(name)}\n\n${esc(desc)}\n\n**Base URL:** \`${esc(base)}\`\n\n`;
+if(auth!=='none'){
+md+=`## Authentication\n\n`;
+if(auth==='bearer')md+=`Include a Bearer token in the Authorization header:\n\n\`\`\`\nAuthorization: Bearer <token>\n\`\`\`\n\n`;
+else if(auth==='apikey')md+=`Include your API key in the X-API-Key header:\n\n\`\`\`\nX-API-Key: <your-api-key>\n\`\`\`\n\n`;
+else if(auth==='basic')md+=`Use Basic authentication:\n\n\`\`\`\nAuthorization: Basic <base64(username:password)>\n\`\`\`\n\n`;
+}
+md+=`## Endpoints\n\n`;
+endpoints.forEach(e=>{
+md+=`### ${e.method} ${esc(e.path)}\n\n${esc(e.desc)}\n\n`;
+if(e.params&&e.params.length){
+md+=`**Parameters:**\n\n| Name | Type | Required |\n|------|------|----------|\n`;
+e.params.forEach(p=>{md+=`| ${esc(p.name)} | ${esc(p.type)} | ${p.required?'Yes':'No'} |\n`});
+md+='\n';
+}
+md+=`**Request:**\n\n\`\`\`http\n${e.method} ${esc(base+e.path)} HTTP/1.1\nContent-Type: application/json\n\`\`\`\n\n`;
+if(e.method==='POST'||e.method==='PUT'||e.method==='PATCH'){
+md+=`**Request Body:**\n\n\`\`\`json\n{\n  // request body\n}\n\`\`\`\n\n`;
+}
+md+=`**Response (200):**\n\n\`\`\`json\n{\n  "success": true,\n  "data": {}\n}\n\`\`\`\n\n`;
+md+=`---\n\n`;
+});
+return md;
+}
+function generateHTML(){
+return `<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>${esc(document.getElementById('apiName').value)}</title>\n<style>body{font-family:system-ui,sans-serif;max-width:800px;margin:0 auto;padding:40px;color:#333}h1{border-bottom:2px solid #eee;padding-bottom:8px}.method{display:inline-block;border-radius:3px;padding:2px 8px;font-size:.75rem;font-weight:700;color:#fff;margin-right:6px}.get{background:#22c55e}.post{background:#3b82f6}.put{background:#f59e0b}.delete{background:#ef4444}.patch{background:#a855f7}pre{background:#f5f5f5;padding:12px;border-radius:6px;overflow-x:auto}code{font-family:monospace;font-size:.9em}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:8px;text-align:left}</style>\n</head>\n<body>\n${document.getElementById('previewView').innerHTML}\n</body></html>`;
+}
+function renderPreview(){
+const name=document.getElementById('apiName').value||'API';
+const base=document.getElementById('apiBase').value||'';
+const desc=document.getElementById('apiDesc').value||'';
+const auth=document.getElementById('apiKey').value;
+let h=`<h1>${esc(name)}</h1><p>${esc(desc)}</p><p><strong>Base URL:</strong> <code>${esc(base)}</code></p>`;
+if(auth!=='none'){
+h+=`<h2>Authentication</h2>`;
+if(auth==='bearer')h+=`<p>Include a Bearer token in the Authorization header:</p><pre><code>Authorization: Bearer &lt;token&gt;</code></pre>`;
+else if(auth==='apikey')h+=`<p>Include your API key in the X-API-Key header:</p><pre><code>X-API-Key: &lt;your-api-key&gt;</code></pre>`;
+else if(auth==='basic')h+=`<p>Use Basic authentication:</p><pre><code>Authorization: Basic &lt;base64(username:password)&gt;</code></pre>`;
+}
+h+=`<h2>Endpoints</h2>`;
+endpoints.forEach(e=>{
+h+=`<h3><span class="method ${e.method.toLowerCase()}">${e.method}</span>${esc(e.path)}</h3><p>${esc(e.desc)}</p>`;
+if(e.params&&e.params.length){
+h+=`<table><tr><th>Name</th><th>Type</th><th>Required</th></tr>`;
+e.params.forEach(p=>{h+=`<tr><td>${esc(p.name)}</td><td>${esc(p.type)}</td><td>${p.required?'Yes':'No'}</td></tr>`});
+h+=`</table>`;
+}
+h+=`<pre><code>${e.method} ${esc(base+e.path)} HTTP/1.1\nContent-Type: application/json</code></pre>`;
+if(e.method==='POST'||e.method==='PUT'||e.method==='PATCH')h+=`<p><strong>Request Body:</strong></p><pre><code>{\n  // request body\n}</code></pre>`;
+h+=`<p><strong>Response (200):</strong></p><pre><code>{\n  "success": true,\n  "data": {}\n}</code></pre>`;
+});
+document.getElementById('previewView').innerHTML=h;
+document.getElementById('markdownView').textContent=generateMarkdown();
+document.getElementById('htmlView').textContent=generateHTML();
+}
+function switchView(view,el){
+currentView=view;
+document.querySelectorAll('.tab').forEach(t=>{t.style.color='#737373'});
+el.style.color='#e5e5e5';
+document.getElementById('previewView').style.display=view==='preview'?'block':'none';
+document.getElementById('markdownView').style.display=view==='markdown'?'block':'none';
+document.getElementById('htmlView').style.display=view==='html'?'block':'none';
+}
+function copyOutput(){
+const text=currentView==='markdown'?generateMarkdown():currentView==='html'?generateHTML():document.getElementById('previewView').textContent;
+navigator.clipboard.writeText(text).then(()=>showToast());
+}
+function downloadFile(){
+const text=currentView==='markdown'?generateMarkdown():currentView==='html'?generateHTML():document.getElementById('previewView').innerHTML;
+const ext=currentView==='markdown'?'.md':currentView==='html'?'.html':'.txt';
+const blob=new Blob([text],{type:'text/plain'});
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='api-docs'+ext;a.click();
+}
+function showToast(){const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+loadTemplate('rest');
+</script>
+</body>
+</html>

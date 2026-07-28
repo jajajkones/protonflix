@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Port Scanner - ProtonFlix Tools</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0c0c0c;color:#e5e5e5;min-height:100vh;padding:20px}
+.container{max-width:800px;margin:0 auto}
+a{color:#e5e5e5;text-decoration:none;opacity:.6;transition:opacity .2s}
+a:hover{opacity:1}
+.header{display:flex;align-items:center;gap:16px;margin-bottom:32px}
+.header h1{font-size:1.5rem;font-weight:600}
+.card{background:#141414;border:1px solid #262626;border-radius:12px;padding:24px;margin-bottom:16px}
+label{display:block;font-size:.875rem;color:#737373;margin-bottom:6px}
+input[type="text"]{width:100%;background:#1a1a1a;border:1px solid #262626;border-radius:8px;padding:10px 14px;color:#e5e5e5;font-size:.95rem;outline:none;transition:border-color .2s}
+input[type="text"]:focus{border-color:#555}
+.btn{background:#e5e5e5;color:#0c0c0c;border:none;border-radius:8px;padding:10px 24px;font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .2s;margin-top:12px}
+.btn:hover{opacity:.85}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.status-bar{display:flex;gap:8px;margin-top:12px;align-items:center;font-size:.85rem;color:#737373}
+.status-bar .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.status-bar .dot.scanning{background:#f59e0b;animation:pulse 1s infinite}
+.status-bar .dot.done{background:#22c55e}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.results{margin-top:16px}
+.port-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#1a1a1a;border:1px solid #262626;border-radius:8px;margin-bottom:6px;font-size:.85rem;transition:background .15s}
+.port-row:hover{background:#1f1f1f}
+.port-row .left{display:flex;align-items:center;gap:12px}
+.port-row .port-num{font-weight:600;font-family:monospace;min-width:50px}
+.port-row .desc{color:#737373}
+.port-row .badge{padding:2px 10px;border-radius:20px;font-size:.75rem;font-weight:600;text-transform:uppercase}
+.port-row .badge.open{background:#166534;color:#4ade80}
+.port-row .badge.closed{background:#7f1d1d;color:#fca5a5}
+.port-row .badge.filtered{background:#78350f;color:#fbbf24}
+.port-row .badge.error{background:#374151;color:#9ca3af}
+.note{background:#1a1a1a;border:1px solid #262626;border-radius:8px;padding:14px;font-size:.8rem;color:#737373;line-height:1.6;margin-top:16px}
+.note strong{color:#e5e5e5}
+.progress{height:3px;background:#1a1a1a;border-radius:2px;margin-top:12px;overflow:hidden}
+.progress .fill{height:100%;background:#e5e5e5;border-radius:2px;transition:width .3s}
+.empty{text-align:center;color:#737373;padding:40px;font-size:.9rem}
+</style>
+</head>
+<body>
+<div class="container">
+<a href="index.html" style="display:inline-flex;align-items:center;gap:6px;margin-bottom:16px">&larr; Back</a>
+<div class="header"><h1>Port Scanner</h1></div>
+<div class="card">
+<label for="host">Hostname or IP Address</label>
+<input type="text" id="host" placeholder="e.g. scanme.nmap.org or 192.168.1.1">
+<button class="btn" id="scanBtn" onclick="startScan()">Scan Ports</button>
+<div class="status-bar" id="statusBar" style="display:none">
+<span class="dot scanning" id="statusDot"></span>
+<span id="statusText">Scanning...</span>
+</div>
+<div class="progress" id="progressWrap" style="display:none"><div class="fill" id="progressFill"></div></div>
+</div>
+<div class="card">
+<div class="results" id="results"><div class="empty">Enter a hostname or IP and click Scan</div></div>
+</div>
+<div class="note"><strong>Note:</strong> This scanner operates entirely client-side using browser fetch requests. Due to browser security restrictions (CORS, mixed content, timeouts), results may not be fully accurate. Some ports may appear filtered when they are actually open or closed. For reliable port scanning, use dedicated tools like nmap. This tool is best suited for quick checks of commonly accessible web ports.</div>
+</div>
+<script>
+const PORTS=[
+{p:21,d:"FTP - File Transfer Protocol"},
+{p:22,d:"SSH - Secure Shell"},
+{p:25,d:"SMTP - Simple Mail Transfer Protocol"},
+{p:53,d:"DNS - Domain Name System"},
+{p:80,d:"HTTP - Hypertext Transfer Protocol"},
+{p:110,d:"POP3 - Post Office Protocol v3"},
+{p:143,d:"IMAP - Internet Message Access Protocol"},
+{p:443,d:"HTTPS - HTTP Secure"},
+{p:465,d:"SMTPS - SMTP over SSL"},
+{p:587,d:"SMTP (Submission)"},
+{p:993,d:"IMAPS - IMAP over SSL"},
+{p:995,d:"POP3S - POP3 over SSL"},
+{p:3306,d:"MySQL Database"},
+{p:3389,d:"RDP - Remote Desktop Protocol"},
+{p:5432,d:"PostgreSQL Database"},
+{p:8080,d:"HTTP Alt - Common Proxy/Dev Port"},
+{p:8443,d:"HTTPS Alt - Common Alt Secure"}
+];
+let scanning=false;
+async function checkPort(host,port,timeout=2500){
+const controllers=[];
+const protocols=["http","https"];
+let result={status:"closed"};
+for(const proto of protocols){
+try{
+const ctrl=new AbortController();
+controllers.push(ctrl);
+const id=setTimeout(()=>ctrl.abort(),timeout);
+const url=`${proto}://${host}:${port}`;
+await fetch(url,{mode:"no-cors",signal:ctrl.signal,cache:"no-store"});
+clearTimeout(id);
+return{status:"open"};
+}catch(e){
+clearTimeout(id);
+if(e.name==="AbortError"){
+result={status:"filtered"};
+}else{
+result={status:"closed"};
+}
+}
+}
+for(const c of controllers)try{c.abort()}catch(e){}
+return result;
+}
+async function startScan(){
+if(scanning)return;
+const host=document.getElementById("host").value.trim();
+if(!host){document.getElementById("host").focus();return;}
+scanning=true;
+const btn=document.getElementById("scanBtn");
+btn.disabled=true;
+btn.textContent="Scanning...";
+const bar=document.getElementById("statusBar");
+const dot=document.getElementById("statusDot");
+const txt=document.getElementById("statusText");
+const pWrap=document.getElementById("progressWrap");
+const pFill=document.getElementById("progressFill");
+bar.style.display="flex";
+pWrap.style.display="block";
+dot.className="dot scanning";
+txt.textContent="Scanning...";
+const res=document.getElementById("results");
+res.innerHTML="";
+const results=[];
+for(let i=0;i<PORTS.length;i++){
+const {p,d}=PORTS[i];
+txt.textContent=`Checking port ${p}...`;
+pFill.style.width=`${((i+1)/PORTS.length)*100}%`;
+const r=await checkPort(host,p);
+results.push({...r,port:p,desc:d});
+renderResults(results);
+}
+dot.className="dot done";
+txt.textContent=`Scan complete - ${results.filter(r=>r.status==="open").length} open port(s) found`;
+btn.disabled=false;
+btn.textContent="Scan Ports";
+scanning=false;
+}
+function renderResults(results){
+const res=document.getElementById("results");
+res.innerHTML=results.map(r=>`<div class="port-row"><div class="left"><span class="port-num">${r.port}</span><span class="desc">${r.desc}</span></div><span class="badge ${r.status}">${r.status}</span></div>`).join("");
+}
+document.getElementById("host").addEventListener("keydown",e=>{if(e.key==="Enter")startScan()});
+</script>
+</body>
+</html>

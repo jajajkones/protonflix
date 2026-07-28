@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meta Tag Generator</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0c0c0c;color:#e5e5e5;min-height:100vh;padding:20px}
+a{color:#e5e5e5;text-decoration:none}
+a:hover{text-decoration:underline}
+.header{display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #262626}
+.header h1{font-size:1.4rem;font-weight:600}
+.back{color:#737373;font-size:.875rem}
+.back:hover{color:#e5e5e5}
+.container{max-width:1000px;margin:0 auto}
+.panel{background:#141414;border:1px solid #262626;border-radius:8px;padding:20px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+label{display:block;font-size:.8rem;color:#737373;margin-bottom:4px}
+input[type=text],textarea{width:100%;background:#1a1a1a;border:1px solid #262626;border-radius:6px;padding:8px 10px;color:#e5e5e5;font-size:.85rem;font-family:inherit}
+textarea{height:80px;resize:vertical}
+input:focus,textarea:focus{outline:none;border-color:#555}
+.btn-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+button{background:#1a1a1a;border:1px solid #262626;border-radius:6px;padding:8px 16px;color:#e5e5e5;font-size:.8rem;cursor:pointer;font-family:inherit}
+button:hover{background:#262626}
+button.primary{background:#e5e5e5;color:#0c0c0c;border-color:#e5e5e5}
+button.primary:hover{background:#d4d4d4}
+.code-block{background:#0c0c0c;border:1px solid #262626;border-radius:6px;padding:12px;font-family:monospace;font-size:.8rem;white-space:pre-wrap;word-break:break-all;max-height:400px;overflow-y:auto;line-height:1.6;color:#a3a3a3}
+.section-title{font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;color:#737373;margin-bottom:10px;font-weight:600}
+.preview-card{background:#1a1a1a;border:1px solid #262626;border-radius:8px;padding:16px;margin-top:12px}
+.preview-card .url{color:#737373;font-size:.8rem;margin-bottom:4px}
+.preview-card .title{color:#e5e5e5;font-size:1.05rem;font-weight:600;margin-bottom:4px}
+.preview-card .desc{color:#a3a3a3;font-size:.85rem;line-height:1.4}
+.preview-twitter{border-left:3px solid #1da1f2}
+.toast{position:fixed;bottom:20px;right:20px;background:#262626;color:#e5e5e5;padding:10px 20px;border-radius:6px;font-size:.85rem;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+.tag-label{display:inline-block;background:#262626;border-radius:3px;padding:1px 6px;font-size:.7rem;color:#a3a3a3;margin-right:4px}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html" class="back">&larr; Back</a>
+<h1>Meta Tag Generator</h1>
+</div>
+<div class="grid">
+<div class="panel">
+<div class="section-title">Basic Meta Tags</div>
+<label for="title">Title</label>
+<input type="text" id="title" placeholder="My Page Title" oninput="generate()">
+<label for="desc" style="margin-top:8px">Description</label>
+<textarea id="desc" placeholder="A brief description of the page" oninput="generate()"></textarea>
+<label for="keywords" style="margin-top:8px">Keywords</label>
+<input type="text" id="keywords" placeholder="keyword1, keyword2, keyword3" oninput="generate()">
+<label for="author" style="margin-top:8px">Author</label>
+<input type="text" id="author" placeholder="Author name" oninput="generate()">
+<label for="canonical" style="margin-top:8px">Canonical URL</label>
+<input type="text" id="canonical" placeholder="https://example.com/page" oninput="generate()">
+<label for="theme" style="margin-top:8px">Theme Color</label>
+<input type="text" id="theme" placeholder="#000000" oninput="generate()">
+<label for="ogimage" style="margin-top:8px">OG Image URL</label>
+<input type="text" id="ogimage" placeholder="https://example.com/image.jpg" oninput="generate()">
+</div>
+<div class="panel">
+<div class="section-title">Preview</div>
+<div class="preview-card" id="preview">
+<div class="url" id="pv-url">example.com</div>
+<div class="title" id="pv-title">Page Title</div>
+<div class="desc" id="pv-desc">Page description will appear here...</div>
+</div>
+<div class="preview-card preview-twitter" id="preview-tw" style="margin-top:8px">
+<div class="url">Twitter Card</div>
+<div class="title" id="pv-tw-title">Page Title</div>
+<div class="desc" id="pv-tw-desc">Page description will appear here...</div>
+</div>
+<div style="margin-top:16px">
+<div class="section-title">Generated Tags</div>
+<div class="code-block" id="output">&lt;!-- Generate tags by filling in fields --&gt;</div>
+</div>
+<div class="btn-row">
+<button class="primary" onclick="copyAll()">Copy All Tags</button>
+<button onclick="copySection('standard')">Standard Only</button>
+<button onclick="copySection('og')">Open Graph</button>
+<button onclick="copySection('twitter')">Twitter</button>
+</div>
+</div>
+</div>
+</div>
+<div class="toast" id="toast">Copied!</div>
+<script>
+function g(id){return document.getElementById(id).value.trim()}
+function generate(){
+const t=g('title')||'Page Title';
+const d=g('desc')||'Page description';
+const k=g('keywords');
+const a=g('author');
+const c=g('canonical');
+const th=g('theme');
+const img=g('ogimage');
+document.getElementById('pv-title').textContent=t;
+document.getElementById('pv-desc').textContent=d;
+document.getElementById('pv-tw-title').textContent=t;
+document.getElementById('pv-tw-desc').textContent=d;
+document.getElementById('pv-url').textContent=c||'example.com';
+let std=[];
+std.push(`&lt;meta charset="UTF-8"&gt;`);
+std.push(`&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;`);
+std.push(`&lt;title&gt;${esc(t)}&lt;/title&gt;`);
+std.push(`&lt;meta name="description" content="${esc(d)}"&gt;`);
+if(k)std.push(`&lt;meta name="keywords" content="${esc(k)}"&gt;`);
+if(a)std.push(`&lt;meta name="author" content="${esc(a)}"&gt;`);
+if(c)std.push(`&lt;link rel="canonical" href="${esc(c)}"&gt;`);
+if(th)std.push(`&lt;meta name="theme-color" content="${esc(th)}"&gt;`);
+let og=[];
+og.push(`&lt;!-- Open Graph / Facebook --&gt;`);
+og.push(`&lt;meta property="og:type" content="website"&gt;`);
+og.push(`&lt;meta property="og:title" content="${esc(t)}"&gt;`);
+og.push(`&lt;meta property="og:description" content="${esc(d)}"&gt;`);
+if(c)og.push(`&lt;meta property="og:url" content="${esc(c)}"&gt;`);
+if(img)og.push(`&lt;meta property="og:image" content="${esc(img)}"&gt;`);
+let tw=[];
+tw.push(`&lt;!-- Twitter Card --&gt;`);
+tw.push(`&lt;meta name="twitter:card" content="${img?'summary_large_image':'summary'}"&gt;`);
+tw.push(`&lt;meta name="twitter:title" content="${esc(t)}"&gt;`);
+tw.push(`&lt;meta name="twitter:description" content="${esc(d)}"&gt;`);
+if(img)tw.push(`&lt;meta name="twitter:image" content="${esc(img)}"&gt;`);
+document.getElementById('output').innerHTML=[...std,...og,...tw].join('\n');
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function getPlain(){return document.getElementById('output').textContent}
+function copySection(type){
+const lines=getPlain().split('\n');
+let start=0,end=lines.length;
+if(type==='standard'){end=lines.findIndex((l,i)=>i>0&&(l.includes('Open Graph')||l.includes('og:')));if(end===-1)end=lines.length;}
+else if(type==='og'){start=lines.findIndex(l=>l.includes('Open Graph'));end=lines.findIndex((l,i)=>i>start&&l.includes('Twitter'));if(end===-1)end=lines.length;}
+else if(type==='twitter'){start=lines.findIndex(l=>l.includes('Twitter'));}
+copy(lines.slice(start,end).join('\n'));
+}
+function copyAll(){copy(getPlain())}
+function copy(t){navigator.clipboard.writeText(t).then(()=>{const ts=document.getElementById('toast');ts.classList.add('show');setTimeout(()=>ts.classList.remove('show'),1500)})}
+generate();
+</script>
+</body>
+</html>

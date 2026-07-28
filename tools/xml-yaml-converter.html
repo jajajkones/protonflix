@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XML ↔ YAML Converter</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0c0c0c;color:#e5e5e5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;padding:24px}
+a{color:#e5e5e5;text-decoration:none;opacity:.7;transition:opacity .2s}
+a:hover{opacity:1}
+.header{margin-bottom:32px}
+.header h1{font-size:20px;font-weight:600;margin-bottom:4px}
+.sub{color:#737373;font-size:13px}
+.container{max-width:1100px;margin:0 auto}
+.tabs{display:flex;gap:4px;margin-bottom:20px}
+.tab{padding:8px 16px;border:1px solid #262626;background:#141414;color:#737373;border-radius:6px;cursor:pointer;font-size:13px;transition:all .2s}
+.tab.active{background:#1a1a1a;color:#e5e5e5;border-color:#404040}
+.panels{display:grid;grid-template-columns:1fr 40px 1fr;gap:16px;align-items:start}
+.panel{display:flex;flex-direction:column;gap:8px}
+.panel label{font-size:12px;color:#737373;text-transform:uppercase;letter-spacing:.5px}
+textarea{width:100%;height:450px;background:#141414;border:1px solid #262626;color:#e5e5e5;border-radius:8px;padding:16px;font-family:'SF Mono',Monaco,Consolas,monospace;font-size:13px;resize:vertical;outline:none;transition:border-color .2s;line-height:1.6}
+textarea:focus{border-color:#404040}
+.arrow-col{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding-top:32px}
+.arrow-btn{width:36px;height:36px;border-radius:50%;border:1px solid #262626;background:#1a1a1a;color:#e5e5e5;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;font-size:16px}
+.arrow-btn:hover{border-color:#404040;background:#262626}
+.actions{display:flex;gap:8px;margin-top:12px}
+.btn{padding:8px 16px;border:1px solid #262626;background:#1a1a1a;color:#e5e5e5;border-radius:6px;cursor:pointer;font-size:13px;transition:all .2s;font-family:inherit}
+.btn:hover{border-color:#404040;background:#262626}
+.btn.primary{background:#e5e5e5;color:#0c0c0c;border-color:#e5e5e5}
+.btn.primary:hover{background:#d4d4d4}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1a1a;border:1px solid #262626;color:#e5e5e5;padding:10px 20px;border-radius:8px;font-size:13px;opacity:0;transition:all .3s;pointer-events:none;z-index:100}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.error{border-color:#ef4444 !important}
+.error-msg{color:#ef4444;font-size:12px;margin-top:4px}
+.info{color:#737373;font-size:12px}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html">← Back</a>
+<h1>XML ↔ YAML Converter</h1>
+<p class="sub">Bidirectional conversion. Handles attributes, nested elements, and arrays.</p>
+</div>
+<div class="tabs">
+<button class="tab active" onclick="setMode('xml-yaml')">XML → YAML</button>
+<button class="tab" onclick="setMode('yaml-xml')">YAML → XML</button>
+</div>
+<div class="panels">
+<div class="panel">
+<label id="inputLabel">Input XML</label>
+<textarea id="input" placeholder='<root><item name="John"><age>30</age></item></root>'></textarea>
+<div class="error-msg" id="inputErr"></div>
+</div>
+<div class="arrow-col">
+<button class="arrow-btn" onclick="convert()" title="Convert">→</button>
+<button class="arrow-btn" onclick="swapPanels()" title="Swap">⇄</button>
+</div>
+<div class="panel">
+<label id="outputLabel">Output YAML</label>
+<textarea id="output" readonly placeholder="Output will appear here..."></textarea>
+<div class="actions">
+<button class="btn" onclick="copyOutput()">Copy</button>
+<button class="btn primary" onclick="downloadOutput()">Download</button>
+</div>
+</div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+let mode='xml-yaml';
+const $=id=>document.getElementById(id);
+function setMode(m){
+mode=m;
+document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===(m==='xml-yaml'?0:1)));
+$('inputLabel').textContent=m==='xml-yaml'?'Input XML':'Input YAML';
+$('outputLabel').textContent=m==='xml-yaml'?'Output YAML':'Output XML';
+$('output').value='';$('inputErr').textContent='';$('input').classList.remove('error');
+}
+
+// XML Parser
+function parseXML(s){
+let parser=new DOMParser();
+let doc=parser.parseFromString(s,'text/xml');
+let err=doc.querySelector('parsererror');
+if(err)throw new Error('Invalid XML: '+err.textContent.slice(0,100));
+return xmlNodeToObj(doc.documentElement);
+}
+function xmlNodeToObj(node){
+let obj={};
+// Attributes
+if(node.attributes&&node.attributes.length>0){
+obj['@attrs']={};
+for(let attr of node.attributes){
+obj['@attrs'][attr.name]=castVal(attr.value);
+}
+}
+// Children
+let children={};
+let hasChild=false;
+for(let child of node.childNodes){
+if(child.nodeType===1){
+hasChild=true;
+let name=child.tagName;
+let val=xmlNodeToObj(child);
+if(children[name]){
+if(!Array.isArray(children[name]))children[name]=[children[name]];
+children[name].push(val);
+}else{children[name]=val;}
+}
+}
+if(hasChild){
+if(node.attributes&&node.attributes.length>0){
+obj['@children']=children;
+}else{
+obj=Object.keys(children).length===1&&!Array.isArray(children[Object.keys(children)[0]])?children[Object.keys(children)[0]]:children;
+}
+}
+// Text only
+if(!hasChild&&(!node.attributes||node.attributes.length===0)){
+let text=node.textContent.trim();
+obj=castVal(text);
+}
+return obj;
+}
+function castVal(v){
+if(v==='true')return true;if(v==='false')return false;
+if(/^-?\d+$/.test(v))return parseInt(v);
+if(/^-?\d*\.\d+$/.test(v))return parseFloat(v);
+return v;
+}
+
+// XML Builder
+function objToXML(obj,rootName='root',indent=0){
+let prefix='  '.repeat(indent);
+if(typeof obj!=='object'||obj===null||Array.isArray(obj)){
+return prefix+'<'+rootName+'>'+xmlEscape(String(obj))+'</'+rootName+'>';
+}
+let attrs='';
+let children='';
+let hasChildren=false;
+if(obj['@attrs']){
+for(let[k,v] of Object.entries(obj['@attrs'])){
+attrs+=' '+k+'="'+xmlEscape(String(v))+'"';
+}
+}
+if(obj['@children']){
+for(let[k,v] of Object.entries(obj['@children'])){
+if(Array.isArray(v)){
+for(let item of v){children+='\n'+objToXML(item,k,indent+1);hasChildren=true;}
+}else{children+='\n'+objToXML(v,k,indent+1);hasChildren=true;}
+}
+}else{
+for(let[k,v] of Object.entries(obj)){
+if(k.startsWith('@'))continue;
+if(typeof v==='object'&&v!==null&&!Array.isArray(v)){
+children+='\n'+objToXML(v,k,indent+1);hasChildren=true;
+}else if(Array.isArray(v)){
+for(let item of v){children+='\n'+objToXML(item,k,indent+1);hasChildren=true;}
+}else{
+children+='\n'+(indent+1)+'  '+'<'+k+'>'+xmlEscape(String(v))+'</'+k+'>';hasChildren=true;
+}
+}
+}
+if(hasChildren){
+return prefix+'<'+rootName+attrs+'>'+children+'\n'+prefix+'</'+rootName+'>';
+}
+return prefix+'<'+rootName+attrs+'/>';
+}
+function xmlEscape(s){
+return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// YAML
+function toYAML(obj,indent=0){
+let prefix='  '.repeat(indent);
+if(obj===null||obj===undefined)return'null';
+if(typeof obj==='boolean')return obj.toString();
+if(typeof obj==='number')return obj.toString();
+if(typeof obj==='string'){
+if(/[:{}\[\],&*?|>!%@`#'"\\]/.test(obj)||obj.includes('\n'))return'"'+obj.replace(/\\/g,'\\\\').replace(/"/g,'\\"').replace(/\n/g,'\\n')+'"';
+return obj;
+}
+if(Array.isArray(obj)){
+if(obj.length===0)return'[]';
+return obj.map(item=>{
+if(typeof item==='object'&&item!==null&&!Array.isArray(item)){
+return'- '+Object.entries(item).map(([k,v])=>`${k}: ${formatVal(v)}`).join('\n'+prefix+'  ');
+}
+return'- '+formatVal(item);
+}).join('\n'+prefix);
+}
+return Object.entries(obj).map(([k,v])=>{
+if(typeof v==='object'&&v!==null&&!Array.isArray(v)){
+return prefix+k+':\n'+toYAML(v,indent+1);
+}
+return prefix+k+': '+formatVal(v);
+}).join('\n');
+}
+function formatVal(v){
+if(v===null)return'null';if(typeof v==='boolean')return v.toString();
+if(typeof v==='number')return v.toString();
+if(typeof v==='string'){
+if(/[:{}\[\],&*?|>!%@`#'"]/.test(v)||v.includes('\n'))return'"'+v.replace(/\\/g,'\\\\').replace(/"/g,'\\"').replace(/\n/g,'\\n')+'"';
+return v;
+}
+return String(v);
+}
+function parseYAML(s){
+let lines=s.split('\n');let result={};let stack=[{obj:result,indent:-1}];
+for(let line of lines){
+if(!line.trim()||line.trim().startsWith('#'))continue;
+let indent=line.search(/\S/);
+let trimmed=line.trim();
+if(trimmed.startsWith('- ')){
+let parent=stack[stack.length-1];
+if(!Array.isArray(parent.obj)){let key=Object.keys(parent.obj).pop();parent.obj[key]=[];parent.obj=parent.obj[key];}
+let item=trimmed.slice(2);
+if(item.includes(':')){
+let o={};item.split(':').forEach(p=>{let[k,...v]=p.trim().split(':');if(k)o[k.trim()]=castVal(v.join(':').trim());});
+parent.obj.push(o);
+}else{parent.obj.push(castVal(item));}
+continue;
+}
+let colonIdx=trimmed.indexOf(':');
+if(colonIdx>0){
+let key=trimmed.slice(0,colonIdx).trim();
+let val=trimmed.slice(colonIdx+1).trim();
+while(stack.length>1&&stack[stack.length-1].indent>=indent)stack.pop();
+let parent=stack[stack.length-1].obj;
+if(!val){let newObj={};parent[key]=newObj;stack.push({obj:newObj,indent:indent});}
+else{parent[key]=castVal(val);}
+}
+}
+return result;
+}
+
+function convert(){
+let input=$('input').value.trim();
+if(!input){$('input').classList.add('error');$('inputErr').textContent='Please enter data';return;}
+$('input').classList.remove('error');$('inputErr').textContent='';
+try{
+if(mode==='xml-yaml'){
+let obj=parseXML(input);
+$('output').value=toYAML(obj);
+}else{
+let obj=parseYAML(input);
+$('output').value=objToXML(obj);
+}
+}catch(e){$('input').classList.add('error');$('inputErr').textContent=e.message;}
+}
+function swapPanels(){
+let temp=$('input').value;$('input').value=$('output').value;$('output').value=temp;
+setMode(mode==='xml-yaml'?'yaml-xml':'xml-yaml');
+}
+function copyOutput(){
+let text=$('output').value;if(!text)return;
+navigator.clipboard.writeText(text).then(()=>showToast('Copied to clipboard'));
+}
+function downloadOutput(){
+let text=$('output').value;if(!text)return;
+let ext=mode==='xml-yaml'?'.yaml':'.xml';
+let mime=mode==='xml-yaml'?'text/yaml':'text/xml';
+let blob=new Blob([text],{type:mime});
+let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='output'+ext;a.click();URL.revokeObjectURL(a.href);
+}
+function showToast(msg){let t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+</script>
+</body>
+</html>

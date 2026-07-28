@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Side-by-Side Diff Viewer</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0c0c0c;--surface:#141414;--surface-2:#1a1a1a;--border:#262626;--text:#e5e5e5;--muted:#737373;--accent:#3b82f6;--green:#22c55e;--red:#ef4444;--yellow:#eab308}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6}
+a{color:var(--accent);text-decoration:none}
+.container{max-width:1400px;margin:0 auto;padding:16px}
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);margin-bottom:16px}
+header h1{font-size:1.1rem;font-weight:600}
+.back{font-size:.85rem}
+.toolbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:5px;padding:6px 14px;font-size:.82rem;cursor:pointer;font-family:inherit}
+.btn:hover{opacity:.9}
+.btn-sm{padding:4px 10px;font-size:.78rem}
+.btn-secondary{background:var(--surface-2);color:var(--text);border:1px solid var(--border)}
+.btn.active{background:var(--green)}
+.stats{display:flex;gap:12px;font-size:.8rem;color:var(--muted)}
+.stat{display:flex;align-items:center;gap:4px}
+.stat .dot{width:8px;height:8px;border-radius:50%}
+.stat .dot.added{background:var(--green)}.stat .dot.removed{background:var(--red)}.stat .dot.modified{background:var(--yellow)}
+.input-area{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.input-panel{display:flex;flex-direction:column}
+.input-panel label{font-size:.8rem;color:var(--muted);margin-bottom:4px;font-weight:600}
+.input-panel textarea{width:100%;height:200px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text);font-family:monospace;font-size:.82rem;resize:vertical;line-height:1.5}
+.input-panel textarea:focus{outline:none;border-color:var(--accent)}
+.diff-container{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;display:none}
+.diff-header{display:grid;grid-template-columns:1fr 1fr;background:var(--surface-2);border-bottom:1px solid var(--border);font-size:.8rem;font-weight:600;color:var(--muted)}
+.diff-header>div{padding:8px 12px}
+.diff-body{max-height:600px;overflow:auto}
+.diff-table{width:100%;border-collapse:collapse;font-family:monospace;font-size:.8rem}
+.diff-table td{padding:2px 10px;white-space:pre-wrap;word-break:break-all;border-bottom:1px solid var(--border)}
+.diff-table .ln{width:40px;text-align:right;color:var(--muted);user-select:none;border-right:1px solid var(--border);background:var(--surface-2);padding:2px 6px}
+.diff-table .added{background:rgba(34,197,94,.1)}
+.diff-table .removed{background:rgba(239,68,68,.1)}
+.diff-table .modified{background:rgba(234,179,8,.08)}
+.diff-table .unchanged{color:var(--muted)}
+.unified{display:none}
+.unified .diff-header{grid-template-columns:1fr}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:#fff;padding:6px 14px;border-radius:5px;font-size:.82rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:99}
+.toast.show{opacity:1}
+@media(max-width:768px){.input-area{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>Side-by-Side Diff Viewer</h1>
+<a href="index.html" class="back">&larr; Back</a>
+</header>
+<div class="input-area">
+<div class="input-panel">
+<label>Old Text</label>
+<textarea id="oldText" placeholder="Paste original text here..."></textarea>
+</div>
+<div class="input-panel">
+<label>New Text</label>
+<textarea id="newText" placeholder="Paste modified text here..."></textarea>
+</div>
+</div>
+<div class="toolbar">
+<button class="btn" onclick="computeDiff()">Compare</button>
+<button class="btn btn-sm btn-secondary" id="viewBtn" onclick="toggleView()">Unified View</button>
+<button class="btn btn-sm btn-secondary" onclick="copyDiff()">Copy Diff</button>
+<div class="stats" id="stats"></div>
+</div>
+<div class="diff-container side" id="sideDiff">
+<div class="diff-header"><div>Old</div><div>New</div></div>
+<div class="diff-body"><table class="diff-table" id="sideTable"></table></div>
+</div>
+<div class="diff-container unified" id="unifiedDiff">
+<div class="diff-header"><div>Diff</div></div>
+<div class="diff-body"><table class="diff-table" id="unifiedTable"></table></div>
+</div>
+</div>
+<div class="toast" id="toast">Copied!</div>
+<script>
+let isUnified=false;
+let currentDiff=[];
+
+function computeDiff(){
+const oldLines=document.getElementById('oldText').value.split('\n');
+const newLines=document.getElementById('newText').value.split('\n');
+currentDiff=diff(oldLines,newLines);
+renderSide();renderUnified();
+const added=currentDiff.filter(d=>d.type==='added').length;
+const removed=currentDiff.filter(d=>d.type==='removed').length;
+const modified=currentDiff.filter(d=>d.type==='modified').length;
+document.getElementById('stats').innerHTML=`
+<div class="stat"><div class="dot added"></div>${added} added</div>
+<div class="stat"><div class="dot removed"></div>${removed} removed</div>
+<div class="stat"><div class="dot modified"></div>${modified} modified</div>
+`;
+document.querySelectorAll('.diff-container').forEach(d=>d.style.display='block');
+}
+
+function diff(old,newArr){
+const result=[];
+const maxLen=Math.max(old.length,newArr.length);
+const oldMap={};const newMap={};
+old.forEach((l,i)=>{const t=l.trim();if(!oldMap[t])oldMap[t]=[];oldMap[t].push({line:l,idx:i})});
+newArr.forEach((l,i)=>{const t=l.trim();if(!newMap[t])newMap[t]=[];newMap[t].push({line:l,idx:i})});
+
+const usedOld=new Set();const usedNew=new Set();
+
+for(let i=0;i<maxLen;i++){
+const oLine=i<old.length?old[i]:null;
+const nLine=i<newArr.length?newArr[i]:null;
+
+if(oLine===nLine){
+result.push({type:'unchanged',oldLine:oLine,newLine:nLine,oldNum:i+1,newNum:i+1});
+usedOld.add(i);usedNew.add(i);
+}else if(oLine!==undefined&&nLine!==undefined){
+const oTrim=oLine.trim();const nTrim=nLine.trim();
+if(oTrim===nTrim){
+result.push({type:'unchanged',oldLine:oLine,newLine:nLine,oldNum:i+1,newNum:i+1});
+usedOld.add(i);usedNew.add(i);
+}else if(oldMap[nTrim]&&oldMap[nTrim].some(x=>x.idx!==i&&!usedOld.has(x.idx))){
+const matchIdx=oldMap[nTrim].find(x=>x.idx!==i&&!usedOld.has(x.idx));
+usedOld.add(matchIdx.idx);usedNew.add(i);
+result.push({type:'modified',oldLine:old[matchIdx.idx],newLine:nLine,oldNum:matchIdx.idx+1,newNum:i+1});
+}else{
+result.push({type:'changed',oldLine:oLine,newLine:nLine,oldNum:i+1,newNum:i+1});
+usedOld.add(i);usedNew.add(i);
+}
+}else if(oLine!==undefined){
+result.push({type:'removed',oldLine:oLine,newLine:'',oldNum:i+1,newNum:''});
+usedOld.add(i);
+}else{
+result.push({type:'added',oldLine:'',newLine:nLine,oldNum:'',newNum:i+1});
+usedNew.add(i);
+}
+}
+return result;
+}
+
+function renderSide(){
+const table=document.getElementById('sideTable');
+table.innerHTML='';
+currentDiff.forEach(d=>{
+const tr=document.createElement('tr');
+const cls=d.type==='unchanged'?'unchanged':d.type;
+tr.innerHTML=`<td class="ln">${d.oldNum||''}</td><td class="${cls}">${esc(d.oldLine)}</td><td class="ln">${d.newNum||''}</td><td class="${cls==='removed'?'removed':d.type==='added'||d.type==='modified'?'added':cls}">${esc(d.newLine)}</td>`;
+table.appendChild(tr);
+});
+}
+
+function renderUnified(){
+const table=document.getElementById('unifiedTable');
+table.innerHTML='';
+currentDiff.forEach(d=>{
+const tr=document.createElement('tr');
+if(d.type==='unchanged'){
+tr.innerHTML=`<td class="ln">${d.oldNum}</td><td class="ln">${d.newNum}</td><td class="unchanged">  ${esc(d.oldLine)}</td>`;
+}else if(d.type==='removed'){
+tr.innerHTML=`<td class="ln">${d.oldNum}</td><td class="ln"></td><td class="removed">- ${esc(d.oldLine)}</td>`;
+}else if(d.type==='added'){
+tr.innerHTML=`<td class="ln"></td><td class="ln">${d.newNum}</td><td class="added">+ ${esc(d.newLine)}</td>`;
+}else if(d.type==='modified'){
+tr.innerHTML=`<td class="ln">${d.oldNum}</td><td class="ln"></td><td class="removed">- ${esc(d.oldLine)}</td>`;
+table.appendChild(tr);
+const tr2=document.createElement('tr');
+tr2.innerHTML=`<td class="ln"></td><td class="ln">${d.newNum}</td><td class="added">+ ${esc(d.newLine)}</td>`;
+table.appendChild(tr2);return;
+}else{
+tr.innerHTML=`<td class="ln">${d.oldNum||''}</td><td class="ln">${d.newNum||''}</td><td class="modified">~ ${esc(d.newLine||d.oldLine)}</td>`;
+}
+table.appendChild(tr);
+});
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function toggleView(){
+isUnified=!isUnified;
+document.getElementById('sideDiff').style.display=isUnified?'none':'block';
+document.getElementById('unifiedDiff').style.display=isUnified?'block':'none';
+const btn=document.getElementById('viewBtn');
+btn.textContent=isUnified?'Side-by-Side View':'Unified View';
+btn.classList.toggle('active',isUnified);
+}
+
+function copyDiff(){
+let text='';
+currentDiff.forEach(d=>{
+if(d.type==='unchanged')text+=`  ${d.oldLine}\n`;
+else if(d.type==='removed')text+=`- ${d.oldLine}\n`;
+else if(d.type==='added')text+=`+ ${d.newLine}\n`;
+else if(d.type==='modified'){text+=`- ${d.oldLine}\n+ ${d.newLine}\n`;}
+else{text+=`~ ${d.newLine||d.oldLine}\n`;}
+});
+navigator.clipboard.writeText(text).then(()=>{const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)});
+}
+</script>
+</body>
+</html>

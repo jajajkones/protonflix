@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expense Splitter</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0c0c0c;color:#e5e5e5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:2rem;min-height:100vh}
+a{color:#737373;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:1.5rem}
+a:hover{color:#e5e5e5}
+h1{font-size:1.5rem;font-weight:600;margin-bottom:.25rem}
+.sub{color:#737373;font-size:.85rem;margin-bottom:2rem}
+.card{background:#141414;border:1px solid #262626;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
+.card h2{font-size:1rem;font-weight:600;margin-bottom:1rem}
+label{display:block;font-size:.75rem;color:#737373;margin-bottom:.25rem;text-transform:uppercase;letter-spacing:.05em}
+input,select{width:100%;padding:.6rem .8rem;background:#1a1a1a;border:1px solid #262626;border-radius:8px;color:#e5e5e5;font-size:.9rem;font-family:inherit;outline:none}
+input:focus,select:focus{border-color:#e5e5e5}
+.row{display:flex;gap:.75rem;margin-bottom:1rem}
+.row>div{flex:1}
+button{padding:.5rem 1rem;border:1px solid #262626;border-radius:8px;background:#1a1a1a;color:#e5e5e5;font-size:.85rem;cursor:pointer;font-family:inherit}
+button:hover{background:#262626}
+button.primary{background:#e5e5e5;color:#0c0c0c;border-color:#e5e5e5}
+button.primary:hover{background:#d4d4d4}
+button.sm{padding:.3rem .6rem;font-size:.75rem}
+button.danger{color:#fca5a5;border-color:#7f1d1d}
+button.danger:hover{background:#7f1d1d;color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem}
+.chip{display:inline-flex;align-items:center;gap:.35rem;padding:.35rem .65rem;background:#1a1a1a;border:1px solid #262626;border-radius:20px;font-size:.8rem}
+.chip .x{cursor:pointer;color:#737373;font-size:.7rem}
+.chip .x:hover{color:#fca5a5}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{text-align:left;padding:.5rem;border-bottom:1px solid #262626;color:#737373;font-weight:500;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em}
+td{padding:.5rem;border-bottom:1px solid #1a1a1a}
+.mode-tabs{display:flex;gap:0;margin-bottom:1.5rem;border:1px solid #262626;border-radius:8px;overflow:hidden}
+.mode-tab{flex:1;padding:.5rem;text-align:center;font-size:.8rem;cursor:pointer;background:#1a1a1a;border:none;color:#737373;font-family:inherit}
+.mode-tab.active{background:#262626;color:#e5e5e5}
+.settlement{padding:.75rem;background:#1a1a1a;border-radius:8px;margin-bottom:.5rem;font-size:.85rem;display:flex;justify-content:space-between;align-items:center}
+.settlement .arrow{color:#737373;margin:0 .5rem}
+.summary-box{background:#1a1a1a;border-radius:8px;padding:1rem;font-size:.8rem;white-space:pre-wrap;font-family:monospace;margin-top:1rem;max-height:200px;overflow-y:auto}
+.person-bal{font-size:.8rem;padding:.5rem;background:#1a1a1a;border-radius:6px;margin-bottom:.5rem;display:flex;justify-content:space-between}
+.person-bal .neg{color:#fca5a5}
+.person-bal .pos{color:#86efac}
+</style>
+</head>
+<body>
+<a href="index.html">&larr; Back</a>
+<h1>Expense Splitter</h1>
+<p class="sub">Split bills and calculate who owes whom</p>
+
+<div class="card">
+<h2>People</h2>
+<div class="row">
+<div style="flex:3"><label>Add Person</label><input type="text" id="personName" placeholder="Name"></div>
+<div style="flex:1;display:flex;align-items:flex-end"><button class="primary" id="addPersonBtn" style="width:100%">Add</button></div>
+</div>
+<div class="chips" id="peopleChips"></div>
+</div>
+
+<div class="card">
+<h2>Add Expense</h2>
+<div class="mode-tabs">
+<button class="mode-tab active" data-mode="item">Item-Based</button>
+<button class="mode-tab" data-mode="equal">Equal Split</button>
+<button class="mode-tab" data-mode="custom">Custom %</button>
+</div>
+<div id="itemMode">
+<div class="row">
+<div style="flex:2"><label>Description</label><input type="text" id="expDesc" placeholder="e.g. Dinner"></div>
+<div style="flex:1"><label>Amount ($)</label><input type="number" id="expAmount" placeholder="0.00" step="0.01" min="0"></div>
+</div>
+<div class="row">
+<div><label>Paid By</label><select id="expPayer"></select></div>
+<div><label>Split Among</label><div id="splitPeople" class="chips" style="margin-top:.5rem"></div></div>
+</div>
+<button class="primary" id="addExpBtn">Add Expense</button>
+</div>
+<div id="equalMode" style="display:none">
+<div class="row">
+<div style="flex:2"><label>Description</label><input type="text" id="eqDesc" placeholder="e.g. Lunch"></div>
+<div style="flex:1"><label>Amount ($)</label><input type="number" id="eqAmount" placeholder="0.00" step="0.01" min="0"></div>
+</div>
+<div class="row">
+<div><label>Paid By</label><select id="eqPayer"></select></div>
+<div><label>Split Among</label><select id="eqSplit"><option value="all">Everyone</option></select></div>
+</div>
+<button class="primary" id="addEqBtn">Add Expense</button>
+</div>
+<div id="customMode" style="display:none">
+<div class="row">
+<div style="flex:2"><label>Description</label><input type="text" id="csDesc" placeholder="e.g. Hotel"></div>
+<div style="flex:1"><label>Amount ($)</label><input type="number" id="csAmount" placeholder="0.00" step="0.01" min="0"></div>
+</div>
+<div class="row">
+<div><label>Paid By</label><select id="csPayer"></select></div>
+</div>
+<div id="customSplits" style="margin-bottom:1rem"></div>
+<button class="primary" id="addCsBtn">Add Expense</button>
+</div>
+</div>
+
+<div class="card">
+<h2>Expenses</h2>
+<table><thead><tr><th>Description</th><th>Amount</th><th>Paid By</th><th></th></tr></thead><tbody id="expTable"></tbody></table>
+<p id="noExp" style="color:#737373;font-size:.85rem;text-align:center;padding:1rem">No expenses yet</p>
+</div>
+
+<div class="card">
+<h2>Balance Summary</h2>
+<div id="balanceList"></div>
+</div>
+
+<div class="card">
+<h2>Settlements</h2>
+<div id="settlements"></div>
+<div style="margin-top:1rem;display:flex;gap:.5rem">
+<button id="copyBtn">Copy Summary</button>
+<button id="clearBtn" class="danger">Clear All</button>
+</div>
+<div class="summary-box" id="summaryBox" style="display:none"></div>
+</div>
+
+<script>
+let people=[],expenses=[],splitMode='item',splitSelections={};
+const $=id=>document.getElementById(id);
+const selOpts=arr=>arr.map(p=>`<option value="${p}">${p}</option>`).join('');
+const renderPeople=()=>{
+  $('peopleChips').innerHTML=people.map((p,i)=>`<span class="chip">${p}<span class="x" data-i="${i}">&times;</span></span>`).join('');
+  document.querySelectorAll('#peopleChips .x').forEach(x=>x.onclick=()=>{people.splice(+x.dataset.i,1);renderPeople();renderSelects()});
+  renderSelects();
+};
+const renderSelects=()=>{
+  $('expPayer').innerHTML=selOpts(people);
+  $('eqPayer').innerHTML=selOpts(people);
+  $('csPayer').innerHTML=selOpts(people);
+  $('eqSplit').innerHTML=`<option value="all">Everyone</option>`+people.map(p=>`<option value="${p}">${p}</option>`).join('');
+  $('splitPeople').innerHTML=people.map(p=>`<span class="chip split-chip" data-p="${p}">${p}<input type="checkbox" checked style="margin-left:.3rem"></span>`).join('');
+  $('customSplits').innerHTML=people.map(p=>`<div class="row"><div><label>${p} %</label><input type="number" class="cs-split" data-p="${p}" value="${Math.floor(100/people.length)}" min="0" max="100"></div></div>`).join('');
+};
+$('addPersonBtn').onclick=()=>{const n=$('personName').value.trim();if(n&&!people.includes(n)){people.push(n);renderPeople()};$('personName').value='';$('personName').focus()};
+$('personName').onkeydown=e=>{if(e.key==='Enter')$('addPersonBtn').click()};
+document.querySelectorAll('.mode-tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.mode-tab').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');splitMode=t.dataset.mode;
+  $('itemMode').style.display=splitMode==='item'?'':'none';
+  $('equalMode').style.display=splitMode==='equal'?'':'none';
+  $('customMode').style.display=splitMode==='custom'?'':'none';
+});
+const addExpense=(desc,amount,payer,splitAmong)=>{
+  if(!desc||!amount||!payer||splitAmong.length===0)return;
+  expenses.push({desc,amount:+amount,payer,splitAmong:[...splitAmong]});
+  renderExpenses();calcBalance();
+};
+$('addExpBtn').onclick=()=>{
+  const chips=document.querySelectorAll('#splitPeople .split-chip');
+  const sel=[...chips].filter(c=>c.querySelector('input').checked).map(c=>c.dataset.p);
+  addExpense($('expDesc').value,+$('expAmount').value,$('expPayer').value,sel);
+  $('expDesc').value='';$('expAmount').value='';
+};
+$('addEqBtn').onclick=()=>{
+  const sp=$('eqSplit').value==='all'?[...people]:[people.find(p=>p===$('eqSplit').value)].filter(Boolean);
+  addExpense($('eqDesc').value,+$('eqAmount').value,$('eqPayer').value,sp);
+  $('eqDesc').value='';$('eqAmount').value='';
+};
+$('addCsBtn').onclick=()=>{
+  const splits=[...document.querySelectorAll('.cs-split')].map(i=>({name:i.dataset.p,pct:+i.value}));
+  const total=splits.reduce((s,x)=>s+x.pct,0);
+  if(Math.abs(total-100)>1){alert('Percentages must sum to 100');return}
+  const amt=+$('csAmount').value;
+  const items=splits.filter(s=>s.pct>0).map(s=>({desc:$('csDesc').value+' ('+s.pct+'%)',amount:amt*s.pct/100,payer:$('csPayer').value,splitAmong:[s.name]}));
+  items.forEach(i=>expenses.push(i));
+  renderExpenses();calcBalance();
+  $('csDesc').value='';$('csAmount').value='';
+};
+const renderExpenses=()=>{
+  $('noExp').style.display=expenses.length?'none':'';
+  $('expTable').innerHTML=expenses.map((e,i)=>`<tr><td>${e.desc}</td><td>$${e.amount.toFixed(2)}</td><td>${e.payer}</td><td><button class="sm danger" data-i="${i}">✕</button></td></tr>`).join('');
+  document.querySelectorAll('#expTable .danger').forEach(b=>b.onclick=()=>{expenses.splice(+b.dataset.i,1);renderExpenses();calcBalance()});
+};
+const calcBalance=()=>{
+  const bal={};people.forEach(p=>bal[p]=0);
+  expenses.forEach(e=>{
+    const share=e.amount/e.splitAmong.length;
+    bal[e.payer]=(bal[e.payer]||0)+e.amount;
+    e.splitAmong.forEach(p=>{bal[p]=(bal[p]||0)-share});
+  });
+  $('balanceList').innerHTML=people.map(p=>{const v=bal[p]||0;return`<div class="person-bal"><span>${p}</span><span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}$${Math.abs(v).toFixed(2)}</span></div>`}).join('');
+  const debtors=[],creditors=[];
+  people.forEach(p=>{const v=bal[p]||0;if(v<-0.01)debtors.push({name:p,amount:-v});else if(v>0.01)creditors.push({name:p,amount:v})});
+  debtors.sort((a,b)=>b.amount-a.amount);
+  creditors.sort((a,b)=>b.amount-a.amount);
+  const txns=[];
+  let di=0,ci=0;
+  while(di<debtors.length&&ci<creditors.length){
+    const d=debtors[di],c=creditors[ci];
+    const t=Math.min(d.amount,c.amount);
+    if(t>0.01)txns.push({from:d.name,to:c.name,amount:t});
+    d.amount-=t;c.amount-=t;
+    if(d.amount<0.01)di++;if(c.amount<0.01)ci++;
+  }
+  $('settlements').innerHTML=txns.length?txns.map(t=>`<div class="settlement"><span>${t.from}</span><span class="arrow">&rarr;</span><span>${t.to}</span><strong>$${t.amount.toFixed(2)}</strong></div>`).join(''):'<p style="color:#737373;font-size:.85rem;text-align:center">No settlements needed</p>';
+  $('copyBtn').onclick=()=>{
+    let s='Expense Summary\n'+'─'.repeat(30)+'\n';
+    expenses.forEach(e=>s+=`${e.desc}: $${e.amount.toFixed(2)} (paid by ${e.payer})\n`);
+    s+='\nBalances\n'+'─'.repeat(30)+'\n';
+    people.forEach(p=>{const v=bal[p]||0;s+=`${p}: ${v>=0?'+':''}$${Math.abs(v).toFixed(2)}\n`});
+    s+='\nSettlements\n'+'─'.repeat(30)+'\n';
+    txns.forEach(t=>s+=`${t.from} → ${t.to}: $${t.amount.toFixed(2)}\n`);
+    $('summaryBox').textContent=s;$('summaryBox').style.display='block';
+    navigator.clipboard.writeText(s);
+  };
+};
+$('clearBtn').onclick=()=>{expenses=[];renderExpenses();calcBalance()};
+renderPeople();
+</script>
+</body>
+</html>

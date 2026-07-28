@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS Custom Properties Generator</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0c0c0c;--surface:#141414;--surface-2:#1a1a1a;--border:#262626;--text:#e5e5e5;--muted:#737373;--accent:#3b82f6;--green:#22c55e;--red:#ef4444}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.container{max-width:1100px;margin:0 auto;padding:24px}
+header{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--border);margin-bottom:24px}
+header h1{font-size:1.25rem;font-weight:600}
+.back{font-size:.875rem}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px}
+.panel h2{font-size:1rem;font-weight:600;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--surface-2);border-radius:6px;padding:4px}
+.tab{padding:6px 12px;border-radius:4px;font-size:.8rem;cursor:pointer;border:none;background:transparent;color:var(--muted);font-family:inherit}
+.tab.active{background:var(--accent);color:#fff}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:4px}
+.form-group input[type="text"],.form-group input[type="color"]{width:100%;padding:8px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:inherit;font-size:.85rem}
+.form-group input[type="color"]{height:36px;padding:4px;cursor:pointer}
+.color-row{display:flex;gap:8px;align-items:center}
+.color-row input[type="color"]{width:36px;height:36px;flex-shrink:0}
+.color-row input[type="text"]{flex:1}
+.token-list{max-height:400px;overflow-y:auto}
+.token-item{display:flex;align-items:center;gap:8px;padding:8px;background:var(--surface-2);border-radius:4px;margin-bottom:6px}
+.token-item .name{font-family:monospace;font-size:.8rem;flex:1;min-width:0}
+.token-item .remove{background:none;border:none;color:var(--red);cursor:pointer;font-size:1rem;padding:0 4px}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:.85rem;cursor:pointer;font-family:inherit}
+.btn:hover{opacity:.9}
+.btn-sm{padding:5px 10px;font-size:.8rem}
+.btn-secondary{background:var(--surface-2);color:var(--text);border:1px solid var(--border)}
+.preview-section{padding:16px;background:var(--surface-2);border-radius:6px;margin:12px 0}
+.preview-box{min-height:80px;border-radius:8px;padding:16px;margin:8px 0}
+.output{background:var(--surface-2);border-radius:6px;padding:12px;font-family:monospace;font-size:.8rem;white-space:pre-wrap;max-height:500px;overflow:auto;border:1px solid var(--border)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.preset{display:block;width:100%;text-align:left;background:var(--surface-2);border:1px solid var(--border);border-radius:4px;padding:8px 12px;color:var(--text);cursor:pointer;font-size:.85rem;font-family:inherit;margin-bottom:6px}
+.preset:hover{border-color:var(--accent)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--green);color:#fff;padding:8px 16px;border-radius:6px;font-size:.85rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:99}
+.toast.show{opacity:1}
+@media(max-width:768px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>CSS Custom Properties Generator</h1>
+<a href="index.html" class="back">&larr; Back</a>
+</header>
+<div class="grid">
+<div class="panel">
+<h2>Define Tokens</h2>
+<div class="tabs">
+<button class="tab active" onclick="showTab('colors')">Colors</button>
+<button class="tab" onclick="showTab('spacing')">Spacing</button>
+<button class="tab" onclick="showTab('typography')">Typography</button>
+<button class="tab" onclick="showTab('shadows')">Shadows</button>
+<button class="tab" onclick="showTab('breakpoints')">Breakpoints</button>
+</div>
+<div id="tab-colors">
+<div class="form-group">
+<label>Add Color Token</label>
+<div class="color-row">
+<input type="color" id="colorPick" value="#3b82f6">
+<input type="text" id="colorName" placeholder="e.g. primary, accent-500">
+<button class="btn btn-sm" onclick="addColor()">+</button>
+</div>
+</div>
+<div class="token-list" id="colorTokens"></div>
+</div>
+<div id="tab-spacing" style="display:none">
+<div class="form-group">
+<label>Add Spacing Token</label>
+<div style="display:flex;gap:8px">
+<input type="text" id="spacingName" placeholder="e.g. 4">
+<input type="text" id="spacingVal" placeholder="e.g. 1rem / 16px">
+<button class="btn btn-sm" onclick="addSpacing()">+</button>
+</div>
+</div>
+<div class="token-list" id="spacingTokens"></div>
+</div>
+<div id="tab-typography" style="display:none">
+<div class="form-group">
+<label>Add Typography Token</label>
+<div style="display:flex;gap:8px">
+<input type="text" id="typoName" placeholder="e.g. heading-1">
+<input type="text" id="typoVal" placeholder="e.g. 2rem/1.2, bold">
+<button class="btn btn-sm" onclick="addTypo()">+</button>
+</div>
+</div>
+<div class="token-list" id="typoTokens"></div>
+</div>
+<div id="tab-shadows" style="display:none">
+<div class="form-group">
+<label>Add Shadow Token</label>
+<div style="display:flex;gap:8px">
+<input type="text" id="shadowName" placeholder="e.g. sm">
+<input type="text" id="shadowVal" placeholder="e.g. 0 1px 2px rgba(0,0,0,.1)">
+<button class="btn btn-sm" onclick="addShadow()">+</button>
+</div>
+</div>
+<div class="token-list" id="shadowTokens"></div>
+</div>
+<div id="tab-breakpoints" style="display:none">
+<div class="form-group">
+<label>Add Breakpoint Token</label>
+<div style="display:flex;gap:8px">
+<input type="text" id="bpName" placeholder="e.g. md">
+<input type="text" id="bpVal" placeholder="e.g. 768px">
+<button class="btn btn-sm" onclick="addBp()">+</button>
+</div>
+</div>
+<div class="token-list" id="bpTokens"></div>
+</div>
+<h2 style="margin-top:20px">Presets</h2>
+<button class="preset" onclick="loadPreset('tailwind')">Tailwind-like</button>
+<button class="preset" onclick="loadPreset('material')">Material Design-like</button>
+<button class="preset" onclick="loadPreset('minimal')">Minimal</button>
+<h2 style="margin-top:20px">Import CSS Variables</h2>
+<textarea id="importCss" style="width:100%;min-height:80px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text);font-family:monospace;font-size:.8rem;resize:vertical" placeholder="Paste existing :root { --var: val; } CSS here..."></textarea>
+<button class="btn btn-secondary btn-sm" style="margin-top:8px" onclick="importVars()">Import</button>
+</div>
+<div class="panel">
+<h2>Output
+<div class="btn-row" style="margin:0">
+<button class="btn btn-sm" onclick="copyCSS()">Copy CSS</button>
+<button class="btn btn-sm btn-secondary" onclick="downloadCSS()">Download</button>
+</div>
+</h2>
+<div class="output" id="cssOutput">:root {
+}</div>
+<h2 style="margin-top:20px">Preview</h2>
+<div id="previewArea" style="min-height:100px;border-radius:8px;padding:16px;margin:8px 0;border:1px dashed var(--border)">
+<p style="color:var(--muted);font-size:.85rem">Add tokens to see preview</p>
+</div>
+</div>
+</div>
+</div>
+<div class="toast" id="toast">Copied!</div>
+<script>
+let tokens={colors:{},spacing:{},typography:{},shadows:{},breakpoints:{}};
+const sectionMap={colors:'color',spacing:'spacing',typography:'typography',shadows:'shadow',breakpoints:'bp'};
+
+function showTab(id){
+document.querySelectorAll('[id^="tab-"]').forEach(t=>t.style.display='none');
+document.getElementById('tab-'+id).style.display='block';
+document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+event.target.classList.add('active');
+}
+
+function addColor(){
+const name=document.getElementById('colorName').value.trim();
+const val=document.getElementById('colorPick').value;
+if(!name)return;
+tokens.colors[name]=val;
+document.getElementById('colorName').value='';
+renderTokens('colors');
+generate();
+}
+function addSpacing(){
+const name=document.getElementById('spacingName').value.trim();
+const val=document.getElementById('spacingVal').value.trim();
+if(!name||!val)return;
+tokens.spacing[name]=val;
+document.getElementById('spacingName').value='';
+document.getElementById('spacingVal').value='';
+renderTokens('spacing');
+generate();
+}
+function addTypo(){
+const name=document.getElementById('typoName').value.trim();
+const val=document.getElementById('typoVal').value.trim();
+if(!name||!val)return;
+tokens.typography[name]=val;
+document.getElementById('typoName').value='';
+document.getElementById('typoVal').value='';
+renderTokens('typography');
+generate();
+}
+function addShadow(){
+const name=document.getElementById('shadowName').value.trim();
+const val=document.getElementById('shadowVal').value.trim();
+if(!name||!val)return;
+tokens.shadows[name]=val;
+document.getElementById('shadowName').value='';
+document.getElementById('shadowVal').value='';
+renderTokens('shadows');
+generate();
+}
+function addBp(){
+const name=document.getElementById('bpName').value.trim();
+const val=document.getElementById('bpVal').value.trim();
+if(!name||!val)return;
+tokens.breakpoints[name]=val;
+document.getElementById('bpName').value='';
+document.getElementById('bpVal').value='';
+renderTokens('breakpoints');
+generate();
+}
+
+function removeToken(cat,key){
+delete tokens[cat][key];
+renderTokens(cat);
+generate();
+}
+
+function renderTokens(cat){
+const prefix=sectionMap[cat];
+const container=document.getElementById(prefix==='color'?'colorTokens':prefix==='spacing'?'spacingTokens':prefix==='typography'?'typoTokens':prefix==='shadow'?'shadowTokens':'bpTokens');
+container.innerHTML='';
+Object.entries(tokens[cat]).forEach(([k,v])=>{
+const item=document.createElement('div');
+item.className='token-item';
+item.innerHTML=`<span style="width:16px;height:16px;border-radius:3px;background:${v};flex-shrink:0;border:1px solid var(--border);${prefix!=='color'?'display:none':''}"></span><span class="name">--${prefix}-${k}: ${v};</span><button class="remove" onclick="removeToken('${cat}','${k}')">&times;</button>`;
+container.appendChild(item);
+});
+}
+
+function generate(){
+let css=':root {\n';
+const groups=[
+{cat:'colors',prefix:'color',items:tokens.colors},
+{cat:'spacing',prefix:'spacing',items:tokens.spacing},
+{cat:'typography',prefix:'typography',items:tokens.typography},
+{cat:'shadows',prefix:'shadow',items:tokens.shadows},
+{cat:'breakpoints',prefix:'bp',items:tokens.breakpoints}
+];
+let hasAny=false;
+groups.forEach(g=>{
+if(Object.keys(g.items).length===0)return;
+hasAny=true;
+css+=`\n  /* ${g.cat.charAt(0).toUpperCase()+g.cat.slice(1)} */\n`;
+Object.entries(g.items).forEach(([k,v])=>{
+css+=`  --${g.prefix}-${k}: ${v};\n`;
+});
+});
+css+='}';
+document.getElementById('cssOutput').textContent=css;
+updatePreview();
+}
+
+function updatePreview(){
+const area=document.getElementById('previewArea');
+const c=tokens.colors;
+const bg=c['bg']||c['background']||c['surface']||'#141414';
+const fg=c['text']||c['foreground']||'#e5e5e5';
+const accent=c['primary']||c['accent']||c['blue']||'#3b82f6';
+if(!Object.keys(c).length){area.innerHTML='<p style="color:var(--muted);font-size:.85rem">Add color tokens to see preview</p>';return;}
+area.style.background=bg;
+area.style.color=fg;
+area.innerHTML=`
+<div style="padding:8px;border-radius:6px;border:1px solid ${c['border']||'#262626'};margin-bottom:8px">
+<strong style="color:${accent}">Preview Card</strong> - This is sample text
+</div>
+<div style="display:flex;gap:8px">
+<div style="background:${accent};color:#fff;padding:4px 12px;border-radius:4px;font-size:.85rem">Button</div>
+<div style="border:1px solid ${accent};padding:4px 12px;border-radius:4px;font-size:.85rem">Outline</div>
+</div>`;
+}
+
+function copyCSS(){
+const text=document.getElementById('cssOutput').textContent;
+navigator.clipboard.writeText(text).then(()=>{const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)});
+}
+function downloadCSS(){
+const text=document.getElementById('cssOutput').textContent;
+const blob=new Blob([text],{type:'text/css'});
+const a=document.createElement('a');
+a.href=URL.createObjectURL(blob);
+a.download='variables.css';
+a.click();
+}
+
+function importVars(){
+const css=document.getElementById('importCss').value;
+const matches=[...css.matchAll(/--([\w-]+)\s*:\s*([^;]+);/g)];
+matches.forEach(m=>{
+const name=m[1];
+const val=m[2].trim();
+if(name.startsWith('color')||name.match(/^((bg|fg|text|primary|accent|border|surface|blue|red|green|yellow|purple|pink|orange|gray|white|black|bg-|surface-))|/i))tokens.colors[name]=val;
+else if(name.startsWith('spacing')||name.match(/^\d+$/))tokens.spacing[name]=val;
+else if(name.startsWith('font')||name.startsWith('text')||name.startsWith('heading'))tokens.typography[name]=val;
+else if(name.startsWith('shadow'))tokens.shadows[name]=val;
+else if(name.startsWith('breakpoint')||name.match(/^(sm|md|lg|xl|2xl)$/))tokens.breakpoints[name]=val;
+else tokens.colors[name]=val;
+});
+Object.keys(tokens).forEach(renderTokens);
+generate();
+}
+
+function loadPreset(name){
+tokens={colors:{},spacing:{},typography:{},shadows:{},breakpoints:{}};
+if(name==='tailwind'){
+tokens.colors={primary:'#3b82f6','primary-dark':'#2563eb',accent:'#8b5cf6',success:'#22c55e',warning:'#eab308',danger:'#ef4444',bg:'#0c0c0c',surface:'#141414','surface-2':'#1a1a1a',border:'#262626',text:'#e5e5e5',muted:'#737373','slate-50':'#f8fafc','slate-100':'#f1f5f9','slate-200':'#e2e8f0','slate-300':'#cbd5e1','slate-400':'#94a3b8','slate-500':'#64748b','slate-600':'#475569','slate-700':'#334155','slate-800':'#1e293b','slate-900':'#0f172a','blue-500':'#3b82f6','blue-600':'#2563eb','green-500':'#22c55e','red-500':'#ef4444','yellow-500':'#eab308'};
+tokens.spacing={'0':'0','1':'.25rem','2':'.5rem','3':'.75rem','4':'1rem','5':'1.25rem','6':'1.5rem','8':'2rem','10':'2.5rem','12':'3rem','16':'4rem','20':'5rem','24':'6rem'};
+tokens.typography={'xs':'.75rem/1rem','sm':'.875rem/1.25rem','base':'1rem/1.5','lg':'1.125rem/1.75','xl':'1.25rem/1.75','2xl':'1.5rem/2','3xl':'1.875rem/2.25','4xl':'2.25rem/2.5'};
+tokens.shadows={'sm':'0 1px 2px rgba(0,0,0,.05)','md':'0 4px 6px rgba(0,0,0,.1)','lg':'0 10px 15px rgba(0,0,0,.1)','xl':'0 20px 25px rgba(0,0,0,.15)'};
+tokens.breakpoints={'sm':'640px','md':'768px','lg':'1024px','xl':'1280px','2xl':'1536px'};
+}else if(name==='material'){
+tokens.colors={primary:'#1976d2','primary-light':'#42a5f5','primary-dark':'#1565c0',accent:'#ff4081',surface:'#121212','surface-1':'#1e1e1e','surface-2':'#232323','surface-3':'#252525',background:'#121212',error:'#cf6679',onprimary:'#fff',onbackground:'#e1e1e1','onsurface':'#e1e1e1',border:'#2c2c2c',text:'#e1e1e1',muted:'#9e9e9e'};
+tokens.spacing={'0':'0','1':'4px','2':'8px','3':'12px','4':'16px','5':'20px','6':'24px','8':'32px','10':'40px','12':'48px','16':'64px'};
+tokens.typography={'h1':'96px/1.1Roboto, sans-serif','h2':'60px/1.2Roboto, sans-serif','h3':'48px/1.3Roboto, sans-serif','body1':'16px/1.5Roboto, sans-serif','body2':'14px/1.5Roboto, sans-serif','caption':'12px/1.4Roboto, sans-serif','button':'14px/1.75Roboto, sans-serif, uppercase'};
+tokens.shadows={'1':'0 1px 3px rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.24)','2':'0 3px 6px rgba(0,0,0,.15), 0 2px 4px rgba(0,0,0,.12)','3':'0 10px 20px rgba(0,0,0,.15), 0 3px 6px rgba(0,0,0,.10)','4':'0 15px 25px rgba(0,0,0,.15), 0 5px 10px rgba(0,0,0,.05)','5':'0 20px 40px rgba(0,0,0,.2)'};
+tokens.breakpoints={'xs':'0px','sm':'600px','md':'905px','lg':'1240px','xl':'1440px'};
+}else{
+tokens.colors={bg:'#0c0c0c',surface:'#141414','surface-2':'#1a1a1a',border:'#262626',text:'#e5e5e5',muted:'#737373',accent:'#3b82f6'};
+tokens.spacing={'1':'.25rem','2':'.5rem','4':'1rem','8':'2rem','16':'4rem'};
+tokens.typography={'body':'1rem/1.5','small':'.875rem/1.5','h1':'2rem/1.2','h2':'1.5rem/1.3'};
+}
+Object.keys(tokens).forEach(renderTokens);
+generate();
+}
+</script>
+</body>
+</html>

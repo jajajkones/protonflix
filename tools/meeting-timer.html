@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meeting Timer & Cost Calculator</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0c0c0c;color:#e5e5e5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:2rem;min-height:100vh}
+a{color:#737373;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:1.5rem}
+a:hover{color:#e5e5e5}
+h1{font-size:1.5rem;font-weight:600;margin-bottom:.25rem}
+.sub{color:#737373;font-size:.85rem;margin-bottom:2rem}
+.grid{display:grid;grid-template-columns:340px 1fr;gap:2rem}
+@media(max-width:768px){.grid{grid-template-columns:1fr}}
+.card{background:#141414;border:1px solid #262626;border-radius:12px;padding:1.5rem}
+.card h2{font-size:1rem;font-weight:600;margin-bottom:1rem}
+label{display:block;font-size:.75rem;color:#737373;margin-bottom:.25rem;text-transform:uppercase;letter-spacing:.05em}
+input,select{width:100%;padding:.6rem .8rem;background:#1a1a1a;border:1px solid #262626;border-radius:8px;color:#e5e5e5;font-size:.9rem;font-family:inherit;outline:none}
+input:focus,select:focus{border-color:#e5e5e5}
+.row{display:flex;gap:.75rem;margin-bottom:1rem}
+.row>div{flex:1}
+.presets{display:flex;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.preset{padding:.4rem .8rem;background:#1a1a1a;border:1px solid #262626;border-radius:6px;font-size:.8rem;color:#737373;cursor:pointer;font-family:inherit}
+.preset:hover,.preset.active{background:#262626;color:#e5e5e5;border-color:#e5e5e5}
+.btn-row{display:flex;gap:.5rem;margin-top:1rem}
+button{padding:.5rem 1rem;border:1px solid #262626;border-radius:8px;background:#1a1a1a;color:#e5e5e5;font-size:.85rem;cursor:pointer;font-family:inherit}
+button:hover{background:#262626}
+button.primary{background:#e5e5e5;color:#0c0c0c;border-color:#e5e5e5}
+button.primary:hover{background:#d4d4d4}
+button.danger{border-color:#7f1d1d;color:#fca5a5}
+button.danger:hover{background:#7f1d1d;color:#fff}
+.timer-display{text-align:center;padding:2rem 0}
+.timer-time{font-size:3.5rem;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.timer-time.overtime{color:#fca5a5}
+.timer-time.warning{color:#fcd34d}
+.timer-label{font-size:.8rem;color:#737373;margin-top:.25rem}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.5rem}
+.stat{text-align:center;padding:1rem;background:#1a1a1a;border-radius:8px}
+.stat-value{font-size:1.4rem;font-weight:600;margin-bottom:.2rem}
+.stat-label{font-size:.7rem;color:#737373;text-transform:uppercase;letter-spacing:.05em}
+.progress-bar{width:100%;height:4px;background:#262626;border-radius:2px;margin-top:1rem;overflow:hidden}
+.progress-fill{height:100%;background:#e5e5e5;border-radius:2px;transition:width .3s,background .3s}
+.progress-fill.warning{background:#fcd34d}
+.progress-fill.overtime{background:#fca5a5}
+</style>
+</head>
+<body>
+<a href="index.html">&larr; Back</a>
+<h1>Meeting Timer & Cost Calculator</h1>
+<p class="sub">Track meeting time and calculate real-time cost</p>
+<div class="grid">
+<div class="card">
+<h2>Configuration</h2>
+<div class="row">
+<div><label>Duration (min)</label><input type="number" id="duration" value="30" min="1"></div>
+<div><label>Attendees</label><input type="number" id="attendees" value="5" min="1"></div>
+</div>
+<div class="row">
+<div><label>Avg Hourly Rate ($)</label><input type="number" id="rate" value="75" min="0" step="5"></div>
+</div>
+<label>Presets</label>
+<div class="presets">
+<button class="preset" data-dur="15" data-att="3">15m Standup (3)</button>
+<button class="preset" data-dur="30" data-att="5">30m Sync (5)</button>
+<button class="preset active" data-dur="60" data-att="8">1hr Planning (8)</button>
+<button class="preset" data-dur="45" data-att="6">45m Review (6)</button>
+</div>
+<div class="btn-row">
+<button class="primary" id="startBtn">Start</button>
+<button id="pauseBtn" disabled>Pause</button>
+<button id="resetBtn" class="danger">Reset</button>
+</div>
+</div>
+<div class="card">
+<div class="timer-display">
+<div class="timer-time" id="timerDisplay">00:00:00</div>
+<div class="timer-label">Elapsed Time</div>
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+<div class="stats">
+<div class="stat"><div class="stat-value" id="costPerMin">$0.00</div><div class="stat-label">Cost / Minute</div></div>
+<div class="stat"><div class="stat-value" id="totalCost">$0.00</div><div class="stat-label">Total Cost</div></div>
+<div class="stat"><div class="stat-value" id="elapsedPct">0%</div><div class="stat-label">Of Planned Time</div></div>
+</div>
+</div>
+</div>
+<script>
+let startTime=0,elapsed=0,timerInterval=null,paused=false;
+const $=id=>document.getElementById(id);
+const fmt=s=>{const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0')};
+const update=()=>{
+  const now=Date.now();
+  const sec=Math.floor((now-startTime+elapsed)/1000);
+  $('timerDisplay').textContent=fmt(sec);
+  const dur=+$('duration').value*60;
+  const att=+$('attendees').value;
+  const rate=+$('rate').value;
+  const cpm=(rate*att)/60;
+  const total=cpm*sec;
+  $('costPerMin').textContent='$'+cpm.toFixed(2);
+  $('totalCost').textContent='$'+total.toFixed(2);
+  const pct=dur>0?Math.min((sec/dur)*100,200):0;
+  $('elapsedPct').textContent=Math.round(pct)+'%';
+  const fill=$('progressFill');
+  fill.style.width=Math.min(pct,100)+'%';
+  fill.className='progress-fill';
+  const disp=$('timerDisplay');
+  disp.className='timer-time';
+  if(pct>100){fill.classList.add('overtime');disp.classList.add('overtime')}
+  else if(pct>75){fill.classList.add('warning');disp.classList.add('warning')}
+};
+document.querySelectorAll('.preset').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.preset').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  $('duration').value=b.dataset.dur;
+  $('attendees').value=b.dataset.att;
+});
+$('startBtn').onclick=()=>{
+  if(paused){startTime=Date.now()-elapsed*1000;paused=false}
+  else{startTime=Date.now();elapsed=0}
+  clearInterval(timerInterval);
+  timerInterval=setInterval(update,100);
+  $('startBtn').disabled=true;$('pauseBtn').disabled=false;
+};
+$('pauseBtn').onclick=()=>{
+  clearInterval(timerInterval);
+  elapsed=Math.floor((Date.now()-startTime)/1000);
+  paused=true;
+  $('startBtn').disabled=false;$('pauseBtn').disabled=true;
+};
+$('resetBtn').onclick=()=>{
+  clearInterval(timerInterval);
+  elapsed=0;paused=false;startTime=0;
+  $('timerDisplay').textContent='00:00:00';
+  $('costPerMin').textContent='$0.00';$('totalCost').textContent='$0.00';
+  $('elapsedPct').textContent='0%';
+  $('progressFill').style.width='0%';
+  $('progressFill').className='progress-fill';
+  $('timerDisplay').className='timer-time';
+  $('startBtn').disabled=false;$('pauseBtn').disabled=true;
+};
+</script>
+</body>
+</html>

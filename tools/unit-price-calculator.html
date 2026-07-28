@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unit Price Calculator</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0c0c0c;color:#e5e5e5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:2rem;min-height:100vh}
+a{color:#737373;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:1.5rem}
+a:hover{color:#e5e5e5}
+h1{font-size:1.5rem;font-weight:600;margin-bottom:.25rem}
+.sub{color:#737373;font-size:.85rem;margin-bottom:2rem}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+@media(max-width:768px){.grid{grid-template-columns:1fr}}
+.card{background:#141414;border:1px solid #262626;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
+.card h2{font-size:1rem;font-weight:600;margin-bottom:1rem}
+label{display:block;font-size:.75rem;color:#737373;margin-bottom:.25rem;text-transform:uppercase;letter-spacing:.05em}
+input,select{width:100%;padding:.6rem .8rem;background:#1a1a1a;border:1px solid #262626;border-radius:8px;color:#e5e5e5;font-size:.9rem;font-family:inherit;outline:none}
+input:focus,select:focus{border-color:#e5e5e5}
+.row{display:flex;gap:.75rem;margin-bottom:1rem}
+.row>div{flex:1}
+button{padding:.5rem 1rem;border:1px solid #262626;border-radius:8px;background:#1a1a1a;color:#e5e5e5;font-size:.85rem;cursor:pointer;font-family:inherit}
+button:hover{background:#262626}
+button.primary{background:#e5e5e5;color:#0c0c0c;border-color:#e5e5e5}
+button.primary:hover{background:#d4d4d4}
+button.danger{color:#fca5a5;border-color:#7f1d1d}
+button.danger:hover{background:#7f1d1d;color:#fff}
+.result-box{background:#1a1a1a;border-radius:8px;padding:1.25rem;text-align:center;margin-top:1rem}
+.result-value{font-size:2rem;font-weight:700}
+.result-label{font-size:.75rem;color:#737373;margin-top:.25rem}
+.comparison-table{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:1rem}
+.comparison-table th{text-align:left;padding:.6rem;border-bottom:1px solid #262626;color:#737373;font-weight:500;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em}
+.comparison-table td{padding:.6rem;border-bottom:1px solid #1a1a1a}
+.comparison-table tr.best td{color:#86efac;font-weight:600}
+.comparison-table .badge{display:inline-block;padding:.15rem .4rem;background:#166534;color:#86efac;border-radius:4px;font-size:.65rem;text-transform:uppercase}
+.item-card{background:#1a1a1a;border-radius:8px;padding:1rem;margin-bottom:.75rem;position:relative}
+.item-card.best{border:1px solid #22c55e}
+.item-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
+.item-name{font-weight:500}
+.item-price{color:#737373}
+.item-result{display:flex;justify-content:space-between;font-size:.8rem;color:#737373;margin-top:.5rem}
+.item-result .unit{font-size:1.1rem;font-weight:600;color:#e5e5e5}
+.remove-btn{position:absolute;top:.5rem;right:.5rem;background:none;border:none;color:#737373;cursor:pointer;font-size:1rem}
+.remove-btn:hover{color:#fca5a5}
+.copy-btn{padding:.3rem .6rem;font-size:.7rem;background:#262626;border:1px solid #737373;border-radius:4px;color:#e5e5e5;cursor:pointer;margin-top:.75rem}
+.copy-btn:hover{background:#333}
+.currency-badge{display:inline-block;padding:.2rem .5rem;background:#262626;border-radius:4px;font-size:.7rem;margin-left:.5rem}
+</style>
+</head>
+<body>
+<a href="index.html">&larr; Back</a>
+<h1>Unit Price Calculator</h1>
+<p class="sub">Compare prices and find the best deal</p>
+<div class="grid">
+<div>
+<div class="card">
+<h2>Add Item</h2>
+<div class="row">
+<div style="flex:2"><label>Name</label><input type="text" id="itemName" placeholder="e.g. Brand A Detergent"></div>
+<div style="flex:1"><label>Currency</label>
+<select id="currency">
+<option value="$">$ USD</option>
+<option value="€">€ EUR</option>
+<option value="£">£ GBP</option>
+<option value="¥">¥ JPY</option>
+<option value="₹">₹ INR</option>
+<option value="A$">A$ AUD</option>
+<option value="C$">C$ CAD</option>
+</select></div>
+</div>
+<div class="row">
+<div><label>Total Price</label><input type="number" id="totalPrice" placeholder="0.00" step="0.01" min="0"></div>
+<div><label>Quantity</label><input type="number" id="quantity" placeholder="1" min="0.01" step="0.01"></div>
+</div>
+<div class="row">
+<div><label>Unit Type</label>
+<select id="unitType">
+<option value="count">Count (pcs, items)</option>
+<option value="weight">Weight (kg, lb, oz)</option>
+<option value="volume">Volume (L, ml, gal, fl oz)</option>
+<option value="area">Area (sq ft, sq m, sq yd)</option>
+</select></div>
+<div><label>Unit Size</label><input type="number" id="unitSize" placeholder="e.g. 500 (ml/kg/etc)" min="0.01" step="0.01"></div>
+</div>
+<div class="row">
+<div><label>Custom Unit Label</label><input type="text" id="unitLabel" placeholder="e.g. per 100g, per item"></div>
+</div>
+<button class="primary" id="addItemBtn" style="width:100%">Add Item</button>
+</div>
+</div>
+<div>
+<div class="card">
+<h2>Results</h2>
+<div id="singleResult" style="display:none">
+<div class="result-box">
+<div class="result-value" id="singleUnitPrice">$0.00</div>
+<div class="result-label" id="singleUnitLabel">Unit Price</div>
+</div>
+</div>
+<div id="noItems" style="text-align:center;color:#737373;padding:2rem;font-size:.85rem">Add items to compare</div>
+<div id="itemsList"></div>
+<div id="comparisonSection" style="display:none">
+<h2 style="margin-top:1.5rem">Price Comparison</h2>
+<table class="comparison-table">
+<thead><tr><th>Item</th><th>Total</th><th>Unit Price</th><th>Savings</th></tr></thead>
+<tbody id="compTable"></tbody>
+</table>
+<div style="display:flex;gap:.5rem;margin-top:1rem">
+<button id="copyBestBtn">Copy Best Deal</button>
+<button id="clearAllBtn" class="danger">Clear All</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+let items=[],bestIdx=-1;
+const $=id=>document.getElementById(id);
+const unitLabels={count:{'':'item',per100:'per 100'},weight:{kg:'per kg',lb:'per lb',oz:'per oz',g:'per g'},volume:{L:'per L',ml:'per 100ml',gal:'per gal','fl oz':'per fl oz'},area:{'sq ft':'per sq ft','sq m':'per sq m','sq yd':'per sq yd'}};
+const defaultUnit={count:'item',weight:'kg',volume:'L',area:'sq ft'};
+const calcUnitPrice=(price,qty,unitType,unitSize)=>{
+  const size=+unitSize||1;
+  if(unitType==='count')return price/qty;
+  const totalUnits=qty*size;
+  return totalUnits>0?price/totalUnits:0;
+};
+const fmtPrice=(p,c)=>c+p.toFixed(2);
+const addItem=()=>{
+  const name=$('itemName').value.trim()||'Item '+(items.length+1);
+  const price=+$('totalPrice').value;
+  const qty=+$('quantity').value||1;
+  const unitType=$('unitType').value;
+  const unitSize=+$('unitSize').value||1;
+  const currency=$('currency').value;
+  const customLabel=$('unitLabel').value.trim();
+  const unitPrice=calcUnitPrice(price,qty,unitType,unitSize);
+  const defaultL=unitLabels[unitType][defaultUnit[unitType]]||defaultUnit[unitType];
+  const label=customLabel||defaultL;
+  items.push({name,price:+price,qty,unitType,unitSize:+unitSize,currency,unitPrice,label});
+  renderItems();
+  $('itemName').value='';$('totalPrice').value='';$('quantity').value='';$('unitSize').value='';$('unitLabel').value='';
+};
+$('addItemBtn').onclick=addItem;
+$('itemName').onkeydown=e=>{if(e.key==='Enter')addItem()};
+$('totalPrice').onkeydown=e=>{if(e.key==='Enter')addItem()};
+const renderItems=()=>{
+  if(items.length===0){$('noItems').style.display='';$('comparisonSection').style.display='none';$('itemsList').innerHTML='';$('singleResult').style.display='none';return}
+  $('noItems').style.display='none';
+  if(items.length===1){$('singleResult').style.display='';$('comparisonSection').style.display='none';$('singleUnitPrice').textContent=fmtPrice(items[0].unitPrice,items[0].currency);$('singleUnitLabel').textContent=items[0].label;$('itemsList').innerHTML='';return}
+  $('singleResult').style.display='none';$('comparisonSection').style.display='';
+  const sorted=[...items].sort((a,b)=>a.unitPrice-b.unitPrice);
+  bestIdx=items.indexOf(sorted[0]);
+  $('itemsList').innerHTML=items.map((it,i)=>{
+    const isBest=i===bestIdx;const saving=sorted.length>1?((sorted[sorted.length-1].unitPrice-it.unitPrice)/sorted[sorted.length-1].unitPrice*100):0;
+    return`<div class="item-card${isBest?' best':''}"><button class="remove-btn" data-i="${i}">&times;</button><div class="item-header"><span class="item-name">${it.name}${isBest?' <span class="badge">Best Value</span>':''}</span><span class="item-price">${fmtPrice(it.price,it.currency)}</span></div><div class="item-result"><span>${it.qty} ${it.unitType==='count'?'× '+it.unitSize+' pcs':it.qty+' × '+it.unitSize+' '+defaultUnit[it.unitType]}</span><span class="unit">${fmtPrice(it.unitPrice,it.currency)} ${it.label}</span></div></div>`
+  }).join('');
+  document.querySelectorAll('.remove-btn').forEach(b=>b.onclick=()=>{items.splice(+b.dataset.i,1);renderItems()});
+  $('compTable').innerHTML=sorted.map((it,i)=>{
+    const saving=i<sorted.length-1?((sorted[sorted.length-1].unitPrice-it.unitPrice)/sorted[sorted.length-1].unitPrice*100).toFixed(1):0;
+    return`<tr class="${i===0?'best':''}"><td>${it.name}</td><td>${fmtPrice(it.price,it.currency)}</td><td>${fmtPrice(it.unitPrice,it.currency)} ${it.label}</td><td>${i>0?saving+'%':''}${i===0?'<span class="badge">Best</span>':''}</td></tr>`
+  }).join('');
+};
+$('copyBestBtn').onclick=()=>{
+  if(bestIdx<0)return;
+  const b=items[bestIdx];
+  const text=`Best deal: ${b.name}\nUnit price: ${fmtPrice(b.unitPrice,b.currency)} ${b.label}\nTotal: ${fmtPrice(b.price,b.currency)} for ${b.qty} units`;
+  navigator.clipboard.writeText(text);
+};
+$('clearAllBtn').onclick=()=>{items=[];renderItems()};
+$('unitType').onchange=e=>{$('unitSize').placeholder='e.g. '+({count:'500 (pcs)',weight:'500 (g)',volume:'500 (ml)',area:'25 (sq ft)'}[e.target.value])};
+</script>
+</body>
+</html>

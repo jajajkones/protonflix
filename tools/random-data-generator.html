@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Random Data Generator</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0c0c0c;color:#e5e5e5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:2rem;min-height:100vh}
+a{color:#737373;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:1.5rem}
+a:hover{color:#e5e5e5}
+h1{font-size:1.5rem;font-weight:600;margin-bottom:.25rem}
+.sub{color:#737373;font-size:.85rem;margin-bottom:2rem}
+.grid{display:grid;grid-template-columns:320px 1fr;gap:2rem}
+@media(max-width:768px){.grid{grid-template-columns:1fr}}
+.card{background:#141414;border:1px solid #262626;border-radius:12px;padding:1.5rem}
+.card h2{font-size:1rem;font-weight:600;margin-bottom:1rem}
+label{display:block;font-size:.75rem;color:#737373;margin-bottom:.25rem;text-transform:uppercase;letter-spacing:.05em}
+input,select{width:100%;padding:.6rem .8rem;background:#1a1a1a;border:1px solid #262626;border-radius:8px;color:#e5e5e5;font-size:.9rem;font-family:inherit;outline:none}
+input:focus,select:focus{border-color:#e5e5e5}
+.row{display:flex;gap:.75rem;margin-bottom:1rem}
+.row>div{flex:1}
+button{padding:.5rem 1rem;border:1px solid #262626;border-radius:8px;background:#1a1a1a;color:#e5e5e5;font-size:.85rem;cursor:pointer;font-family:inherit}
+button:hover{background:#262626}
+button.primary{background:#e5e5e5;color:#0c0c0c;border-color:#e5e5e5}
+button.primary:hover{background:#d4d4d4}
+.cols{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem}
+.col-chip{display:flex;align-items:center;gap:.3rem;padding:.35rem .6rem;background:#1a1a1a;border:1px solid #262626;border-radius:6px;font-size:.75rem;cursor:pointer;user-select:none}
+.col-chip.active{border-color:#e5e5e5;background:#262626}
+.col-chip input{display:none}
+.output-area{margin-top:1rem;position:relative}
+.output-area textarea{width:100%;height:350px;background:#1a1a1a;border:1px solid #262626;border-radius:8px;color:#e5e5e5;font-family:'SF Mono',Consolas,monospace;font-size:.8rem;padding:1rem;resize:vertical;outline:none;line-height:1.5}
+.copy-btn{position:absolute;top:.5rem;right:.5rem;padding:.3rem .6rem;font-size:.7rem;background:#262626;border:1px solid #737373;border-radius:4px;color:#e5e5e5;cursor:pointer}
+.copy-btn:hover{background:#333}
+</style>
+</head>
+<body>
+<a href="index.html">&larr; Back</a>
+<h1>Random Data Generator</h1>
+<p class="sub">Generate fake data for testing</p>
+<div class="grid">
+<div class="card">
+<h2>Settings</h2>
+<div class="row">
+<div><label>Locale</label>
+<select id="locale">
+<option value="en-US">en-US</option>
+<option value="en-GB">en-GB</option>
+<option value="de-DE">de-DE</option>
+<option value="fr-FR">fr-FR</option>
+<option value="es-ES">es-ES</option>
+<option value="ja-JP">ja-JP</option>
+</select></div>
+<div><label>Count</label><input type="number" id="count" value="10" min="1" max="1000"></div>
+</div>
+<div class="row">
+<div><label>Output Format</label>
+<select id="format"><option value="json">JSON</option><option value="csv">CSV</option></select></div>
+</div>
+<label>Columns</label>
+<div class="cols" id="colSelector">
+<label class="col-chip active"><input type="checkbox" value="firstName" checked>First Name</label>
+<label class="col-chip active"><input type="checkbox" value="lastName" checked>Last Name</label>
+<label class="col-chip active"><input type="checkbox" value="email" checked>Email</label>
+<label class="col-chip"><input type="checkbox" value="phone">Phone</label>
+<label class="col-chip"><input type="checkbox" value="address">Address</label>
+<label class="col-chip"><input type="checkbox" value="company">Company</label>
+<label class="col-chip"><input type="checkbox" value="date">Date</label>
+<label class="col-chip"><input type="checkbox" value="number">Number</label>
+<label class="col-chip"><input type="checkbox" value="uuid">UUID</label>
+<label class="col-chip"><input type="checkbox" value="paragraph">Paragraph</label>
+<label class="col-chip"><input type="checkbox" value="sentence">Sentence</label>
+</div>
+<button class="primary" id="generateBtn" style="width:100%">Generate</button>
+</div>
+<div class="card">
+<h2>Output <span id="rowCount" style="color:#737373;font-weight:400;font-size:.8rem"></span></h2>
+<div class="output-area">
+<textarea id="output" readonly></textarea>
+<button class="copy-btn" id="copyBtn">Copy</button>
+</div>
+</div>
+</div>
+<script>
+document.querySelectorAll('.col-chip').forEach(c=>c.onclick=()=>{c.classList.toggle('active');c.querySelector('input').checked=c.classList.contains('active')});
+const L={
+'en-US':{fn:['James','Mary','John','Patricia','Robert','Jennifer','Michael','Linda','David','Elizabeth','William','Barbara','Richard','Susan','Joseph','Jessica','Thomas','Sarah','Christopher','Karen'],'ln':['Smith','Johnson','Williams','Brown','Jones','Garcia','Miller','Davis','Rodriguez','Martinez','Hernandez','Lopez','Gonzalez','Wilson','Anderson','Thomas','Taylor','Moore','Jackson','Martin'],'co':['Acme Corp','Globex','Initech','Umbrella','Hooli','Pied Piper','Stark Industries','Wayne Enterprises','Cyberdyne','Massive Dynamic'],'city':['New York','Los Angeles','Chicago','Houston','Phoenix','San Antonio','San Diego','Dallas','San Jose','Austin'],'st':['NY','CA','IL','TX','AZ','CA','TX','TX','CA','TX'],'str':['Main St','Oak Ave','Maple Dr','Cedar Ln','Pine Rd','Elm St','First Ave','Second St','Third Ave','Park Blvd']},
+'en-GB':{fn:['Oliver','Emma','George','Olivia','Harry','Sophie','Jack','Emily','Charlie','Mia'],'ln':['Smith','Jones','Williams','Taylor','Brown','Davies','Evans','Wilson','Thomas','Robinson'],'co':['SkyNet','Barclays','HSBC','Vodafone','Tesco','BBC','ARM','Rolls-Royce','BAE Systems','GlaxoSmithKline'],'city':['London','Manchester','Birmingham','Leeds','Glasgow','Edinburgh','Liverpool','Bristol','Sheffield','Cardiff'],'st':['ENG','ENG','ENG','ENG','SCO','SCO','ENG','ENG','ENG','WAL'],'str':['High St','Church Rd','London Rd','Station Rd','Park Ave','Victoria St','King St','Queen Rd','Prince St','Crown Ave']},
+'de-DE':{fn:['Hans','Greta','Klaus','Ulla','Werner','Ingrid','Fritz','Helga','Otto','Erna'],'ln':['Müller','Schmidt','Schneider','Fischer','Weber','Meyer','Wagner','Becker','Schulz','Hoffmann'],'co':['Siemens','BMW','SAP','Volkswagen','Bosch','BASF','Mercedes','ThyssenKrupp','Adidas','Puma'],'city':['Berlin','München','Hamburg','Köln','Frankfurt','Stuttgart','Düsseldorf','Dortmund','Essen','Leipzig'],'st':['BE','BY','HH','NW','HE','BW','NW','NW','NW','SN'],'str':['Hauptstraße','Bahnhofstraße','Schlossallee','Kirchweg','Lindenstraße','Gartenstraße','Waldweg','Bergstraße','Brückenstraße','Marktplatz']},
+'fr-FR':{fn:['Jean','Marie','Pierre','Sophie','Michel','Isabelle','Philippe','Catherine','André','Monique'],'ln:['Martin','Bernard','Dubois','Thomas','Robert','Richard','Petit','Durand','Leroy','Moreau'],'co:['Renault','Total','AXA','LVMH','Carrefour','BNP','Sanofi','Engie','Dassault','Thales'],'city:['Paris','Marseille','Lyon','Toulouse','Nice','Nantes','Strasbourg','Montpellier','Bordeaux','Lille'],'st:['75','13','69','31','06','44','67','34','33','59'],'str:['Rue de Rivoli','Avenue des Champs','Boulevard Saint-German','Place Bellecour','Rue de la Paix','Avenue Montaigne','Rue Royal','Cours Mirabeau','Rue des Carmes','Promenade des Anglais']},
+'es-ES':{fn:['Carlos','María','José','Ana','Manuel','Carmen','Antonio','Rosa','Francisco','Laura'],'ln:['García','Fernández','Rodríguez','López','Martínez','Sánchez','Pérez','Gómez','Martín','Jiménez'],'co:['Telefónica','Santander','BBVA','Iberdrola','Repsol','Inditex','Mapfre','Ferrovial','Amadeus','Cellnex'],'city':['Madrid','Barcelona','Valencia','Sevilla','Zaragoza','Málaga','Murcia','Palma','Bilbao','Alicante'],'st:['MAD','BCN','VLC','SEV','ZAR','MLL','MUR','PMI','BIL','ALC'],'str:['Calle Mayor','Calle Real','Avenida de la Constitución','Plaza de España','Paseo del Prado','Calle Gran Vía','Calle Alcalá','Ronda de Sant Pere','Calle de Serrano','Paseo de Gracia']},
+'ja-JP':{fn:['太郎','花子','一郎','愛子','健太','明日香','裕太','美咲','翔太','由美'],'ln:['佐藤','鈴木','高橋','田中','伊藤','渡辺','山本','中村','小林','加藤'],'co:['Sony','Toyota','Honda','Samsung','Nintendo','SoftBank','Panasonic','Nissan','Mitsubishi','Fujitsu'],'city:['東京','大阪','横浜','名古屋','札幌','福岡','京都','神戸','広島','仙台'],'st:['東京都','大阪府','神奈川県','愛知県','北海道','福岡県','京都府','兵庫県','広島県','宮城県'],'str:['通り','横丁','町','橋','坂','門前','裏','表','仲間','通り']}}
+const uuid=()=>'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:r&0x3|0x8).toString(16)});
+const randItem=a=>a[Math.floor(Math.random()*a.length)];
+const randNum=(min,max)=>Math.floor(Math.random()*(max-min+1))+min;
+const randDate=()=>{
+  const d=new Date(2020,0,1);d.setDate(d.getDate()+Math.floor(Math.random()*2000));
+  return d.toISOString().split('T')[0]
+};
+const genSentence=()=>{const w=['The','quick','brown','fox','jumps','over','lazy','dog','A','small','red','car','drove','down','long','road','She','found','old','book','in','dusty','corner','They','will','arrive','before','sunset','The','garden','blooms','every','spring'];let s=[];const l=randItem([6,7,8,9,10,11,12]);for(let i=0;i<l;i++)s.push(i===0?randItem(w):randItem(w).toLowerCase());return s.join(' ')+(randItem(['.','!','?']))};
+const genParagraph=()=>Array.from({length:randItem([3,4,5])},genSentence).join(' ');
+const genAddr=loc=>{const l=L[loc];return`${randItem(l.str)} ${randItem([1,25,42,78,103,201])}, ${randItem(l.city)}, ${randItem(l.st)}`};
+const generators={
+  firstName:loc=>randItem(L[loc].fn),lastName:loc=>randItem(L[loc].ln),
+  email:loc=>{const f=randItem(L[loc].fn).toLowerCase(),l=randItem(L[loc].ln).toLowerCase();return`${f}.${l}${randItem(['','1','2'])}@${randItem(['gmail.com','outlook.com','yahoo.com','proton.me'])}`},
+  phone:loc=>loc==='ja-JP'?'0'+randNum(70,90)+''+randNum(1000,9999)+''+randNum(1000,9999):loc==='de-DE'?'+49 '+randNum(150,179)+' '+randNum(1000000,99999999):loc==='fr-FR'?'+33 '+randNum(6,7)+' '+randNum(10,99)+' '+randNum(10,99)+' '+randNum(10,99)+' '+randNum(10,99):'+1 ('+randNum(200,999)+') '+randNum(200,999)+'-'+randNum(1000,9999)},
+  address:genAddr,company:loc=>randItem(L[loc].co),date:()=>randDate(),
+  number:()=>randNum(1,999999),uuid:uuid,paragraph:genParagraph,sentence:genSentence
+};
+document.querySelectorAll('.col-chip input').forEach(c=>c.onchange=()=>c.closest('.col-chip').classList.toggle('active',c.checked));
+$('generateBtn').onclick=()=>{
+  const loc=$('locale').value,count=Math.min(+$('count').value||10,1000),fmt=$('format').value;
+  const cols=[...document.querySelectorAll('.col-chip input:checked')].map(c=>c.value);
+  if(!cols.length){$('output').value='Select at least one column';return}
+  const rows=Array.from({length:count},()=>{const r={};cols.forEach(c=>r[c]=generators[c](loc));return r});
+  let out='';
+  if(fmt==='json')out=JSON.stringify(rows,null,2);
+  else{out=cols.join(',')+'\n';rows.forEach(r=>out+=cols.map(c=>{const v=String(r[c]);return v.includes(',')?`"${v}"`:v}).join(',')+'\n')}
+  $('output').value=out;$('rowCount').textContent=`${rows.length} rows`;
+};
+$('copyBtn').onclick=()=>{navigator.clipboard.writeText($('output').value);$('copyBtn').textContent='Copied!';setTimeout(()=>$('copyBtn').textContent='Copy',1500)};
+$('generateBtn').click();
+</script>
+</body>
+</html>

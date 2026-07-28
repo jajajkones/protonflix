@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON ↔ CSV Converter</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0c0c0c;color:#e5e5e5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;padding:24px}
+a{color:#e5e5e5;text-decoration:none;opacity:.7;transition:opacity .2s}
+a:hover{opacity:1}
+.header{margin-bottom:32px}
+.header h1{font-size:20px;font-weight:600;margin-bottom:4px}
+.sub{color:#737373;font-size:13px}
+.container{max-width:1100px;margin:0 auto}
+.tabs{display:flex;gap:4px;margin-bottom:20px}
+.tab{padding:8px 16px;border:1px solid #262626;background:#141414;color:#737373;border-radius:6px;cursor:pointer;font-size:13px;transition:all .2s}
+.tab.active{background:#1a1a1a;color:#e5e5e5;border-color:#404040}
+.panels{display:grid;grid-template-columns:1fr 40px 1fr;gap:16px;align-items:start}
+.panel{display:flex;flex-direction:column;gap:8px}
+.panel label{font-size:12px;color:#737373;text-transform:uppercase;letter-spacing:.5px}
+textarea{width:100%;height:400px;background:#141414;border:1px solid #262626;color:#e5e5e5;border-radius:8px;padding:16px;font-family:'SF Mono',Monaco,Consolas,monospace;font-size:13px;resize:vertical;outline:none;transition:border-color .2s}
+textarea:focus{border-color:#404040}
+.arrow-col{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding-top:32px}
+.arrow-btn{width:36px;height:36px;border-radius:50%;border:1px solid #262626;background:#1a1a1a;color:#e5e5e5;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;font-size:16px}
+.arrow-btn:hover{border-color:#404040;background:#262626}
+.actions{display:flex;gap:8px;margin-top:12px}
+.btn{padding:8px 16px;border:1px solid #262626;background:#1a1a1a;color:#e5e5e5;border-radius:6px;cursor:pointer;font-size:13px;transition:all .2s;font-family:inherit}
+.btn:hover{border-color:#404040;background:#262626}
+.btn.primary{background:#e5e5e5;color:#0c0c0c;border-color:#e5e5e5}
+.btn.primary:hover{background:#d4d4d4}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1a1a;border:1px solid #262626;color:#e5e5e5;padding:10px 20px;border-radius:8px;font-size:13px;opacity:0;transition:all .3s;pointer-events:none;z-index:100}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.error{border-color:#ef4444 !important}
+.info{color:#737373;font-size:12px;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html">← Back</a>
+<h1>JSON ↔ CSV Converter</h1>
+<p class="sub">Paste JSON array of objects or CSV data. Nested objects are flattened automatically.</p>
+</div>
+<div class="tabs">
+<button class="tab active" onclick="setMode('json-csv')">JSON → CSV</button>
+<button class="tab" onclick="setMode('csv-json')">CSV → JSON</button>
+</div>
+<div class="panels">
+<div class="panel">
+<label id="inputLabel">Input JSON</label>
+<textarea id="input" placeholder='[{"name":"John","age":30},{"name":"Jane","age":25}]'></textarea>
+<div class="info" id="inputInfo"></div>
+</div>
+<div class="arrow-col">
+<button class="arrow-btn" onclick="convert()" title="Convert">→</button>
+<button class="arrow-btn" onclick="swapPanels()" title="Swap">⇄</button>
+</div>
+<div class="panel">
+<label id="outputLabel">Output CSV</label>
+<textarea id="output" readonly placeholder="Output will appear here..."></textarea>
+<div class="actions">
+<button class="btn" onclick="copyOutput()">Copy</button>
+<button class="btn primary" onclick="downloadOutput()">Download</button>
+</div>
+</div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+let mode='json-csv';
+const $=id=>document.getElementById(id);
+function setMode(m){
+mode=m;
+document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===(m==='json-csv'?0:1)));
+$('inputLabel').textContent=m==='json-csv'?'Input JSON':'Input CSV';
+$('outputLabel').textContent=m==='json-csv'?'Output CSV':'Output JSON';
+$('input').placeholder=m==='json-csv'?'[{"name":"John","age":30},{"name":"Jane","age":25}]':'name,age\nJohn,30\nJane,25';
+$('output').value='';
+$('inputInfo').textContent='';
+$('input').classList.remove('error');
+}
+function flattenObject(obj,prefix=''){
+let result={};
+for(let key in obj){
+if(!obj.hasOwnProperty(key))continue;
+let newKey=prefix?prefix+'.'+key:key;
+if(typeof obj[key]==='object'&&obj[key]!==null&&!Array.isArray(obj[key])){
+Object.assign(result,flattenObject(obj[key],newKey));
+}else{
+result[newKey]=obj[key];
+}
+}
+return result;
+}
+function jsonToCsv(jsonStr){
+let data=JSON.parse(jsonStr);
+if(!Array.isArray(data))data=[data];
+if(data.length===0)return'';
+data=data.map(d=>flattenObject(d));
+let headers=[...new Set(data.flatMap(d=>Object.keys(d)))];
+let csv=headers.join(',')+'\n';
+data.forEach(row=>{
+csv+=headers.map(h=>{
+let val=row[h]??'';
+val=String(val);
+if(val.includes(',')||val.includes('"')||val.includes('\n')){
+val='"'+val.replace(/"/g,'""')+'"';
+}
+return val;
+}).join(',')+'\n';
+});
+return csv.trim();
+}
+function csvToJson(csvStr){
+let lines=csvStr.trim().split('\n').map(l=>l.trim()).filter(l=>l);
+if(lines.length===0)return'[]';
+let headers=parseCSVLine(lines[0]);
+let result=[];
+for(let i=1;i<lines.length;i++){
+let values=parseCSVLine(lines[i]);
+let obj={};
+headers.forEach((h,j)=>{
+let v=values[j]??'';
+if(!isNaN(v)&&v!=='')v=Number(v);
+else if(v==='true')v=true;
+else if(v==='false')v=false;
+obj[h]=v;
+});
+result.push(obj);
+}
+return JSON.stringify(result,null,2);
+}
+function parseCSVLine(line){
+let result=[];
+let current='';
+let inQuotes=false;
+for(let i=0;i<line.length;i++){
+let c=line[i];
+if(inQuotes){
+if(c==='"'){
+if(i+1<line.length&&line[i+1]==='"'){
+current+='"';i++;
+}else{inQuotes=false;}
+}else{current+=c;}
+}else{
+if(c==='"'){inQuotes=true;}
+else if(c===','){result.push(current);current='';}
+else{current+=c;}
+}
+}
+result.push(current);
+return result;
+}
+function convert(){
+let input=$('input').value.trim();
+if(!input){$('input').classList.add('error');$('inputInfo').textContent='Please enter data';return;}
+$('input').classList.remove('error');$('inputInfo').textContent='';
+try{
+let output;
+if(mode==='json-csv'){output=jsonToCsv(input);}
+else{output=csvToJson(input);}
+$('output').value=output;
+}catch(e){
+$('input').classList.add('error');
+$('inputInfo').textContent=e.message;
+}
+}
+function swapPanels(){
+let temp=$('input').value;
+$('input').value=$('output').value;
+$('output').value=temp;
+setMode(mode==='json-csv'?'csv-json':'json-csv');
+}
+function copyOutput(){
+let text=$('output').value;
+if(!text)return;
+navigator.clipboard.writeText(text).then(()=>showToast('Copied to clipboard'));
+}
+function downloadOutput(){
+let text=$('output').value;
+if(!text)return;
+let ext=mode==='json-csv'?'.csv':'.json';
+let mime=mode==='json-csv'?'text/csv':'application/json';
+let blob=new Blob([text],{type:mime});
+let a=document.createElement('a');
+a.href=URL.createObjectURL(blob);
+a.download='output'+ext;
+a.click();
+URL.revokeObjectURL(a.href);
+}
+function showToast(msg){
+let t=$('toast');t.textContent=msg;t.classList.add('show');
+setTimeout(()=>t.classList.remove('show'),2000);
+}
+$('input').addEventListener('input',function(){
+this.classList.remove('error');$('inputInfo').textContent='';
+});
+</script>
+</body>
+</html>

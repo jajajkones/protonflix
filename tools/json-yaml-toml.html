@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON ↔ YAML ↔ TOML Converter</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0c0c0c;color:#e5e5e5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;padding:24px}
+a{color:#e5e5e5;text-decoration:none;opacity:.7;transition:opacity .2s}
+a:hover{opacity:1}
+.header{margin-bottom:32px}
+.header h1{font-size:20px;font-weight:600;margin-bottom:4px}
+.sub{color:#737373;font-size:13px}
+.container{max-width:1200px;margin:0 auto}
+.detected{display:inline-block;padding:4px 10px;background:#1a1a1a;border:1px solid #262626;border-radius:4px;font-size:12px;color:#737373;margin-bottom:16px}
+.detected span{color:#e5e5e5;font-weight:500}
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.col{display:flex;flex-direction:column;gap:8px}
+.col-head{display:flex;align-items:center;justify-content:space-between}
+.col-head label{font-size:12px;color:#737373;text-transform:uppercase;letter-spacing:.5px}
+.copy-btn{padding:4px 10px;border:1px solid #262626;background:#1a1a1a;color:#e5e5e5;border-radius:4px;cursor:pointer;font-size:11px;font-family:inherit;transition:all .2s}
+.copy-btn:hover{border-color:#404040}
+textarea{width:100%;height:500px;background:#141414;border:1px solid #262626;color:#e5e5e5;border-radius:8px;padding:16px;font-family:'SF Mono',Monaco,Consolas,monospace;font-size:13px;resize:vertical;outline:none;transition:border-color .2s;line-height:1.6}
+textarea:focus{border-color:#404040}
+.output-area{width:100%;height:500px;background:#141414;border:1px solid #262626;border-radius:8px;padding:16px;font-family:'SF Mono',Monaco,Consolas,monospace;font-size:13px;overflow:auto;white-space:pre;line-height:1.6}
+.error-msg{color:#ef4444;font-size:12px;margin-top:4px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1a1a;border:1px solid #262626;color:#e5e5e5;padding:10px 20px;border-radius:8px;font-size:13px;opacity:0;transition:all .3s;pointer-events:none;z-index:100}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.key{color:#7dd3fc}
+.str{color:#86efac}
+.num{color:#fbbf24}
+.bool{color:#c084fc}
+.null{color:#737373}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html">← Back</a>
+<h1>JSON ↔ YAML ↔ TOML Converter</h1>
+<p class="sub">Paste any format. Auto-detect and convert to the other two.</p>
+</div>
+<div class="detected" id="detected">Detected: <span id="detectedFmt">None</span></div>
+<div class="grid">
+<div class="col">
+<div class="col-head"><label>JSON</label><button class="copy-btn" onclick="copyCol(0)">Copy</button></div>
+<textarea id="ta0" placeholder='{"name":"John","age":30}' oninput="onInput(0)"></textarea>
+<div class="error-msg" id="err0"></div>
+</div>
+<div class="col">
+<div class="col-head"><label>YAML</label><button class="copy-btn" onclick="copyCol(1)">Copy</button></div>
+<div class="output-area" id="out1">Output will appear here...</div>
+</div>
+<div class="col">
+<div class="col-head"><label>TOML</label><button class="copy-btn" onclick="copyCol(2)">Copy</button></div>
+<div class="output-area" id="out2">Output will appear here...</div>
+</div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const $=id=>document.getElementById(id);
+function detectFormat(s){
+s=s.trim();
+if(!s)return null;
+if(s[0]==='{'||s[0]==='['){try{JSON.parse(s);return'json';}catch(e){}}
+if(s.includes(':')&&!s.includes('=')){let lines=s.split('\n');
+for(let l of lines){l=l.trim();if(l&&!l.startsWith('#')&&!l.startsWith('-')){if(l.includes(':'))return'yaml';}}}
+if(s.includes('=')){let lines=s.split('\n');
+for(let l of lines){l=l.trim();if(l&&!l.startsWith('#')&&l.includes('=')&&!l.startsWith('[')){return'toml';}}}
+return null;
+}
+function onInput(src){
+let val=$('ta'+src).value.trim();
+$('err'+src).textContent='';
+if(!val){$('out1').textContent='Output will appear here...';$('out2').textContent='Output will appear here...';$('detectedFmt').textContent='None';return;}
+let fmt=detectFormat(val);
+if(!fmt){$('err'+src).textContent='Could not detect format';$('detectedFmt').textContent='None';return;}
+$('detectedFmt').textContent=fmt.toUpperCase();
+try{
+let obj;
+if(fmt==='json')obj=JSON.parse(val);
+else if(fmt==='yaml')obj=parseYAML(val);
+else obj=parseTOML(val);
+let outputs=[];
+if(fmt!=='json')outputs.push({el:'out1',fmt:'yaml',val:toYAML(obj)});
+else outputs.push({el:'out1',fmt:'yaml',val:null});
+if(fmt!=='yaml')outputs.push({el:'out2',fmt:'toml',val:null});
+else outputs.push({el:'out2',fmt:'toml',val:null});
+if(fmt!=='json')$('out1').textContent=toYAML(obj); else $('out1').textContent='{...}';
+if(fmt!=='toml')$('out2').textContent=toTOML(obj); else $('out2').textContent='{...}';
+if(fmt==='json'){$('out1').textContent=toYAML(obj);$('out2').textContent=toTOML(obj);}
+else if(fmt==='yaml'){$('ta0').value=JSON.stringify(obj,null,2);$('out2').textContent=toTOML(obj);}
+else{$('ta0').value=JSON.stringify(obj,null,2);$('out1').textContent=toYAML(obj);}
+}catch(e){$('err'+src).textContent=e.message;}
+}
+function copyCol(i){
+let el=document.getElementById('out'+i);
+if(!el)return;
+let text=i===0?$('ta0').value:el.textContent;
+if(!text)return;
+navigator.clipboard.writeText(text).then(()=>showToast('Copied'));
+}
+function showToast(msg){let t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+
+// Simple YAML parser
+function parseYAML(s){
+let lines=s.split('\n');let result={};let stack=[{obj:result,indent:-1}];
+for(let line of lines){
+if(!line.trim()||line.trim().startsWith('#'))continue;
+let indent=line.search(/\S/);
+let trimmed=line.trim();
+if(trimmed.startsWith('- ')){
+let parent=stack[stack.length-1];
+if(!Array.isArray(parent.obj)){let key=Object.keys(parent.obj).pop();parent.obj[key]=[];parent.obj=parent.obj[key];}
+let item=trimmed.slice(2);
+if(item.includes(':')){
+let o={};item.split(':').forEach(p=>{let[k,...v]=p.trim().split(':');if(k)o[k.trim()]=castVal(v.join(':').trim());});
+parent.obj.push(o);
+}else{parent.obj.push(castVal(item));}
+continue;
+}
+let colonIdx=trimmed.indexOf(':');
+if(colonIdx>0){
+let key=trimmed.slice(0,colonIdx).trim();
+let val=trimmed.slice(colonIdx+1).trim();
+while(stack.length>1&&stack[stack.length-1].indent>=indent)stack.pop();
+let parent=stack[stack.length-1].obj;
+if(!val){
+let newObj={};parent[key]=newObj;
+stack.push({obj:newObj,indent:indent});
+}else{
+parent[key]=castVal(val);
+}
+}
+}
+return result;
+}
+function castVal(v){
+if(v==='true')return true;if(v==='false')return false;
+if(v==='null'||v==='~')return null;
+if(/^-?\d+$/.test(v))return parseInt(v);
+if(/^-?\d*\.\d+$/.test(v))return parseFloat(v);
+if((v.startsWith('"')&&v.endsWith('"'))||(v.startsWith("'")&&v.endsWith("'")))return v.slice(1,-1);
+return v;
+}
+
+// YAML serializer
+function toYAML(obj,indent=0){
+let prefix='  '.repeat(indent);
+if(Array.isArray(obj)){
+if(obj.length===0)return'[]';
+return obj.map(item=>{
+if(typeof item==='object'&&item!==null&&!Array.isArray(item)){
+return'- '+Object.entries(item).map(([k,v])=>`${k}: ${formatVal(v)}`).join('\n'+prefix+'  ');
+}
+return'- '+formatVal(item);
+}).join('\n'+prefix);
+}
+if(typeof obj==='object'&&obj!==null){
+return Object.entries(obj).map(([k,v])=>{
+if(typeof v==='object'&&v!==null&&!Array.isArray(v)){
+return prefix+k+':\n'+toYAML(v,indent+1);
+}
+return prefix+k+': '+formatVal(v);
+}).join('\n');
+}
+return formatVal(obj);
+}
+function formatVal(v){
+if(v===null)return'null';if(typeof v==='boolean')return v.toString();
+if(typeof v==='number')return v.toString();
+if(typeof v==='string'){if(/[:{}\[\],&*?|>!%@`#]/.test(v)||v.includes("'")||v.includes('"'))return'"'+v.replace(/"/g,'\\"')+'"';return v;}
+return String(v);
+}
+
+// TOML parser
+function parseTOML(s){
+let result={};let current=result;
+let lines=s.split('\n');
+for(let line of lines){
+line=line.trim();
+if(!line||line.startsWith('#'))continue;
+if(line.startsWith('[')){
+let section=line.slice(1,line.lastIndexOf(']')).trim();
+let parts=section.split('.');
+let obj=result;
+for(let i=0;i<parts.length-1;i++){
+let p=parts[i].replace(/"/g,'');
+if(!obj[p])obj[p]={};
+obj=obj[p];
+}
+let key=parts[parts.length-1].replace(/"/g,'');
+obj[key]={};current=obj[key];
+continue;
+}
+let eq=line.indexOf('=');
+if(eq<0)continue;
+let key=line.slice(0,eq).trim().replace(/"/g,'');
+let val=line.slice(eq+1).trim();
+current[key]=castTOMLVal(val);
+}
+return result;
+}
+function castTOMLVal(v){
+if(v==='true')return true;if(v==='false')return false;
+if(/^-?\d+$/.test(v))return parseInt(v);
+if(/^-?\d*\.\d+$/.test(v))return parseFloat(v);
+if(v.startsWith('"')&&v.endsWith('"'))return v.slice(1,-1).replace(/\\"/g,'"');
+if(v.startsWith("'")&&v.endsWith("'"))return v.slice(1,-1);
+if(v.startsWith('[')&&v.endsWith(']')){
+let inner=v.slice(1,-1).trim();
+if(!inner)return[];
+return inner.split(',').map(x=>castTOMLVal(x.trim()));
+}
+return v;
+}
+
+// TOML serializer
+function toTOML(obj,prefix=''){
+let result='';
+let simple={};let sections={};
+for(let[k,v] of Object.entries(obj)){
+if(typeof v==='object'&&v!==null&&!Array.isArray(v)){
+sections[k]=v;
+}else{
+simple[k]=v;
+}
+}
+for(let[k,v] of Object.entries(simple)){
+result+=k+' = '+tomlFormatVal(v)+'\n';
+}
+for(let[k,v] of Object.entries(sections)){
+let path=prefix?prefix+'.'+k:k;
+result+='\n['+path+']\n'+toTOML(v,path);
+}
+return result;
+}
+function tomlFormatVal(v){
+if(v===null)return'""';if(typeof v==='boolean')return v.toString();
+if(typeof v==='number')return v.toString();
+if(typeof v==='string'){if(/[{}\[\],&*?|>!%@`#'"=\n]/.test(v))return'"'+v.replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'"';return'"'+v+'"';}
+if(Array.isArray(v))return'['+v.map(tomlFormatVal).join(', ')+']';
+return String(v);
+}
+</script>
+</body>
+</html>

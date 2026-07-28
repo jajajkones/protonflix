@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sitemap Visualizer</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0c0c0c;color:#e5e5e5;min-height:100vh;padding:20px}
+a{color:#e5e5e5;text-decoration:none}
+a:hover{text-decoration:underline}
+.header{display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #262626}
+.header h1{font-size:1.4rem;font-weight:600}
+.back{color:#737373;font-size:.875rem}
+.back:hover{color:#e5e5e5}
+.container{max-width:1000px;margin:0 auto}
+.panel{background:#141414;border:1px solid #262626;border-radius:8px;padding:20px;margin-bottom:16px}
+label{display:block;font-size:.875rem;color:#737373;margin-bottom:6px}
+textarea,input[type=text]{width:100%;background:#1a1a1a;border:1px solid #262626;border-radius:6px;padding:10px 12px;color:#e5e5e5;font-family:monospace;font-size:.875rem;resize:vertical}
+textarea:focus,input:focus{outline:none;border-color:#555}
+textarea{height:160px}
+.btn-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+button{background:#1a1a1a;border:1px solid #262626;border-radius:6px;padding:8px 16px;color:#e5e5e5;font-size:.8rem;cursor:pointer;font-family:inherit}
+button:hover{background:#262626}
+button.primary{background:#e5e5e5;color:#0c0c0c;border-color:#e5e5e5}
+button.primary:hover{background:#d4d4d4}
+.tree{padding:16px;overflow-x:auto}
+.tree ul{list-style:none;padding-left:24px;position:relative}
+.tree>ul{padding-left:0}
+.tree li{position:relative;padding:4px 0 4px 20px}
+.tree li::before{content:'';position:absolute;left:0;top:0;height:100%;width:1px;background:#262626}
+.tree li::after{content:'';position:absolute;left:0;top:14px;width:16px;height:1px;background:#262626}
+.tree li:last-child::before{height:14px}
+.tree .node{display:inline-block;background:#1a1a1a;border:1px solid #262626;border-radius:4px;padding:4px 10px;font-size:.8rem;font-family:monospace;cursor:pointer;transition:border-color .15s}
+.tree .node:hover{border-color:#737373}
+.tree .node.root{background:#262626;font-weight:600}
+.empty{text-align:center;color:#737373;padding:40px;font-size:.875rem}
+.preset-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.preset{font-size:.75rem;padding:4px 10px}
+.stats{font-size:.8rem;color:#737373;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html" class="back">&larr; Back</a>
+<h1>Sitemap Visualizer</h1>
+</div>
+<div class="panel">
+<label for="urls">Enter URLs (one per line)</label>
+<textarea id="urls" placeholder="https://example.com&#10;https://example.com/about&#10;https://example.com/blog&#10;https://example.com/blog/post-1&#10;https://example.com/blog/post-2&#10;https://example.com/contact"></textarea>
+<div class="preset-row">
+<button class="preset" onclick="loadPreset('flat')">Flat</button>
+<button class="preset" onclick="loadPreset('hierarchical')">Hierarchical</button>
+<button class="preset" onclick="loadPreset('blog')">Blog</button>
+<button class="preset" onclick="loadPreset('ecommerce')">E-Commerce</button>
+</div>
+<div class="btn-row">
+<button class="primary" onclick="generate()">Generate Sitemap</button>
+<button onclick="downloadHTML()">Download HTML</button>
+<button onclick="downloadSVG()">Download SVG</button>
+</div>
+</div>
+<div class="panel">
+<div id="tree" class="tree"><div class="empty">Enter URLs and click Generate</div></div>
+<div id="stats" class="stats"></div>
+</div>
+</div>
+<script>
+const presets={
+flat:`https://example.com\nhttps://example.com/about\nhttps://example.com/services\nhttps://example.com/contact\nhttps://example.com/blog`,
+hierarchical:`https://example.com\nhttps://example.com/about\nhttps://example.com/services\nhttps://example.com/services/web\nhttps://example.com/services/mobile\nhttps://example.com/services/consulting\nhttps://example.com/blog\nhttps://example.com/blog/tech\nhttps://example.com/blog/tech/post-1\nhttps://example.com/blog/tech/post-2\nhttps://example.com/blog/design\nhttps://example.com/blog/design/post-3\nhttps://example.com/contact\nhttps://example.com/careers\nhttps://example.com/careers/engineering\nhttps://example.com/careers/marketing`,
+blog:`https://mysite.com\nhttps://mysite.com/about\nhttps://mysite.com/archive\nhttps://mysite.com/archive/2024\nhttps://mysite.com/archive/2024/january\nhttps://mysite.com/archive/2024/february\nhttps://mysite.com/categories\nhttps://mysite.com/categories/tech\nhttps://mysite.com/categories/tech/ai-tools\nhttps://mysite.com/categories/tech/web-dev\nhttps://mysite.com/categories/lifestyle\nhttps://mysite.com/categories/lifestyle/travel\nhttps://mysite.com/tags\nhttps://mysite.com/tags/javascript\nhttps://mysite.com/tags/python`,
+ecommerce:`https://shop.com\nhttps://shop.com/products\nhttps://shop.com/products/electronics\nhttps://shop.com/products/electronics/phones\nhttps://shop.com/products/electronics/phones/iphone-15\nhttps://shop.com/products/electronics/laptops\nhttps://shop.com/products/clothing\nhttps://shop.com/products/clothing/men\nhttps://shop.com/products/clothing/women\nhttps://shop.com/cart\nhttps://shop.com/checkout\nhttps://shop.com/account\nhttps://shop.com/account/orders\nhttps://shop.com/support`
+};
+function loadPreset(n){document.getElementById('urls').value=presets[n]||''}
+function parseURLs(text){
+return text.split('\n').map(l=>l.trim()).filter(l=>l&&/^https?:\/\//i.test(l));
+}
+function buildTree(urls){
+const root={children:{},url:null};
+urls.forEach(u=>{
+try{const p=new URL(u);const parts=p.pathname.replace(/\/+$/,'').split('/').filter(Boolean);
+let node=root;
+parts.forEach((part,i)=>{
+const key=part;
+if(!node.children[key])node.children[key]={children:{},url:i===parts.length-1?u:null};
+node=node.children[key];
+if(i===parts.length-1&&!node.url)node.url=u;
+});
+}catch(e){}
+});
+return root;
+}
+function renderTree(node,ul){
+const keys=Object.keys(node.children).sort((a,b)=>{
+const ai=Object.keys(node.children).length;
+return a.localeCompare(b);
+});
+keys.forEach(k=>{
+const child=node.children[k];
+const li=document.createElement('li');
+const span=document.createElement('span');
+span.className='node'+(child.url&&!Object.keys(child.children).length?'':' root');
+span.textContent=k;
+if(child.url)span.title=child.url;
+li.appendChild(span);
+if(Object.keys(child.children).length>0){
+const sub=document.createElement('ul');
+renderTree(child,sub);
+li.appendChild(sub);
+}
+ul.appendChild(li);
+});
+}
+function countNodes(node){
+let c=0;Object.values(node.children).forEach(ch=>{c++;c+=countNodes(ch)});return c;
+}
+function getMaxDepth(node,d=0){
+let m=d;Object.values(node.children).forEach(ch=>{m=Math.max(m,getMaxDepth(ch,d+1))});return m;
+}
+function generate(){
+const urls=parseURLs(document.getElementById('urls').value);
+const container=document.getElementById('tree');
+if(!urls.length){container.innerHTML='<div class="empty">No valid URLs found</div>';document.getElementById('stats').textContent='';return;}
+const tree=buildTree(urls);
+container.innerHTML='';
+const ul=document.createElement('ul');
+renderTree(tree,ul);
+container.appendChild(ul);
+const total=Object.keys(tree.children).length;
+const pages=urls.length;
+const depth=getMaxDepth(tree);
+document.getElementById('stats').textContent=`Pages: ${pages} | Top-level sections: ${total} | Max depth: ${depth} levels`;
+}
+function getHTML(){
+const treeEl=document.getElementById('tree');
+return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Sitemap</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0c0c0c;color:#e5e5e5;padding:40px}h1{font-size:1.2rem;margin-bottom:20px}ul{list-style:none;padding-left:20px}li{padding:3px 0;font-size:.85rem;font-family:monospace}.root{color:#fff;font-weight:600}</style></head><body><h1>Sitemap</h1>${treeEl.innerHTML}</body></html>`;
+}
+function downloadHTML(){
+const blob=new Blob([getHTML()],{type:'text/html'});
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='sitemap.html';a.click();
+}
+function downloadSVG(){
+const treeEl=document.getElementById('tree');
+const items=treeEl.querySelectorAll('.node');
+let svg=`<svg xmlns="http://www.w3.org/2000/svg" font-family="monospace" font-size="12">`;
+let y=20;const x0=20;const indent=24;
+items.forEach(n=>{
+const depth=(n.closest('ul')?.closest('li')||n.closest('.tree>ul'))?n.closest('ul').closest('li')?2:1:0;
+const cx=x0+depth*indent;
+const text=n.textContent;
+svg+=`<rect x="${cx}" y="${y}" width="${text.length*8+16}" height="22" rx="3" fill="#1a1a1a" stroke="#262626"/>`;
+svg+=`<text x="${cx+8}" y="${y+15}" fill="#e5e5e5">${text.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</text>`;
+y+=30;
+});
+svg+=`</svg>`;
+const blob=new Blob([svg],{type:'image/svg+xml'});
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='sitemap.svg';a.click();
+}
+</script>
+</body>
+</html>

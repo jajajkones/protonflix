@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>.htaccess Generator - ProtonFlix Tools</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0c0c0c;color:#e5e5e5;min-height:100vh;padding:20px}
+.container{max-width:900px;margin:0 auto}
+a{color:#e5e5e5;text-decoration:none;opacity:.6;transition:opacity .2s}
+a:hover{opacity:1}
+.header{display:flex;align-items:center;gap:16px;margin-bottom:32px}
+.header h1{font-size:1.5rem;font-weight:600}
+.card{background:#141414;border:1px solid #262626;border-radius:12px;padding:24px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+label{display:block;font-size:.875rem;color:#737373;margin-bottom:6px}
+select,input[type="text"],textarea{width:100%;background:#1a1a1a;border:1px solid #262626;border-radius:8px;padding:10px 14px;color:#e5e5e5;font-size:.9rem;outline:none;transition:border-color .2s;font-family:inherit}
+select:focus,input:focus,textarea:focus{border-color:#555}
+textarea{min-height:80px;resize:vertical;font-family:monospace;font-size:.85rem}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #1a1a1a}
+.toggle-row:last-child{border:none}
+.toggle-label{font-size:.9rem}
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle .slider{position:absolute;inset:0;background:#262626;border-radius:12px;cursor:pointer;transition:.3s}
+.toggle .slider::before{content:"";position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#e5e5e5;border-radius:50%;transition:.3s}
+.toggle input:checked+.slider{background:#22c55e}
+.toggle input:checked+.slider::before{transform:translateX(20px)}
+.btn{background:#e5e5e5;color:#0c0c0c;border:none;border-radius:8px;padding:10px 24px;font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .2s;margin-top:12px}
+.btn:hover{opacity:.85}
+.btn.secondary{background:#1a1a1a;color:#e5e5e5;border:1px solid #262626}
+.btn-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.preview{background:#0a0a0a;border:1px solid #262626;border-radius:8px;padding:16px;font-family:monospace;font-size:.82rem;line-height:1.7;white-space:pre-wrap;max-height:500px;overflow-y:auto;position:relative}
+.copy-toast{position:fixed;bottom:20px;right:20px;background:#22c55e;color:#000;padding:10px 20px;border-radius:8px;font-size:.85rem;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none}
+.copy-toast.show{opacity:1}
+.section-title{font-size:.8rem;color:#737373;text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid #262626}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#0a0a0a}
+::-webkit-scrollbar-thumb{background:#262626;border-radius:3px}
+</style>
+</head>
+<body>
+<div class="container">
+<a href="index.html" style="display:inline-flex;align-items:center;gap:6px;margin-bottom:16px">&larr; Back</a>
+<div class="header"><h1>.htaccess Generator</h1></div>
+<div class="grid">
+<div>
+<div class="card">
+<div class="section-title">Redirects</div>
+<div class="toggle-row"><span class="toggle-label">Force HTTPS</span><label class="toggle"><input type="checkbox" id="forceHTTPS" onchange="generate()"><span class="slider"></span></label></div>
+<div class="toggle-row"><span class="toggle-label">Force www</span><label class="toggle"><input type="checkbox" id="forceWWW" onchange="generate()"><span class="slider"></span></label></div>
+<div class="toggle-row"><span class="toggle-label">Remove trailing slash</span><label class="toggle"><input type="checkbox" id="noTrailing" onchange="generate()"><span class="slider"></span></label></div>
+</div>
+<div class="card">
+<div class="section-title">Custom Redirects</div>
+<label>From Path</label>
+<input type="text" id="redirFrom" placeholder="/old-page" oninput="generate()">
+<label style="margin-top:8px">To URL</label>
+<input type="text" id="redirTo" placeholder="https://example.com/new-page" oninput="generate()">
+<label style="margin-top:8px">Status Code</label>
+<select id="redirCode" onchange="generate()"><option value="301">301 - Permanent</option><option value="302">302 - Temporary</option></select>
+</div>
+<div class="card">
+<div class="section-title">Security</div>
+<div class="toggle-row"><span class="toggle-label">Protect .htaccess</span><label class="toggle"><input type="checkbox" id="protectHt" checked onchange="generate()"><span class="slider"></span></label></div>
+<div class="toggle-row"><span class="toggle-label">Disable directory listing</span><label class="toggle"><input type="checkbox" id="noDirList" checked onchange="generate()"><span class="slider"></span></label></div>
+<div class="toggle-row"><span class="toggle-label">Block hidden files</span><label class="toggle"><input type="checkbox" id="blockHidden" checked onchange="generate()"><span class="slider"></span></label></div>
+<div class="toggle-row"><span class="toggle-label">X-Content-Type-Options</span><label class="toggle"><input type="checkbox" id="xcto" checked onchange="generate()"><span class="slider"></span></label></div>
+<div class="toggle-row"><span class="toggle-label">X-Frame-Options</span><label class="toggle"><input type="checkbox" id="xfo" checked onchange="generate()"><span class="slider"></span></label></div>
+<div class="toggle-row"><span class="toggle-label">Referrer-Policy</span><label class="toggle"><input type="checkbox" id="referrer" checked onchange="generate()"><span class="slider"></span></label></div>
+</div>
+<div class="card">
+<div class="section-title">Caching</div>
+<div class="toggle-row"><span class="toggle-label">Enable browser caching</span><label class="toggle"><input type="checkbox" id="cache" onchange="generate()"><span class="slider"></span></label></div>
+<label style="margin-top:8px">Cache Duration</label>
+<select id="cacheDuration" onchange="generate()"><option value="1 month">1 Month</option><option value="3 months">3 Months</option><option value="6 months">6 Months</option><option value="1 year">1 Year</option></select>
+</div>
+<div class="card">
+<div class="section-title">CORS</div>
+<div class="toggle-row"><span class="toggle-label">Enable CORS</span><label class="toggle"><input type="checkbox" id="cors" onchange="generate()"><span class="slider"></span></label></div>
+<label style="margin-top:8px">Allowed Origin</label>
+<input type="text" id="corsOrigin" placeholder="*" oninput="generate()">
+</div>
+<div class="card">
+<div class="section-title">Error Pages</div>
+<label>Custom 404 Page</label>
+<input type="text" id="err404" placeholder="/404.html" oninput="generate()">
+<label style="margin-top:8px">Custom 500 Page</label>
+<input type="text" id="err500" placeholder="/500.html" oninput="generate()">
+</div>
+<div class="card">
+<div class="section-title">Basic Auth</div>
+<div class="toggle-row"><span class="toggle-label">Enable Basic Auth</span><label class="toggle"><input type="checkbox" id="basicAuth" onchange="generate()"><span class="slider"></span></label></div>
+<label style="margin-top:8px">Auth Name</label>
+<input type="text" id="authName" placeholder="Restricted Area" oninput="generate()">
+<label style="margin-top:8px">Auth User File Path</label>
+<input type="text" id="authFile" placeholder="/home/user/.htpasswd" oninput="generate()">
+</div>
+<div class="card">
+<div class="section-title">IP Blocking</div>
+<label>Block IPs (one per line)</label>
+<textarea id="blockIPs" placeholder="192.168.1.100&#10;10.0.0.5" oninput="generate()"></textarea>
+</div>
+</div>
+<div>
+<div class="card" style="position:sticky;top:20px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<div style="font-weight:600">.htaccess Preview</div>
+<div class="btn-row"><button class="btn secondary" onclick="download()">Download</button><button class="btn" onclick="copyConfig()">Copy</button></div>
+</div>
+<div class="preview" id="preview"># Generated .htaccess file</div>
+</div>
+</div>
+</div>
+<div class="copy-toast" id="toast">Copied!</div>
+</div>
+<script>
+function generate(){
+const lines=["# Generated .htaccess file","# https://protonflix.tools",""];
+if(document.getElementById("forceHTTPS").checked){
+lines.push("RewriteEngine On","RewriteCond %{HTTPS} off","RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]","");
+}
+if(document.getElementById("forceWWW").checked){
+lines.push("RewriteCond %{HTTP_HOST} !^www\\. [NC]","RewriteRule ^(.*)$ https://www.%{HTTP_HOST}/$1 [L,R=301]","");
+}
+if(document.getElementById("noTrailing").checked){
+lines.push("RewriteCond %{REQUEST_FILENAME} !-d","RewriteRule ^(.*)/$ /$1 [L,R=301]","");
+}
+const rf=document.getElementById("redirFrom").value.trim();
+const rt=document.getElementById("redirTo").value.trim();
+if(rf&&rt){
+const code=document.getElementById("redirCode").value;
+lines.push(`Redirect ${code} ${rf} ${rt}`,"");
+}
+if(document.getElementById("protectHt").checked){
+lines.push("<Files .htaccess>","  Order allow,deny","  Deny from all","</Files>","");
+}
+if(document.getElementById("noDirList").checked){
+lines.push("Options -Indexes","");
+}
+if(document.getElementById("blockHidden").checked){
+lines.push("<FilesMatch \"^\\.\">","  Require all denied","</FilesMatch>","");
+}
+const secHeaders=[];
+if(document.getElementById("xcto").checked)secHeaders.push("  Header set X-Content-Type-Options \"nosniff\"");
+if(document.getElementById("xfo").checked)secHeaders.push("  Header set X-Frame-Options \"SAMEORIGIN\"");
+if(document.getElementById("referrer").checked)secHeaders.push("  Header set Referrer-Policy \"strict-origin-when-cross-origin\"");
+if(secHeaders.length){
+lines.push("<IfModule mod_headers.c>",...secHeaders,"</IfModule>","");
+}
+if(document.getElementById("cache").checked){
+const dur=document.getElementById("cacheDuration").value;
+lines.push("<IfModule mod_expires.c>","  ExpiresActive On","  ExpiresByType image/jpg \"access plus "+dur+"\"","  ExpiresByType image/jpeg \"access plus "+dur+"\"","  ExpiresByType image/gif \"access plus "+dur+"\"","  ExpiresByType image/png \"access plus "+dur+"\"","  ExpiresByType image/webp \"access plus "+dur+"\"","  ExpiresByType text/css \"access plus "+dur+"\"","  ExpiresByType application/javascript \"access plus "+dur+"\"","  ExpiresByType text/javascript \"access plus "+dur+"\"","  ExpiresByType application/json \"access plus "+dur+"\"","  ExpiresByType font/woff2 \"access plus "+dur+"\"","  ExpiresByType font/woff \"access plus "+dur+"\"","</IfModule>","");
+}
+if(document.getElementById("cors").checked){
+const origin=document.getElementById("corsOrigin").value.trim()||"*";
+lines.push("<IfModule mod_headers.c>","  Header set Access-Control-Allow-Origin \""+origin+"\"","  Header set Access-Control-Allow-Methods \"GET, POST, OPTIONS\"","  Header set Access-Control-Allow-Headers \"Content-Type\"","</IfModule>","");
+}
+const e404=document.getElementById("err404").value.trim();
+const e500=document.getElementById("err500").value.trim();
+if(e404)lines.push(`ErrorDocument 404 ${e404}`);
+if(e500)lines.push(`ErrorDocument 500 ${e500}`);
+if(e404||e500)lines.push("");
+if(document.getElementById("basicAuth").checked){
+const name=document.getElementById("authName").value.trim()||"Restricted";
+const file=document.getElementById("authFile").value.trim()||"/.htpasswd";
+lines.push("AuthType Basic","AuthName \""+name+"\"",`AuthUserFile ${file}`,"Require valid-user","");
+}
+const ips=document.getElementById("blockIPs").value.trim().split("\n").filter(l=>l.trim());
+if(ips.length){
+lines.push("<RequireAll>","  Require all granted",...ips.map(ip=>`  Require not ip ${ip.trim()}`),"</RequireAll>","");
+}
+document.getElementById("preview").textContent=lines.join("\n");
+}
+function copyConfig(){
+navigator.clipboard.writeText(document.getElementById("preview").textContent).then(()=>{
+const t=document.getElementById("toast");
+t.classList.add("show");
+setTimeout(()=>t.classList.remove("show"),2000);
+});
+}
+function download(){
+const blob=new Blob([document.getElementById("preview").textContent],{type:"text/plain"});
+const a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download=".htaccess";
+a.click();
+URL.revokeObjectURL(a.href);
+}
+generate();
+</script>
+</body>
+</html>

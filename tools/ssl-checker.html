@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSL Certificate Checker - ProtonFlix Tools</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0c0c0c;color:#e5e5e5;min-height:100vh;padding:20px}
+.container{max-width:700px;margin:0 auto}
+a{color:#e5e5e5;text-decoration:none;opacity:.6;transition:opacity .2s}
+a:hover{opacity:1}
+.header{display:flex;align-items:center;gap:16px;margin-bottom:32px}
+.header h1{font-size:1.5rem;font-weight:600}
+.card{background:#141414;border:1px solid #262626;border-radius:12px;padding:24px;margin-bottom:16px}
+label{display:block;font-size:.875rem;color:#737373;margin-bottom:6px}
+input[type="text"]{width:100%;background:#1a1a1a;border:1px solid #262626;border-radius:8px;padding:10px 14px;color:#e5e5e5;font-size:.95rem;outline:none;transition:border-color .2s}
+input[type="text"]:focus{border-color:#555}
+.btn{background:#e5e5e5;color:#0c0c0c;border:none;border-radius:8px;padding:10px 24px;font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .2s;margin-top:12px}
+.btn:hover{opacity:.85}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.results{display:none}
+.field{margin-bottom:14px}
+.field-label{font-size:.75rem;color:#737373;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.field-value{font-size:.95rem;font-family:monospace;word-break:break-all}
+.field-value.mono{background:#1a1a1a;padding:8px 12px;border-radius:6px}
+.expiry-bar{height:8px;background:#1a1a1a;border-radius:4px;overflow:hidden;margin-top:8px}
+.expiry-bar .fill{height:100%;border-radius:4px;transition:width .5s}
+.expiry-bar .fill.ok{background:#22c55e}
+.expiry-bar .fill.warn{background:#f59e0b}
+.expiry-bar .fill.danger{background:#ef4444}
+.expiry-bar .fill.expired{background:#7f1d1d}
+.days-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:.85rem;font-weight:600;margin-top:8px}
+.days-badge.ok{background:#166534;color:#4ade80}
+.days-badge.warn{background:#78350f;color:#fbbf24}
+.days-badge.danger{background:#7f1d1d;color:#fca5a5}
+.days-badge.expired{background:#7f1d1d;color:#fca5a5}
+.san-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.san-tag{background:#1a1a1a;border:1px solid #262626;border-radius:6px;padding:3px 10px;font-size:.8rem;font-family:monospace}
+.empty{text-align:center;color:#737373;padding:40px;font-size:.9rem}
+.note{background:#1a1a1a;border:1px solid #262626;border-radius:8px;padding:14px;font-size:.8rem;color:#737373;line-height:1.6;margin-top:16px}
+.note strong{color:#e5e5e5}
+.loading{text-align:center;color:#737373;padding:20px}
+</style>
+</head>
+<body>
+<div class="container">
+<a href="index.html" style="display:inline-flex;align-items:center;gap:6px;margin-bottom:16px">&larr; Back</a>
+<div class="header"><h1>SSL Certificate Checker</h1></div>
+<div class="card">
+<label for="domain">Domain Name</label>
+<input type="text" id="domain" placeholder="e.g. example.com">
+<button class="btn" id="checkBtn" onclick="checkSSL()">Check Certificate</button>
+</div>
+<div class="card results" id="results">
+<div id="certInfo"></div>
+</div>
+<div class="note"><strong>Note:</strong> Uses crt.sh and SSL Labs APIs to retrieve certificate data. Some domains may have rate limits or may not return full certificate chains via public APIs.</div>
+</div>
+<script>
+async function checkSSL(){
+const domain=document.getElementById("domain").value.trim().replace(/^https?:\/\//,"").replace(/\/.*$/,"");
+if(!domain){document.getElementById("domain").focus();return;}
+const btn=document.getElementById("checkBtn");
+const results=document.getElementById("results");
+const certInfo=document.getElementById("certInfo");
+btn.disabled=true;
+btn.textContent="Checking...";
+results.style.display="block";
+certInfo.innerHTML='<div class="loading">Fetching certificate data...</div>';
+try{
+const resp=await fetch(`https://crt.sh/?q=${encodeURIComponent(domain)}&output=json`);
+if(!resp.ok)throw new Error("Failed to fetch certificate data");
+const data=await resp.json();
+if(!data.length){certInfo.innerHTML='<div class="empty">No certificates found for this domain.</div>';btn.disabled=false;btn.textContent="Check Certificate";return;}
+const latest=data.reduce((a,b)=>new Date(a.entry_timestamp)>new Date(b.entry_timestamp)?a:b);
+const notBefore=new Date(latest.not_before);
+const notAfter=new Date(latest.not_after);
+const now=new Date();
+const daysLeft=Math.ceil((notAfter-now)/(1000*60*60*24));
+const totalDays=Math.ceil((notAfter-notBefore)/(1000*60*60*24));
+const elapsed=totalDays-daysLeft;
+const pct=Math.max(0,Math.min(100,(elapsed/totalDays)*100));
+let statusClass="ok",statusText=`${daysLeft} days remaining`;
+if(daysLeft<=0){statusClass="expired";statusText="Expired";}
+else if(daysLeft<=7){statusClass="danger";statusText=`${daysLeft} days left - critical!`}
+else if(daysLeft<=30){statusClass="warn";statusText=`${daysLeft} days left`}
+const sans=latest.name_value?latest.name_value.split("\n").filter(s=>s.trim()):[];
+const issuer=latest.issuer_name||"Unknown";
+const serial=latest.serial_number||"N/A";
+const subject=latest.common_name||domain;
+certInfo.innerHTML=`
+<div class="field"><div class="field-label">Subject / Common Name</div><div class="field-value mono">${esc(subject)}</div></div>
+<div class="field"><div class="field-label">Issuer</div><div class="field-value mono">${esc(issuer)}</div></div>
+<div class="field"><div class="field-label">Valid From</div><div class="field-value">${notBefore.toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"})}</div></div>
+<div class="field"><div class="field-label">Valid To</div><div class="field-value">${notAfter.toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"})}</div></div>
+<div class="field"><div class="field-label">Days Until Expiry</div>
+<div class="days-badge ${statusClass}">${statusText}</div>
+<div class="expiry-bar"><div class="fill ${statusClass}" style="width:${100-pct}%"></div></div>
+</div>
+<div class="field"><div class="field-label">Serial Number</div><div class="field-value mono">${esc(serial)}</div></div>
+<div class="field"><div class="field-label">Subject Alternative Names (${sans.length})</div>
+<div class="san-list">${sans.map(s=>`<span class="san-tag">${esc(s.trim())}</span>`).join("")}</div>
+</div>
+<div class="field"><div class="field-label">Protocol</div><div class="field-value">TLS (via crt.sh database)</div></div>
+`;
+}catch(e){
+certInfo.innerHTML=`<div class="empty">Error: ${esc(e.message)}. Please try another domain.</div>`;
+}
+btn.disabled=false;
+btn.textContent="Check Certificate";
+}
+function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML;}
+document.getElementById("domain").addEventListener("keydown",e=>{if(e.key==="Enter")checkSSL()});
+</script>
+</body>
+</html>

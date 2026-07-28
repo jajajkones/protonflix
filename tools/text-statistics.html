@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advanced Text Statistics</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0c0c0c;color:#e5e5e5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;padding:24px}
+a{color:#e5e5e5;text-decoration:none;opacity:.7;transition:opacity .2s}
+a:hover{opacity:1}
+.header{margin-bottom:32px}
+.header h1{font-size:20px;font-weight:600;margin-bottom:4px}
+.sub{color:#737373;font-size:13px}
+.container{max-width:1100px;margin:0 auto}
+.editor{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.editor label{font-size:12px;color:#737373;text-transform:uppercase;letter-spacing:.5px}
+textarea{width:100%;height:250px;background:#141414;border:1px solid #262626;color:#e5e5e5;border-radius:8px;padding:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;resize:vertical;outline:none;transition:border-color .2s;line-height:1.6}
+textarea:focus{border-color:#404040}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.stat-card{background:#141414;border:1px solid #262626;border-radius:8px;padding:16px}
+.stat-label{font-size:11px;color:#737373;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.stat-value{font-size:24px;font-weight:600;font-variant-numeric:tabular-nums}
+.stat-sub{font-size:11px;color:#737373;margin-top:2px}
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.panel{background:#141414;border:1px solid #262626;border-radius:8px;padding:20px}
+.panel-title{font-size:13px;font-weight:600;margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px;color:#737373}
+.bar-chart{display:flex;flex-direction:column;gap:6px}
+.bar-row{display:flex;align-items:center;gap:10px}
+.bar-word{width:100px;font-size:12px;color:#a3a3a3;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'SF Mono',Monaco,Consolas,monospace}
+.bar-track{flex:1;height:20px;background:#1a1a1a;border-radius:4px;overflow:hidden;position:relative}
+.bar-fill{height:100%;background:#262626;border-radius:4px;transition:width .3s}
+.bar-count{font-size:11px;color:#737373;width:30px;text-align:right;font-variant-numeric:tabular-nums}
+.flesch-bar{width:100%;height:8px;background:#1a1a1a;border-radius:4px;margin-top:8px;overflow:hidden}
+.flesch-fill{height:100%;border-radius:4px;transition:width .3s}
+.flesch-label{display:flex;justify-content:space-between;font-size:11px;color:#737373;margin-top:4px}
+.reading-bar{display:flex;gap:4px;margin-top:12px}
+.reading-segment{height:6px;border-radius:3px;transition:width .3s}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html">← Back</a>
+<h1>Advanced Text Statistics</h1>
+<p class="sub">Comprehensive text analysis including readability scores and word frequency.</p>
+</div>
+<div class="editor">
+<label>Input Text</label>
+<textarea id="input" placeholder="Paste or type your text here..."></textarea>
+</div>
+<div class="stats-grid">
+<div class="stat-card"><div class="stat-label">Words</div><div class="stat-value" id="sWords">0</div><div class="stat-sub" id="sUnique">0 unique</div></div>
+<div class="stat-card"><div class="stat-label">Characters</div><div class="stat-value" id="sChars">0</div><div class="stat-sub" id="sCharsNo">0 without spaces</div></div>
+<div class="stat-card"><div class="stat-label">Sentences</div><div class="stat-value" id="sSentences">0</div><div class="stat-sub" id="sAvgSent">0 avg words/sentence</div></div>
+<div class="stat-card"><div class="stat-label">Paragraphs</div><div class="stat-value" id="sParagraphs">0</div><div class="stat-sub" id="sLines">0 lines</div></div>
+<div class="stat-card"><div class="stat-label">Avg Word Length</div><div class="stat-value" id="sAvgWord">0</div><div class="stat-sub">characters</div></div>
+<div class="stat-card"><div class="stat-label">Reading Time</div><div class="stat-value" id="sReadTime">0m</div><div class="stat-sub">~250 wpm</div></div>
+<div class="stat-card"><div class="stat-label">Speaking Time</div><div class="stat-value" id="sSpeakTime">0m</div><div class="stat-sub">~150 wpm</div></div>
+<div class="stat-card"><div class="stat-label">Syllables</div><div class="stat-value" id="sSyllables">0</div><div class="stat-sub" id="sAvgSyl">0 avg per word</div></div>
+</div>
+<div class="bottom-grid">
+<div class="panel">
+<div class="panel-title">Flesch Reading Ease</div>
+<div class="stat-value" id="fleschScore" style="margin-bottom:4px">0</div>
+<div class="flesch-label"><span>Difficult</span><span>Easy</span></div>
+<div class="flesch-bar"><div class="flesch-fill" id="fleschFill"></div></div>
+<div style="margin-top:12px;font-size:12px;color:#737373" id="fleschDesc"></div>
+</div>
+<div class="panel">
+<div class="panel-title">Top 20 Words</div>
+<div class="bar-chart" id="wordChart"></div>
+</div>
+</div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const STOP_WORDS=new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','by','is','am','are','was','were','be','been','being','have','has','had','do','does','did','will','would','could','should','may','might','shall','can','this','that','these','those','it','its','i','me','my','we','our','you','your','he','him','his','she','her','they','them','their','what','which','who','whom','when','where','why','how','all','each','every','both','few','more','most','other','some','such','no','nor','not','only','own','same','so','than','too','very','s','t','don','now','just','about','above','after','again','also','as','back','because','before','between','come','day','even','first','from','get','go','here','if','into','know','last','let','like','long','look','made','make','many','may','much','must','need','new','next','old','one','other','out','over','part','put','right','said','see','since','still','take','tell','than','that','them','then','there','these','thing','think','time','two','up','us','use','very','want','way','well','work','year']);
+function analyze(){
+let text=$('input').value;
+if(!text.trim()){resetStats();return;}
+let words=text.match(/[\w'']+/g)||[];
+let uniqueWords=[...new Set(words.map(w=>w.toLowerCase()))];
+let sentences=text.split(/[.!?]+/).filter(s=>s.trim().length>0);
+let paragraphs=text.split(/\n\s*\n/).filter(p=>p.trim().length>0);
+let lines=text.split('\n');
+let charsNoSpace=text.replace(/\s/g,'').length;
+let totalSyllables=0;
+let wordFreq={};
+words.forEach(w=>{
+let low=w.toLowerCase();
+wordFreq[low]=(wordFreq[low]||0)+1;
+totalSyllables+=countSyllables(low);
+});
+let avgWordLen=words.length>0?(words.reduce((s,w)=>s+w.length,0)/words.length).toFixed(1):0;
+let avgSentLen=sentences.length>0?(words.length/sentences.length).toFixed(1):0;
+let avgSylPerWord=words.length>0?(totalSyllables/words.length).toFixed(2):0;
+let readMin=Math.ceil(words.length/250);
+let speakMin=Math.ceil(words.length/150);
+$('sWords').textContent=words.length.toLocaleString();
+$('sUnique').textContent=uniqueWords.length.toLocaleString()+' unique';
+$('sChars').textContent=text.length.toLocaleString();
+$('sCharsNo').textContent=charsNoSpace.toLocaleString()+' without spaces';
+$('sSentences').textContent=sentences.length;
+$('sAvgSent').textContent=avgSentLen+' avg words/sentence';
+$('sParagraphs').textContent=paragraphs.length;
+$('sLines').textContent=lines.length+' lines';
+$('sAvgWord').textContent=avgWordLen;
+$('sReadTime').textContent=readMin<1?'<1m':readMin+'m';
+$('sSpeakTime').textContent=speakMin<1?'<1m':speakMin+'m';
+$('sSyllables').textContent=totalSyllables.toLocaleString();
+$('sAvgSyl').textContent=avgSylPerWord+' avg per word';
+let flesch=calcFlesch(words.length,sentences.length,totalSyllables);
+$('fleschScore').textContent=flesch.toFixed(1);
+let pct=Math.max(0,Math.min(100,flesch));
+$('fleschFill').style.width=pct+'%';
+let color=pct>60?'#86efac':pct>40?'#fbbf24':'#ef4444';
+$('fleschFill').style.background=color;
+$('fleschDesc').textContent=flesch>80?'Very easy to read. Easily understood by 11-year-olds.':
+flesch>60?'Standard. Easily understood by 13-15 year olds.':
+flesch>40?'Fairly difficult. Best understood by high school graduates.':
+flesch>20?'Difficult. Best understood by college graduates.':'Very difficult. Best understood by university graduates.';
+let sorted=Object.entries(wordFreq).filter(([w])=>!STOP_WORDS.has(w)&&w.length>1).sort((a,b)=>b[1]-a[1]).slice(0,20);
+let maxCount=sorted.length>0?sorted[0][1]:1;
+$('wordChart').innerHTML=sorted.map(([word,count])=>{
+let pct=(count/maxCount*100).toFixed(0);
+return `<div class="bar-row"><div class="bar-word">${word}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><div class="bar-count">${count}</div></div>`;
+}).join('')||'<div style="color:#737373;font-size:13px">No words found</div>';
+}
+function countSyllables(word){
+word=word.toLowerCase();
+if(word.length<=3)return 1;
+word=word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/,'');
+word=word.replace(/^y/,'');
+let m=word.match(/[aeiouy]{1,2}/g);
+return m?m.length:1;
+}
+function calcFlesch(words,sentences,syllables){
+if(words===0||sentences===0)return 0;
+return 206.835-1.015*(words/sentences)-84.6*(syllables/words);
+}
+function resetStats(){
+['sWords','sChars','sSentences','sParagraphs','sAvgWord','sReadTime','sSpeakTime','sSyllables'].forEach(id=>$(id).textContent='0');
+['sUnique','sCharsNo','sAvgSent','sLines','sAvgSyl','fleschDesc'].forEach(id=>$(id).textContent='');
+$('fleschScore').textContent='0';$('fleschFill').style.width='0';
+$('wordChart').innerHTML='';
+}
+$('input').addEventListener('input',analyze);
+analyze();
+</script>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Review Checklist</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0c0c0c;color:#e5e5e5;min-height:100vh;padding:20px}
+a{color:#e5e5e5;text-decoration:none}
+a:hover{text-decoration:underline}
+.header{display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #262626}
+.header h1{font-size:1.4rem;font-weight:600}
+.back{color:#737373;font-size:.875rem}
+.back:hover{color:#e5e5e5}
+.container{max-width:900px;margin:0 auto}
+.panel{background:#141414;border:1px solid #262626;border-radius:8px;padding:20px;margin-bottom:16px}
+label{display:block;font-size:.8rem;color:#737373;margin-bottom:4px}
+select{background:#1a1a1a;border:1px solid #262626;border-radius:6px;padding:8px 10px;color:#e5e5e5;font-size:.85rem;font-family:inherit;width:100%;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23737373'%3E%3Cpath d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+select:focus{outline:none;border-color:#555}
+.section{margin-bottom:16px}
+.section-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#1a1a1a;border:1px solid #262626;border-radius:6px;cursor:pointer;user-select:none}
+.section-header h3{font-size:.85rem;font-weight:500}
+.section-header .count{font-size:.75rem;color:#737373}
+.section-body{padding:8px 0 0 0}
+.checklist{list-style:none}
+.checklist li{display:flex;align-items:flex-start;gap:10px;padding:8px 12px;border-bottom:1px solid #1a1a1a;font-size:.85rem;cursor:pointer;transition:background .1s}
+.checklist li:hover{background:#1a1a1a}
+.checklist li:last-child{border-bottom:none}
+.check{width:18px;height:18px;border:1px solid #262626;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:.7rem;transition:all .15s}
+.checklist li.checked .check{background:#e5e5e5;border-color:#e5e5e5;color:#0c0c0c}
+.checklist li.checked .check::after{content:'\2713'}
+.checklist li.checked .text{color:#737373;text-decoration:line-through}
+.progress-bar{height:4px;background:#1a1a1a;border-radius:2px;overflow:hidden;margin-top:12px}
+.progress-fill{height:100%;background:#e5e5e5;border-radius:2px;transition:width .3s}
+.stats{display:flex;justify-content:space-between;font-size:.8rem;color:#737373;margin-top:8px}
+.btn-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+button{background:#1a1a1a;border:1px solid #262626;border-radius:6px;padding:8px 16px;color:#e5e5e5;font-size:.8rem;cursor:pointer;font-family:inherit}
+button:hover{background:#262626}
+button.primary{background:#e5e5e5;color:#0c0c0c;border-color:#e5e5e5}
+button.primary:hover{background:#d4d4d4}
+.toast{position:fixed;bottom:20px;right:20px;background:#262626;color:#e5e5e5;padding:10px 20px;border-radius:6px;font-size:.85rem;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+.custom-add{display:flex;gap:8px;margin-top:8px}
+.custom-add input{flex:1;background:#1a1a1a;border:1px solid #262626;border-radius:6px;padding:6px 10px;color:#e5e5e5;font-size:.85rem}
+.custom-add input:focus{outline:none;border-color:#555}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<a href="index.html" class="back">&larr; Back</a>
+<h1>Code Review Checklist</h1>
+</div>
+<div class="panel">
+<label for="lang">Language / Framework</label>
+<select id="lang" onchange="loadChecklist()">
+<option value="general">General</option>
+<option value="javascript">JavaScript / TypeScript</option>
+<option value="python">Python</option>
+<option value="react">React</option>
+<option value="node">Node.js</option>
+<option value="go">Go</option>
+<option value="rust">Rust</option>
+<option value="java">Java</option>
+<option value="php">PHP</option>
+</select>
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+<div class="stats"><span id="statsText">0 / 0 checked</span><span id="statsPct">0%</span></div>
+</div>
+<div id="checklistContainer"></div>
+<div class="panel">
+<div class="label" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;color:#737373;margin-bottom:8px;font-weight:600">Add Custom Item</div>
+<div class="custom-add">
+<select id="customSection" style="width:auto;background:#1a1a1a;border:1px solid #262626;border-radius:6px;padding:6px;color:#e5e5e5;font-size:.85rem"></select>
+<input type="text" id="customItem" placeholder="Custom checklist item...">
+<button onclick="addCustomItem()">Add</button>
+</div>
+</div>
+<div class="panel">
+<div class="btn-row">
+<button class="primary" onclick="exportMarkdown()">Export as Markdown</button>
+<button onclick="copyMarkdown()">Copy Markdown</button>
+<button onclick="resetAll()">Reset All</button>
+</div>
+</div>
+</div>
+<div class="toast" id="toast">Copied!</div>
+<script>
+const checklists={
+general:{
+Security:['No hardcoded secrets or API keys','Input validation and sanitization','SQL injection prevention','XSS prevention','Authentication/authorization checks','Rate limiting on sensitive endpoints','CORS configuration','Dependency vulnerability scan'],
+Performance:['No unnecessary database queries','Proper indexing on queried fields','N+1 query detection','Caching strategy considered','Lazy loading where appropriate','Image/asset optimization','Memory leak prevention'],
+Readability:['Clear naming conventions','Functions under 30 lines','DRY - no code duplication','Single responsibility per function','Comments on complex logic only','Consistent formatting','No magic numbers'],
+Testing:['Unit tests for new functions','Integration tests for API endpoints','Edge cases covered','Error scenarios tested','Test names are descriptive'],
+Documentation:['README updated','API docs updated','Inline docs for public methods','Changelog entry','Migration guide if needed']
+},
+javascript:{
+Security:['No eval() or innerHTML with user data','DOMPurify for HTML sanitization','Content Security Policy headers','Secure cookie settings (httpOnly, secure)','No prototype pollution','Input validation with zod/joi'],
+Performance:['Avoid synchronous operations','Proper async/await error handling','Bundle size impact checked','Tree shaking enabled','No memory leaks from event listeners','Web Workers for heavy computation'],
+Readability:['TypeScript types/interfaces defined','No `any` types','Consistent ES module imports','Optional chaining over nested checks','Destructuring for clarity','Template literals over concatenation'],
+Testing:['Jest/Vitest tests passing','Coverage threshold met','Snapshot tests updated','Mock external dependencies','Test async operations'],
+Documentation:['JSDoc on exported functions','Type declarations published','Package.json description updated']
+},
+python:{
+Security:['No hardcoded credentials','Django ORM over raw SQL','CSRF protection enabled','Input validation with pydantic','SECRET_KEY from environment','Proper password hashing'],
+Performance:['Database query optimization','select_related/prefetch_related used','Bulk operations for large datasets','Async views for I/O bound','Profiling done on hot paths','Connection pooling'],
+Readability:['Type hints on all functions','PEP 8 compliance','Docstrings on public methods','Context managers for resources','f-strings over .format()','Pathlib over os.path'],
+Testing:['pytest fixtures properly used','Mock external services','Coverage above 80%','Parametrized tests for edge cases','CI pipeline passing'],
+Documentation:['Module docstrings','API documentation with sphinx','Requirements.txt updated','Setup.py/pyproject.toml current']
+},
+react:{
+Security:['No dangerouslySetInnerHTML','XSS prevention in dynamic content','Auth tokens not in localStorage','Protected routes implemented','Input sanitization'],
+Performance:['React.memo for expensive components','useMemo/useCallback where needed','Code splitting with React.lazy','No unnecessary re-renders','Virtual scrolling for large lists','Bundle analysis done'],
+Readability:['Components under 200 lines','Custom hooks for logic reuse','Prop types or TypeScript','Consistent state management','Named exports preferred','CSS modules or styled-components'],
+Testing:['Component rendering tests','Hook testing with renderHook','User interaction tests','Snapshot tests reviewed','Mock API calls'],
+Documentation:['Storybook stories','Props documentation','Component usage examples','README with setup instructions']
+},
+node:{
+Security:['Helmet.js headers','Rate limiting implemented','Input validation middleware','JWT secret from env','HTTPS enforced','SQL injection prevention'],
+Performance:['Streaming for large responses','Connection pooling','Response compression','Cache headers set','Cluster mode for production','Event loop monitoring'],
+Readability:['Error middleware centralized','Consistent error format','Async error handling','Logger abstraction','Environment config validation'],
+Testing:['API integration tests','Load testing done','Error scenario coverage','Database migration tests','Health check endpoint tested'],
+Documentation:['API endpoints documented','Environment variables listed','Deployment guide','Docker configuration']
+},
+go:{
+Security:['Input validation','SQL parameterized queries','Authentication middleware','CORS properly configured','No info leaks in errors','Dependency scanning'],
+Performance:['Goroutine leak prevention','Buffer pool for allocations','Connection pooling','Response compression','pprof profiling done','Benchmark tests'],
+Readability:['Go idioms followed','Error wrapping with context','Interface usage appropriate','Package organization clear','gofmt/golint clean','Comments on exported funcs'],
+Testing:['Table-driven tests','Race condition tests (go test -race)','Benchmark tests','Table tests for edge cases','Mock interfaces'],
+Documentation:['Package doc comments','Example tests','README updated','Go doc generated']
+},
+rust:{
+Security:['No unsafe blocks without justification','Input validation','Bounds checking','Proper error handling with Result','No unwrap() in production code','Dependency audit'],
+Performance:['Zero-cost abstractions used','Proper lifetime annotations','Avoid unnecessary cloning','Iterator over manual loops','Compile-time checks preferred','Profile-guided optimization'],
+Readability:['Idiomatic Rust patterns','Clippy warnings resolved','Meaningful variable names','Module organization clear','Trait implementations logical','Doc comments on public API'],
+Testing:['Unit tests in module','Integration tests','Property-based testing','Doc tests passing','Benchmarks for hot paths'],
+Documentation:['rustdoc comments','Examples in doc comments','CHANGELOG updated','API documentation generated']
+},
+java:{
+Security:['Input validation','SQL injection prevention (PreparedStatement)','XSS prevention','Authentication/Authorization','Secure deserialization','Dependency scanning'],
+Performance:['Connection pooling','Batch processing','Lazy loading','Caching (Spring Cache etc)','Profiling with JProfiler','Index optimization'],
+Readability:['Follow Java naming conventions','Javadoc on public methods','Proper package structure','Design patterns applied','No God classes','Stream API where appropriate'],
+Testing:['JUnit 5 tests','Mockito for mocking','Integration tests with TestContainers','Code coverage > 80%','Performance tests'],
+Documentation:['Javadoc generated','API documentation','README updated','Changelog entry']
+},
+php:{
+Security:['Prepared statements for SQL','htmlspecialchars for output','CSRF token validation','Input validation','Password hashing with bcrypt','Secure session configuration'],
+Performance:['Query optimization','OPcache enabled','Eloquent eager loading','Redis/Memcached caching','Queue for heavy tasks','Image optimization'],
+Readability:['PSR-12 coding standard','Type declarations on all methods','PHPDoc blocks',' meaningful variable names','Small focused classes','No spaghetti code'],
+Testing:['PHPUnit tests','Feature tests for HTTP','Mock external services','Code coverage > 80%','Database transactions in tests'],
+Documentation:['PHPDoc on public APIs','README updated','composer.json description','Changelog maintained']
+}
+};
+let state={};
+function loadChecklist(){
+const lang=document.getElementById('lang').value;
+const items=checklists[lang]||checklists.general;
+const container=document.getElementById('checklistContainer');
+const sectionSelect=document.getElementById('customSection');
+sectionSelect.innerHTML='';
+container.innerHTML='';
+state={};
+Object.entries(items).forEach(([section,checks])=>{
+state[section]=checks.map(()=>false);
+sectionSelect.innerHTML+=`<option value="${section}">${section}</option>`;
+const div=document.createElement('div');
+div.className='panel section';
+div.innerHTML=`<div class="section-header" onclick="toggleSection(this)"><h3>${section}</h3><span class="count">${checks.length} items</span></div><div class="section-body"><ul class="checklist" data-section="${section}">${checks.map((c,i)=>`<li onclick="toggle(this,'${section}',${i})"><span class="check"></span><span class="text">${c}</span></li>`).join('')}</ul></div>`;
+container.appendChild(div);
+});
+updateStats();
+}
+function toggleSection(el){
+const body=el.nextElementSibling;
+body.style.display=body.style.display==='none'?'block':'none';
+}
+function toggle(li,section,index){
+li.classList.toggle('checked');
+state[section][index]=li.classList.contains('checked');
+updateStats();
+}
+function updateStats(){
+let total=0,checked=0;
+Object.values(state).forEach(arr=>{total+=arr.length;checked+=arr.filter(Boolean).length});
+const pct=total?Math.round(checked/total*100):0;
+document.getElementById('progressFill').style.width=pct+'%';
+document.getElementById('statsText').textContent=`${checked} / ${total} checked`;
+document.getElementById('statsPct').textContent=pct+'%';
+document.querySelectorAll('.section-header .count').forEach((el,i)=>{
+const section=Object.keys(state)[i];
+const sChecked=state[section].filter(Boolean).length;
+el.textContent=`${sChecked} / ${state[section].length}`;
+});
+}
+function addCustomItem(){
+const section=document.getElementById('customSection').value;
+const text=document.getElementById('customItem').value.trim();
+if(!text||!section)return;
+state[section].push(false);
+const ul=document.querySelector(`[data-section="${section}"]`);
+const li=document.createElement('li');
+li.onclick=function(){toggle(this,section,state[section].length-1)};
+li.innerHTML=`<span class="check"></span><span class="text">${esc(text)}</span>`;
+ul.appendChild(li);
+document.getElementById('customItem').value='';
+updateStats();
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function generateMarkdown(){
+const lang=document.getElementById('lang').value;
+let md=`# Code Review Checklist - ${lang.charAt(0).toUpperCase()+lang.slice(1)}\n\n`;
+Object.entries(state).forEach(([section,items])=>{
+md+=`## ${section}\n`;
+items.forEach((checked,i)=>{
+md+=`${checked?'- [x]':'- [ ]'} ${document.querySelector(`[data-section="${section}"] li:nth-child(${i+1}) .text`).textContent}\n`;
+});
+md+='\n';
+});
+return md;
+}
+function exportMarkdown(){
+const blob=new Blob([generateMarkdown()],{type:'text/markdown'});
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='review-checklist.md';a.click();
+}
+function copyMarkdown(){navigator.clipboard.writeText(generateMarkdown()).then(()=>showToast())}
+function showToast(){const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+function resetAll(){loadChecklist()}
+loadChecklist();
+</script>
+</body>
+</html>

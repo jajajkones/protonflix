@@ -3,725 +3,432 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ProtonFlix Tools Hub — 170+ Free Developer Tools</title>
-<meta name="description" content="170+ free, client-side developer tools for encoding, conversion, code formatting, API testing, security, and more. No sign-up required.">
+<title>ProtonFlix Tools — 200+ Developer Utilities</title>
+<meta name="description" content="200+ free, client-side developer tools. No sign-up. No tracking. Everything runs in your browser.">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#0a0a0a;--surface:#111111;--surface-2:#161616;--border:#222222;
-  --text:#e4e4e7;--text-dim:#71717a;--text-muted:#52525b;
-  --accent-blue:#3b82f6;--accent-purple:#8b5cf6;--accent-pink:#ec4899;
-  --gradient:linear-gradient(135deg,var(--accent-blue),var(--accent-purple),var(--accent-pink));
-  --glow:0 0 40px rgba(139,92,246,.15);
-  --radius:12px;--radius-sm:8px;--radius-lg:16px;
-  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
-  --mono:'SF Mono','Fira Code','Cascadia Code',monospace;
+  --bg:#09090b;--surface:#18181b;--surface-2:#27272a;--border:#2e2e32;
+  --text:#fafafa;--text-secondary:#a1a1aa;--text-muted:#52525b;
+  --accent:#f59e0b;--accent-dim:rgba(245,158,11,.12);
+  --radius:8px;
+  --font:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',system-ui,sans-serif;
+  --mono:'JetBrains Mono','SF Mono','Fira Code',monospace;
 }
-html{scroll-behavior:smooth;font-family:var(--font);background:var(--bg);color:var(--text)}
-body{min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
-::selection{background:rgba(139,92,246,.3);color:#fff}
-::-webkit-scrollbar{width:6px}
-::-webkit-scrollbar-track{background:var(--bg)}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+::selection{background:var(--accent);color:#000}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-::-webkit-scrollbar-thumb:hover{background:#333}
 
-/* ── SKELETON ── */
-.skeleton{display:block}
-.skeleton .sk-card{
+/* LAYOUT */
+.shell{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+@media(max-width:768px){.shell{grid-template-columns:1fr}.sidebar{display:none}}
+
+/* SIDEBAR */
+.sidebar{
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+  border-right:1px solid var(--border);padding:24px 0;
+  display:flex;flex-direction:column;
+}
+.sidebar-brand{padding:0 20px;margin-bottom:32px}
+.sidebar-brand h1{font-size:15px;font-weight:700;letter-spacing:-.02em}
+.sidebar-brand span{color:var(--accent)}
+.sidebar-nav{flex:1;display:flex;flex-direction:column;gap:1px;padding:0 8px}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;border-radius:var(--radius);font-size:13px;
+  color:var(--text-secondary);cursor:pointer;transition:all .15s;
+  text-decoration:none;border:none;background:none;width:100%;text-align:left;font-family:inherit;
+}
+.nav-item:hover{background:var(--surface);color:var(--text)}
+.nav-item.active{background:var(--accent-dim);color:var(--accent);font-weight:600}
+.nav-item .icon{width:18px;text-align:center;font-size:12px;opacity:.7}
+.nav-item .count{margin-left:auto;font-size:11px;color:var(--text-muted);font-family:var(--mono)}
+.sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);margin-top:auto}
+.sidebar-footer p{font-size:11px;color:var(--text-muted);line-height:1.6}
+
+/* MAIN */
+.main{padding:32px 40px;max-width:1100px}
+@media(max-width:768px){.main{padding:20px 16px}}
+
+/* HEADER */
+.page-header{margin-bottom:32px}
+.page-header h2{font-size:20px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
+.page-header p{font-size:13px;color:var(--text-secondary)}
+
+/* SEARCH */
+.search-wrap{position:relative;margin-bottom:28px}
+.search-input{
+  width:100%;padding:10px 14px 10px 36px;
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  height:180px;position:relative;overflow:hidden;
+  color:var(--text);font-size:13px;font-family:var(--font);
+  outline:none;transition:border-color .2s;
 }
-.skeleton .sk-card::after{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.03),transparent);
-  animation:shimmer 1.6s infinite;
-}
-@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
-.skeleton .sk-badge{width:60px;height:18px;border-radius:9px;background:var(--surface);margin-bottom:8px}
-.skeleton .sk-title{width:70%;height:14px;border-radius:4px;background:var(--surface);margin-bottom:6px}
-.skeleton .sk-desc{width:90%;height:10px;border-radius:4px;background:var(--surface)}
-.skeleton-grid{
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;
-  padding:0 clamp(1rem,4vw,3rem);max-width:1400px;margin:0 auto;
-}
-
-/* ── HERO ── */
-.hero{
-  position:relative;padding:clamp(4rem,10vh,7rem) 2rem clamp(3rem,6vh,5rem);text-align:center;
-  overflow:hidden;min-height:520px;display:flex;flex-direction:column;align-items:center;justify-content:center;
-}
-.hero-bg{
-  position:absolute;inset:0;
-  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(59,130,246,.12),rgba(139,92,246,.08),rgba(236,72,153,.05),transparent 70%);
-  pointer-events:none;
-}
-.hero-glow{
-  position:absolute;width:600px;height:600px;border-radius:50%;
-  background:radial-gradient(circle,rgba(139,92,246,.08) 0%,transparent 70%);
-  top:-200px;left:50%;transform:translateX(-50%);pointer-events:none;
-  animation:pulse-glow 6s ease-in-out infinite alternate;
-}
-@keyframes pulse-glow{0%{opacity:.6;transform:translateX(-50%) scale(1)}100%{opacity:1;transform:translateX(-50%) scale(1.15)}}
-
-/* particles */
-.particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.particle{
-  position:absolute;border-radius:50%;
-  animation:float linear infinite;
-}
-@keyframes float{
-  0%{transform:translateY(100vh) scale(0);opacity:0}
-  10%{opacity:1}
-  90%{opacity:1}
-  100%{transform:translateY(-10vh) scale(1);opacity:0}
-}
-
-.hero-badge{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:6px 16px;border-radius:100px;
-  background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2);
-  font-size:.8rem;color:var(--accent-purple);margin-bottom:1.5rem;
-  backdrop-filter:blur(8px);position:relative;z-index:1;
-}
-.hero-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent-purple);animation:dot-pulse 2s infinite}
-@keyframes dot-pulse{0%,100%{opacity:1}50%{opacity:.3}}
-
-.hero h1{
-  font-size:clamp(2.5rem,6vw,4.5rem);font-weight:800;line-height:1.1;
-  letter-spacing:-.03em;margin-bottom:1rem;position:relative;z-index:1;
-}
-.hero h1 .gradient-text{
-  background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  background-clip:text;
-}
-.hero p{
-  font-size:clamp(1rem,2vw,1.25rem);color:var(--text-dim);max-width:600px;
-  margin:0 auto 2rem;line-height:1.6;position:relative;z-index:1;
-}
-
-/* ── STATS ── */
-.stats{
-  display:flex;gap:clamp(1.5rem,4vw,3rem);justify-content:center;flex-wrap:wrap;
-  margin-bottom:2.5rem;position:relative;z-index:1;
-}
-.stat{text-align:center}
-.stat-num{
-  font-size:clamp(1.8rem,3vw,2.4rem);font-weight:800;
-  background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  background-clip:text;
-}
-.stat-label{font-size:.8rem;color:var(--text-dim);margin-top:2px}
-
-/* ── SEARCH ── */
-.search-wrap{
-  position:relative;z-index:10;max-width:560px;width:100%;margin:0 auto;
-}
-.search-bar{
-  width:100%;padding:16px 20px 16px 50px;
-  background:rgba(255,255,255,.04);border:1px solid var(--border);
-  border-radius:100px;color:var(--text);font-size:1rem;
-  backdrop-filter:blur(20px);outline:none;
-  transition:border-color .3s,box-shadow .3s,background .3s;
-}
-.search-bar::placeholder{color:var(--text-muted)}
-.search-bar:focus{
-  border-color:var(--accent-purple);
-  box-shadow:0 0 0 3px rgba(139,92,246,.15),0 0 30px rgba(139,92,246,.1);
-  background:rgba(255,255,255,.06);
-}
-.search-icon{
-  position:absolute;left:18px;top:50%;transform:translateY(-50%);
-  color:var(--text-muted);pointer-events:none;transition:color .3s;
-}
-.search-bar:focus ~ .search-icon{color:var(--accent-purple)}
+.search-input:focus{border-color:var(--accent)}
+.search-input::placeholder{color:var(--text-muted)}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none}
 .search-kbd{
-  position:absolute;right:16px;top:50%;transform:translateY(-50%);
-  display:flex;gap:4px;
-}
-.search-kbd kbd{
-  padding:2px 8px;border-radius:4px;font-size:.7rem;font-family:var(--mono);
-  background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text-muted);
+  position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  font-size:10px;font-family:var(--mono);color:var(--text-muted);
+  background:var(--surface-2);padding:2px 6px;border-radius:4px;border:1px solid var(--border);
 }
 
-/* ── CATEGORIES ── */
-.categories{
-  display:flex;gap:8px;flex-wrap:wrap;justify-content:center;
-  padding:0 2rem;margin:2rem auto 1rem;max-width:1400px;position:relative;z-index:1;
+/* TOOL LIST */
+.tool-section{margin-bottom:32px}
+.tool-section-title{
+  font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--text-muted);padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:8px;
 }
-.cat-pill{
-  padding:6px 16px;border-radius:100px;font-size:.8rem;font-weight:500;
-  background:rgba(255,255,255,.04);border:1px solid var(--border);
-  color:var(--text-dim);cursor:pointer;transition:all .25s;user-select:none;
-  white-space:nowrap;
+.tool-grid{display:flex;flex-direction:column;gap:2px}
+.tool-row{
+  display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;
+  padding:10px 12px;border-radius:var(--radius);cursor:pointer;
+  text-decoration:none;color:inherit;transition:background .15s;
 }
-.cat-pill:hover,.cat-pill.active{
-  background:rgba(139,92,246,.12);border-color:rgba(139,92,246,.3);color:var(--accent-purple);
+.tool-row:hover{background:var(--surface)}
+.tool-row-left{display:flex;align-items:center;gap:12px;min-width:0}
+.tool-icon{
+  width:32px;height:32px;min-width:32px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:600;font-family:var(--mono);
+  background:var(--surface-2);color:var(--text-secondary);
+  border:1px solid var(--border);transition:all .15s;
 }
-.cat-pill.active{background:var(--gradient);border-color:transparent;color:#fff}
-.cat-pill .count{
-  display:inline-flex;align-items:center;justify-content:center;
-  min-width:18px;height:18px;padding:0 5px;border-radius:9px;
-  font-size:.65rem;margin-left:4px;
-  background:rgba(255,255,255,.08);
+.tool-row:hover .tool-icon{border-color:var(--accent);color:var(--accent)}
+.tool-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tool-desc{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tool-tag{
+  font-size:10px;padding:2px 8px;border-radius:4px;font-weight:500;
+  background:var(--surface-2);color:var(--text-muted);white-space:nowrap;
 }
-.cat-pill.active .count{background:rgba(255,255,255,.25);color:#fff}
-
-/* ── TOOL COUNT ── */
-.tool-count-bar{
-  text-align:center;padding:.5rem 2rem 1.5rem;position:relative;z-index:1;
+.tool-new{
+  font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--accent);margin-left:6px;
 }
-.tool-count-bar span{
-  font-size:.85rem;color:var(--text-dim);
-}
-.tool-count-bar .num{color:var(--accent-purple);font-weight:700}
-
-/* ── SECTION ── */
-.tools-section{padding:0 clamp(1rem,4vw,3rem);max-width:1400px;margin:0 auto 2rem}
-.section-header{
-  display:flex;align-items:center;gap:10px;margin-bottom:1rem;
-  padding-bottom:10px;border-bottom:1px solid var(--border);
-}
-.section-header h2{
-  font-size:1.15rem;font-weight:700;letter-spacing:-.02em;
-}
-.section-header .sec-count{
-  font-size:.75rem;color:var(--text-muted);padding:2px 10px;border-radius:100px;
-  background:rgba(255,255,255,.04);border:1px solid var(--border);
-}
-
-/* ── TOOL GRID ── */
-.tools-grid{
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;
-}
-
-/* ── TOOL CARD ── */
-.tool-card{
-  display:flex;align-items:flex-start;gap:12px;
-  padding:16px;border-radius:var(--radius);
-  background:rgba(255,255,255,.02);border:1px solid var(--border);
-  cursor:pointer;text-decoration:none;color:inherit;
-  transition:all .3s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;
-}
-.tool-card::before{
-  content:'';position:absolute;inset:0;border-radius:var(--radius);
-  background:linear-gradient(135deg,rgba(139,92,246,.06),rgba(59,130,246,.04));
-  opacity:0;transition:opacity .3s;pointer-events:none;
-}
-.tool-card:hover{
-  border-color:rgba(139,92,246,.3);
-  transform:translateY(-2px);
-  box-shadow:0 8px 32px rgba(139,92,246,.08),0 0 0 1px rgba(139,92,246,.1);
-}
-.tool-card:hover::before{opacity:1}
-.tool-card .icon{
-  width:40px;height:40px;min-width:40px;border-radius:var(--radius-sm);
-  display:flex;align-items:center;justify-content:center;font-size:1.2rem;
-  background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.15);
-  transition:all .3s;position:relative;z-index:1;
-}
-.tool-card:hover .icon{
-  background:rgba(139,92,246,.2);
-  box-shadow:0 0 20px rgba(139,92,246,.15);
-}
-.tool-card .info{position:relative;z-index:1;flex:1;min-width:0}
-.tool-card .info h3{
-  font-size:.9rem;font-weight:600;margin-bottom:3px;
-  display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.tool-card .info p{
-  font-size:.78rem;color:var(--text-dim);line-height:1.4;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
-}
-.tag{
-  display:inline-flex;padding:2px 8px;border-radius:6px;font-size:.6rem;font-weight:600;
-  letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;
-}
-.tag-text{background:rgba(59,130,246,.12);color:#60a5fa}
-.tag-encode{background:rgba(236,72,153,.12);color:#f472b6}
-.tag-convert{background:rgba(34,197,94,.12);color:#4ade80}
-.tag-design{background:rgba(168,85,247,.12);color:#c084fc}
-.tag-code{background:rgba(251,191,36,.12);color:#fbbf24}
-.tag-api{background:rgba(6,182,212,.12);color:#22d3ee}
-.tag-dev{background:rgba(244,63,94,.12);color:#fb7185}
-.tag-devops{background:rgba(20,184,166,.12);color:#2dd4bf}
-.tag-media{background:rgba(249,115,22,.12);color:#fb923c}
-.tag-convert2{background:rgba(139,92,246,.12);color:#a78bfa}
-.tag-security{background:rgba(239,68,68,.12);color:#f87171}
-.tag-calc{background:rgba(56,189,248,.12);color:#38bdf8}
-.tag-util{background:rgba(163,230,53,.12);color:#a3e635}
-.new-badge{
-  padding:2px 6px;border-radius:4px;font-size:.55rem;font-weight:700;
-  background:var(--gradient);color:#fff;letter-spacing:.04em;
-  animation:new-pulse 2s infinite;
-}
-@keyframes new-pulse{0%,100%{opacity:1}50%{opacity:.7}}
-
-/* ── NO RESULTS ── */
-.no-results{
-  text-align:center;padding:4rem 2rem;color:var(--text-dim);display:none;
-}
+.no-results{text-align:center;padding:60px 0;color:var(--text-muted);font-size:13px;display:none}
 .no-results.show{display:block}
-.no-results .emoji{font-size:3rem;margin-bottom:1rem}
-.no-results h3{font-size:1.2rem;color:var(--text);margin-bottom:.5rem}
-
-/* ── FOOTER ── */
-.footer{
-  text-align:center;padding:3rem 2rem 2rem;margin-top:2rem;
-  border-top:1px solid var(--border);
-}
-.footer-logo{
-  font-size:1.5rem;font-weight:800;letter-spacing:-.02em;
-  background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  background-clip:text;animation:gradient-shift 4s ease infinite;
-  background-size:200% 200%;
-}
-@keyframes gradient-shift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
-.footer p{color:var(--text-muted);font-size:.8rem;margin-top:.5rem}
-.footer-links{display:flex;gap:1.5rem;justify-content:center;margin-top:1rem}
-.footer-links a{color:var(--text-dim);text-decoration:none;font-size:.8rem;transition:color .2s}
-.footer-links a:hover{color:var(--accent-purple)}
-
-/* ── ANIMATIONS ── */
-.fade-in{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
-.fade-in.visible{opacity:1;transform:translateY(0)}
-
-/* ── RESPONSIVE ── */
-@media(max-width:640px){
-  .hero{padding:3rem 1.5rem;min-height:auto}
-  .hero h1{font-size:2rem}
-  .tools-grid{grid-template-columns:1fr}
-  .stats{gap:1rem}
-  .search-kbd{display:none}
+.no-results strong{display:block;font-size:16px;color:var(--text);margin-bottom:4px}
+@media(max-width:768px){
+  .tool-grid{gap:0}
+  .tool-desc{display:none}
+  .tool-tag{display:none}
 }
 </style>
 </head>
 <body>
-
-<!-- SKELETON LOADER -->
-<div class="skeleton" id="skeleton">
-  <div class="hero">
-    <div class="hero-bg"></div>
-    <div class="hero-glow"></div>
-    <div style="position:relative;z-index:1;text-align:center">
-      <div class="sk-badge skeleton" style="margin:0 auto 1.5rem;width:120px;height:24px;border-radius:100px"></div>
-      <div class="sk-title skeleton" style="margin:0 auto 1rem;width:400px;height:40px;border-radius:8px"></div>
-      <div class="sk-desc skeleton" style="margin:0 auto 1rem;width:500px;height:16px;border-radius:4px"></div>
-      <div style="display:flex;gap:2rem;justify-content:center;margin-top:2rem">
-        <div class="sk-title skeleton" style="width:80px;height:30px;border-radius:4px"></div>
-        <div class="sk-title skeleton" style="width:80px;height:30px;border-radius:4px"></div>
-        <div class="sk-title skeleton" style="width:80px;height:30px;border-radius:4px"></div>
-      </div>
+<div class="shell">
+  <nav class="sidebar">
+    <div class="sidebar-brand"><h1>Proton<span>Flix</span></h1></div>
+    <div class="sidebar-nav" id="sidebarNav"></div>
+    <div class="sidebar-footer">
+      <p>200+ tools. Zero tracking.<br>All processing stays in your browser.</p>
     </div>
-  </div>
-  <div class="skeleton-grid" style="margin-top:2rem">
-    ${Array(12).fill('<div class="sk-card"></div>').join('')}
-  </div>
+  </nav>
+  <main class="main">
+    <div class="page-header">
+      <h2 id="pageTitle">All Tools</h2>
+      <p id="pageDesc">Browse all developer utilities. Everything runs locally.</p>
+    </div>
+    <div class="search-wrap">
+      <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" class="search-input" id="search" placeholder="Search tools..." autocomplete="off" spellcheck="false">
+      <span class="search-kbd">/</span>
+    </div>
+    <div id="toolList"></div>
+    <div class="no-results" id="noResults"><strong>No tools found</strong>Try a different search term.</div>
+  </main>
 </div>
-
-<!-- HERO -->
-<header class="hero" id="hero" style="display:none">
-  <div class="hero-bg"></div>
-  <div class="hero-glow"></div>
-  <div class="particles" id="particles"></div>
-  <div class="hero-badge"><span class="dot"></span>Open Source & Free Forever</div>
-  <h1>The Ultimate<br><span class="gradient-text">Developer Toolkit</span></h1>
-  <p>170+ beautifully crafted, 100% client-side tools for developers, designers, and power users. No sign-up. No tracking. Just tools.</p>
-  <div class="stats">
-    <div class="stat"><div class="stat-num" data-count="170">0</div><div class="stat-label">Tools</div></div>
-    <div class="stat"><div class="stat-num" data-count="10">0</div><div class="stat-label">Categories</div></div>
-    <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Client-Side</div></div>
-  </div>
-  <div class="search-wrap">
-    <input type="text" class="search-bar" id="search" placeholder="Search 170+ tools..." autocomplete="off" spellcheck="false">
-    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <div class="search-kbd"><kbd>Ctrl</kbd><kbd>K</kbd></div>
-  </div>
-</header>
-
-<!-- CATEGORIES -->
-<div class="categories" id="categories" style="display:none"></div>
-<div class="tool-count-bar" id="toolCountBar" style="display:none">
-  <span>Showing <span class="num" id="visibleCount">170</span> tools</span>
-</div>
-
-<!-- TOOLS -->
-<main id="mainContent" style="display:none"></main>
-
-<!-- NO RESULTS -->
-<div class="no-results" id="noResults">
-  <div class="emoji">🔍</div>
-  <h3>No tools found</h3>
-  <p>Try a different search term or category</p>
-</div>
-
-<!-- FOOTER -->
-<footer class="footer" id="footer" style="display:none">
-  <div class="footer-logo">ProtonFlix</div>
-  <p>170+ free developer tools. All client-side. No data leaves your browser.</p>
-  <div class="footer-links">
-    <a href="#">GitHub</a>
-    <a href="#">Privacy</a>
-    <a href="#">Sitemap</a>
-  </div>
-</footer>
-
 <script>
 const TOOLS = {
-  "Text & String": [
-    { file: "json-formatter.html", name: "JSON Formatter", icon: "{ }", desc: "Format and prettify JSON data with syntax highlighting", cat: "text", isNew: false },
-    { file: "json-beautifier.html", name: "JSON Beautifier", icon: "✨", desc: "Beautify and validate JSON instantly in your browser", cat: "text", isNew: false },
-    { file: "word-counter.html", name: "Word Counter", icon: "W", desc: "Count words, characters, sentences, and paragraphs", cat: "text", isNew: false },
-    { file: "text-case.html", name: "Text Case Converter", icon: "Aa", desc: "Convert text between upper, lower, title, and more cases", cat: "text", isNew: false },
-    { file: "find-replace.html", name: "Find & Replace", icon: "⟳", desc: "Find and replace text with regex and batch support", cat: "text", isNew: false },
-    { file: "lorem-ipsum.html", name: "Lorem Ipsum Generator", icon: "¶", desc: "Generate placeholder text in paragraphs, words, or sentences", cat: "text", isNew: false },
-    { file: "whitespace-editor.html", name: "Whitespace Editor", icon: "␣", desc: "Remove, add, or visualize whitespace characters", cat: "text", isNew: false },
-    { file: "character-map.html", name: "Character Map", icon: "Ω", desc: "Browse and copy special characters, symbols, and Unicode", cat: "text", isNew: false },
-    { file: "markdown-table-generator.html", name: "Markdown Table Generator", icon: "⊞", desc: "Generate markdown tables with a visual editor", cat: "text", isNew: false },
-    { file: "text-diff.html", name: "Text Diff", icon: "±", desc: "Compare two texts and highlight differences side by side", cat: "text", isNew: false },
-    { file: "markdown-preview.html", name: "Markdown Preview", icon: "📋", desc: "Live preview of Markdown with split-pane editor", cat: "text", isNew: false },
-    { file: "html-cleaner.html", name: "HTML Cleaner", icon: "🧹", desc: "Remove tags, attributes, and clean up HTML code", cat: "text", isNew: false },
-    { file: "password-generator.html", name: "Password Generator", icon: "🔑", desc: "Generate strong, random passwords with customizable options", cat: "text", isNew: false },
-    { file: "password-pattern.html", name: "Password Pattern", icon: "🔐", desc: "Create password patterns with custom rules and entropy", cat: "text", isNew: false }
-  ],
-  "Encoding": [
-    { file: "base64.html", name: "Base64 Encoder/Decoder", icon: "64", desc: "Encode and decode Base64 strings instantly", cat: "encode", isNew: false },
-    { file: "url-encoder.html", name: "URL Encoder/Decoder", icon: "%", desc: "Encode and decode URLs and query parameters", cat: "encode", isNew: false },
-    { file: "html-entity-encoder.html", name: "HTML Entity Encoder", icon: "&", desc: "Convert special characters to HTML entities and back", cat: "encode", isNew: false },
-    { file: "html-entity-encoder-decoder.html", name: "HTML Entity Encoder/Decoder", icon: "⟺", desc: "Full HTML entity encoding and decoding tool", cat: "encode", isNew: false },
-    { file: "jwt-decoder.html", name: "JWT Decoder", icon: "JWT", desc: "Decode and inspect JWT tokens and their payload", cat: "encode", isNew: false },
-    { file: "hash-generator.html", name: "Hash Generator", icon: "#", desc: "Generate MD5, SHA-1, SHA-256, SHA-512 hashes", cat: "encode", isNew: false },
-    { file: "rot13-cipher.html", name: "ROT13 Cipher", icon: "R13", desc: "Encode and decode ROT13 substitution cipher", cat: "encode", isNew: false },
-    { file: "morse-code.html", name: "Morse Code", icon: "·—", desc: "Translate text to Morse code and vice versa", cat: "encode", isNew: false },
-    { file: "binary-text.html", name: "Binary ↔ Text", icon: "01", desc: "Convert between binary and text representations", cat: "encode", isNew: false },
-    { file: "text-encoder.html", name: "Text Encoder", icon: "enc", desc: "Encode text with various encoding schemes", cat: "encode", isNew: false },
-    { file: "hashids.html", name: "Hashids Generator", icon: "hid", desc: "Generate short, unique, non-sequential IDs from numbers", cat: "encode", isNew: false },
-    { file: "ciphers.html", name: "Ciphers Toolkit", icon: "🔒", desc: "Caesar, Vigenere, Atbash, and more classic ciphers", cat: "encode", isNew: false }
-  ],
-  "Conversion": [
-    { file: "csv-json.html", name: "CSV ↔ JSON", icon: "⇄", desc: "Convert between CSV and JSON formats with preview", cat: "convert", isNew: false },
-    { file: "xml-json.html", name: "XML ↔ JSON", icon: "⇄", desc: "Convert between XML and JSON losslessly", cat: "convert", isNew: false },
-    { file: "html-markdown.html", name: "HTML → Markdown", icon: "⤵", desc: "Convert HTML to clean Markdown syntax", cat: "convert", isNew: false },
-    { file: "markdown-html.html", name: "Markdown → HTML", icon: "⤴", desc: "Convert Markdown to styled HTML output", cat: "convert", isNew: false },
-    { file: "base-converter.html", name: "Base Converter", icon: "∞", desc: "Convert numbers between binary, octal, decimal, hex, and more", cat: "convert", isNew: false },
-    { file: "unit-converter.html", name: "Unit Converter", icon: "⇌", desc: "Convert between 500+ units across 20+ categories", cat: "convert", isNew: false },
-    { file: "timestamp-converter.html", name: "Timestamp Converter", icon: "⏱", desc: "Convert Unix timestamps to human-readable dates and back", cat: "convert", isNew: false },
-    { file: "percentage-calc.html", name: "Percentage Calculator", icon: "%", desc: "Calculate percentages, increases, decreases, and differences", cat: "convert", isNew: false },
-    { file: "json-to-typescript.html", name: "JSON → TypeScript", icon: "TS", desc: "Generate TypeScript interfaces from JSON data", cat: "convert", isNew: false },
-    { file: "temperature-converter.html", name: "Temperature Converter", icon: "°", desc: "Convert between Celsius, Fahrenheit, Kelvin, and more", cat: "convert", isNew: false },
-    { file: "roman-numeral.html", name: "Roman Numeral Converter", icon: "Ⅰ", desc: "Convert between Roman numerals and decimal numbers", cat: "convert", isNew: false },
-    { file: "number-words.html", name: "Number to Words", icon: "#", desc: "Convert numbers to written English words", cat: "convert", isNew: false },
-    { file: "yaml-json-converter.html", name: "YAML ↔ JSON", icon: "⇄", desc: "Convert between YAML and JSON formats", cat: "convert", isNew: true },
-    { file: "css-to-js.html", name: "CSS → JavaScript", icon: "⟹", desc: "Convert CSS properties to JavaScript style objects", cat: "convert", isNew: false },
-    { file: "color-converter.html", name: "Color Converter", icon: "🎨", desc: "Convert between HEX, RGB, HSL, and CMYK color formats", cat: "convert", isNew: false },
-    { file: "date-diff.html", name: "Date Difference", icon: "📅", desc: "Calculate the difference between two dates", cat: "convert", isNew: false },
-    { file: "timezone-converter.html", name: "Timezone Converter", icon: "🌍", desc: "Convert times between world timezones instantly", cat: "convert", isNew: true }
-  ],
-  "Design": [
-    { file: "color-picker.html", name: "Color Picker", icon: "🎨", desc: "Pick and save colors with HEX, RGB, HSL values", cat: "design", isNew: false },
-    { file: "color-palette.html", name: "Color Palette", icon: "◉", desc: "Generate harmonious color palettes from a base color", cat: "design", isNew: false },
-    { file: "color-palette-generator.html", name: "Color Palette Generator", icon: "palette", desc: "Create beautiful palettes with multiple generation modes", cat: "design", isNew: false },
-    { file: "color-shades.html", name: "Color Shades", icon: "▓", desc: "Generate tints, shades, and tones of any color", cat: "design", isNew: false },
-    { file: "color-harmony.html", name: "Color Harmony", icon: "◐", desc: "Find complementary, analogous, triadic color schemes", cat: "design", isNew: false },
-    { file: "color-blend.html", name: "Color Blend", icon: "⊕", desc: "Blend two or more colors with different modes", cat: "design", isNew: false },
-    { file: "color-blindness-simulator.html", name: "Color Blindness Simulator", icon: "👁", desc: "Simulate how colors appear to colorblind users", cat: "design", isNew: false },
-    { file: "color-names.html", name: "Color Names", icon: "🏷", desc: "Browse 2000+ named colors with CSS values", cat: "design", isNew: false },
-    { file: "contrast-checker.html", name: "Contrast Checker", icon: "◑", desc: "Check WCAG color contrast ratios for accessibility", cat: "design", isNew: false },
-    { file: "css-gradient.html", name: "CSS Gradient Generator", icon: "🌅", desc: "Create linear, radial, and conic CSS gradients visually", cat: "design", isNew: false },
-    { file: "box-shadow.html", name: "Box Shadow Generator", icon: "▧", desc: "Generate complex CSS box shadows with live preview", cat: "design", isNew: false },
-    { file: "text-shadow.html", name: "Text Shadow Generator", icon: "A̲", desc: "Create and preview CSS text shadow effects", cat: "design", isNew: false },
-    { file: "flexbox-generator.html", name: "Flexbox Generator", icon: "↔", desc: "Generate Flexbox CSS with a visual editor", cat: "design", isNew: false },
-    { file: "flexbox-playground.html", name: "Flexbox Playground", icon: "⊞", desc: "Interactive Flexbox playground with live code output", cat: "design", isNew: false },
-    { file: "css-grid-generator.html", name: "CSS Grid Generator", icon: "▦", desc: "Design CSS Grid layouts visually and export the code", cat: "design", isNew: false },
-    { file: "css-animation.html", name: "CSS Animation Generator", icon: "▶", desc: "Create CSS keyframe animations with live preview", cat: "design", isNew: false },
-    { file: "css-border-radius.html", name: "CSS Border Radius", icon: "◗", desc: "Generate complex border-radius values visually", cat: "design", isNew: false },
-    { file: "css-box-model.html", name: "CSS Box Model", icon: "☐", desc: "Visualize and edit CSS box model properties", cat: "design", isNew: false },
-    { file: "css-cursor.html", name: "CSS Cursor", icon: "🖱", desc: "Preview all CSS cursor styles with copy-to-clipboard", cat: "design", isNew: false },
-    { file: "css-filter.html", name: "CSS Filter Generator", icon: "◈", desc: "Apply and combine CSS filters with live preview", cat: "design", isNew: false },
-    { file: "css-clip-path.html", name: "CSS Clip Path", icon: "⬡", desc: "Create CSS clip-path shapes with a visual editor", cat: "design", isNew: false },
-    { file: "css-transform.html", name: "CSS Transform Generator", icon: "↻", desc: "Generate 2D and 3D CSS transform functions", cat: "design", isNew: false },
-    { file: "css-specificity.html", name: "CSS Specificity Calculator", icon: "!", desc: "Calculate CSS selector specificity scores", cat: "design", isNew: false },
-    { file: "css-units.html", name: "CSS Units Reference", icon: "📏", desc: "Compare and convert all CSS units with visual examples", cat: "design", isNew: false },
-    { file: "css-reset.html", name: "CSS Reset Generator", icon: "↺", desc: "Generate modern CSS reset and normalize stylesheets", cat: "design", isNew: false },
-    { file: "favicon-generator.html", name: "Favicon Generator", icon: "🌐", desc: "Generate favicons in all sizes from an image or text", cat: "design", isNew: false },
-    { file: "placeholder-image.html", name: "Placeholder Image Generator", icon: "🖼", desc: "Generate placeholder images with custom text and colors", cat: "design", isNew: false },
-    { file: "svg-viewer.html", name: "SVG Viewer", icon: "◇", desc: "View, edit, and validate SVG files with live preview", cat: "design", isNew: false },
-    { file: "font-pairing.html", name: "Font Pairing", icon: "Ab", desc: "Discover beautiful font combinations for your projects", cat: "design", isNew: true },
-    { file: "viewport-resizer.html", name: "Viewport Resizer", icon: "📐", desc: "Test responsive designs at different viewport sizes", cat: "design", isNew: true }
-  ],
-  "Code": [
-    { file: "regex-tester.html", name: "Regex Tester", icon: ".*", desc: "Test regular expressions with live matching and highlighting", cat: "code", isNew: false },
-    { file: "regex-builder.html", name: "Regex Builder", icon: "🔧", desc: "Build regex patterns visually with a point-and-click interface", cat: "code", isNew: false },
-    { file: "regex-cheatsheet.html", name: "Regex Cheatsheet", icon: "📖", desc: "Quick reference for regular expression syntax and patterns", cat: "code", isNew: false },
-    { file: "cron-parser.html", name: "Cron Parser", icon: "⏰", desc: "Parse and explain cron expressions in plain English", cat: "code", isNew: false },
-    { file: "cron-builder.html", name: "Cron Builder", icon: "⚙", desc: "Build cron expressions with an interactive GUI builder", cat: "code", isNew: false },
-    { file: "cron-schedule-visualizer.html", name: "Cron Schedule Visualizer", icon: "📅", desc: "Visualize cron schedules on a timeline or calendar view", cat: "code", isNew: false },
-    { file: "sql-formatter.html", name: "SQL Formatter", icon: "SQL", desc: "Format and beautify SQL queries with syntax highlighting", cat: "code", isNew: false },
-    { file: "css-minifier.html", name: "CSS Minifier", icon: "🗜", desc: "Minify CSS code to reduce file size", cat: "code", isNew: false },
-    { file: "js-minifier.html", name: "JS Minifier", icon: "🗜", desc: "Minify JavaScript code for production deployment", cat: "code", isNew: false },
-    { file: "html-minifier.html", name: "HTML Minifier", icon: "🗜", desc: "Compress HTML files by removing whitespace and comments", cat: "code", isNew: false },
-    { file: "git-cheatsheet.html", name: "Git Cheatsheet", icon: "⑂", desc: "Quick reference for common Git commands and workflows", cat: "code", isNew: false },
-    { file: "git-commands.html", name: "Git Commands", icon: "⌘", desc: "Interactive guide to 100+ Git commands with examples", cat: "code", isNew: false },
-    { file: "docker-cheatsheet.html", name: "Docker Cheatsheet", icon: "🐳", desc: "Quick reference for Docker commands and compose syntax", cat: "code", isNew: false },
-    { file: "sql-cheatsheet.html", name: "SQL Cheatsheet", icon: "📊", desc: "Complete SQL reference with common queries and patterns", cat: "code", isNew: false },
-    { file: "python-cheatsheet.html", name: "Python Cheatsheet", icon: "🐍", desc: "Python syntax, built-ins, and common patterns reference", cat: "code", isNew: false },
-    { file: "bash-cheatsheet.html", name: "Bash Cheatsheet", icon: "$_", desc: "Shell scripting reference with common commands and patterns", cat: "code", isNew: false },
-    { file: "linux-commands.html", name: "Linux Commands", icon: "🐧", desc: "Essential Linux command reference with examples", cat: "code", isNew: false },
-    { file: "kubernetes-cheatsheet.html", name: "Kubernetes Cheatsheet", icon: "☸", desc: "kubectl commands and Kubernetes resource reference", cat: "code", isNew: false },
-    { file: "tailwind-cheatsheet.html", name: "Tailwind CSS Cheatsheet", icon: "💨", desc: "Complete Tailwind CSS utility class reference", cat: "code", isNew: false },
-    { file: "js-array-methods.html", name: "JS Array Methods", icon: "[]", desc: "Visual reference for every JavaScript array method", cat: "code", isNew: false },
-    { file: "javascript-builtins.html", name: "JavaScript Built-ins", icon: "JS", desc: "Complete reference of JavaScript built-in objects and methods", cat: "code", isNew: false },
-    { file: "react-hooks-reference.html", name: "React Hooks Reference", icon: "⚛", desc: "Complete guide to React hooks with examples and patterns", cat: "code", isNew: false },
-    { file: "html-form-builder.html", name: "HTML Form Builder", icon: "📝", desc: "Generate HTML forms with drag-and-drop visual builder", cat: "code", isNew: false },
-    { file: "html-table-generator.html", name: "HTML Table Generator", icon: "⊞", desc: "Generate styled HTML tables with customization options", cat: "code", isNew: false },
-    { file: "og-meta-generator.html", name: "OG Meta Generator", icon: "OG", desc: "Generate Open Graph and Twitter Card meta tags", cat: "code", isNew: false },
-    { file: "json-schema-generator.html", name: "JSON Schema Generator", icon: "📋", desc: "Generate JSON Schema from sample JSON data", cat: "code", isNew: false },
-    { file: "json-path-finder.html", name: "JSON Path Finder", icon: "🔍", desc: "Find and extract data from JSON using dot and bracket notation", cat: "code", isNew: false },
-    { file: "html-boilerplate.html", name: "HTML Boilerplate", icon: "📄", desc: "Generate HTML5 boilerplate with best practices included", cat: "code", isNew: false },
-    { file: "robots-txt.html", name: "robots.txt Generator", icon: "🤖", desc: "Generate robots.txt files with visual rule builder", cat: "code", isNew: false },
-    { file: "sitemap-generator.html", name: "Sitemap Generator", icon: "🗺", desc: "Generate XML sitemaps for your website", cat: "code", isNew: false },
-    { file: "pwa-manifest.html", name: "PWA Manifest Generator", icon: "📱", desc: "Generate web app manifest.json for Progressive Web Apps", cat: "code", isNew: false },
-    { file: "svg-sprite.html", name: "SVG Sprite Generator", icon: "◇", desc: "Combine multiple SVGs into a single sprite sheet", cat: "code", isNew: false },
-    { file: "html-prototype.html", name: "HTML Prototype Builder", icon: "🏗", desc: "Quickly build HTML prototypes with common UI patterns", cat: "code", isNew: true }
-  ],
-  "API & Auth": [
-    { file: "http-request-builder.html", name: "HTTP Request Builder", icon: "→", desc: "Build and test HTTP requests with headers, body, and auth", cat: "api", isNew: false },
-    { file: "jwt-generator.html", name: "JWT Generator", icon: "JWT", desc: "Generate and sign JSON Web Tokens with custom payloads", cat: "api", isNew: false },
-    { file: "bcrypt-hash.html", name: "Bcrypt Hash Generator", icon: "🔒", desc: "Generate and verify bcrypt password hashes", cat: "api", isNew: false },
-    { file: "nanoid-generator.html", name: "Nano ID Generator", icon: "id", desc: "Generate URL-friendly unique IDs with NanoID", cat: "api", isNew: false },
-    { file: "uuid-generator.html", name: "UUID Generator", icon: "UUID", desc: "Generate UUID v1, v4, and v5 identifiers", cat: "api", isNew: false },
-    { file: "uuid-generator-v5.html", name: "UUID v5 Generator", icon: "v5", desc: "Generate deterministic UUID v5 from namespace and name", cat: "api", isNew: false },
-    { file: "oauth-url-builder.html", name: "OAuth URL Builder", icon: "🔗", desc: "Build OAuth 2.0 authorization URLs for major providers", cat: "api", isNew: false },
-    { file: "hash-calculator.html", name: "Hash Calculator", icon: "#", desc: "Calculate multiple hash types for any input string", cat: "api", isNew: false },
-    { file: "entropy-calculator.html", name: "Entropy Calculator", icon: "Σ", desc: "Calculate password entropy and crack time estimates", cat: "api", isNew: false }
-  ],
-  "Developer Tools": [
-    { file: "http-status-codes.html", name: "HTTP Status Codes", icon: "404", desc: "Complete reference of all HTTP status codes with meanings", cat: "dev", isNew: false },
-    { file: "mime-types.html", name: "MIME Types Reference", icon: "📎", desc: "Browse all MIME types with file extensions and examples", cat: "dev", isNew: false },
-    { file: "keyboard-shortcuts.html", name: "Keyboard Shortcuts", icon: "⌨", desc: "Discover keyboard shortcuts for popular apps and tools", cat: "dev", isNew: false },
-    { file: "emoji-picker.html", name: "Emoji Picker", icon: "😊", desc: "Browse, search, and copy 3000+ emoji with categories", cat: "dev", isNew: false },
-    { file: "html-entities-reference.html", name: "HTML Entities Reference", icon: "&", desc: "Complete reference of HTML entities and their codes", cat: "dev", isNew: false },
-    { file: "api-mock-data.html", name: "API Mock Data Generator", icon: "📦", desc: "Generate realistic mock data for API testing and prototyping", cat: "dev", isNew: false },
-    { file: "webhook-tester.html", name: "Webhook Tester", icon: "📡", desc: "Test and debug webhooks with a temporary endpoint", cat: "dev", isNew: false },
-    { file: "cookie-editor.html", name: "Cookie Editor", icon: "🍪", desc: "View, edit, create, and delete browser cookies", cat: "dev", isNew: false },
-    { file: "localstorage-explorer.html", name: "LocalStorage Explorer", icon: "💾", desc: "Browse and manage localStorage data for any domain", cat: "dev", isNew: false },
-    { file: "accessibility-checker.html", name: "Accessibility Checker", icon: "♿", desc: "Check web pages for accessibility issues and violations", cat: "dev", isNew: false },
-    { file: "seo-analyzer.html", name: "SEO Analyzer", icon: "🔍", desc: "Analyze pages for SEO best practices and meta tags", cat: "dev", isNew: false },
-    { file: "data-uri-generator.html", name: "Data URI Generator", icon: "URI", desc: "Convert files and images to Base64 data URIs", cat: "dev", isNew: false },
-    { file: "json-diff.html", name: "JSON Diff", icon: "⇄", desc: "Compare two JSON objects and highlight differences", cat: "dev", isNew: false },
-    { file: "json-tree-viewer.html", name: "JSON Tree Viewer", icon: "🌲", desc: "Visualize JSON data as an interactive expandable tree", cat: "dev", isNew: false },
-    { file: "slug-generator.html", name: "Slug Generator", icon: "🔗", desc: "Generate URL slugs from text with customization options", cat: "dev", isNew: false },
-    { file: "sort-lines.html", name: "Sort Lines", icon: "↕", desc: "Sort text lines alphabetically, numerically, or randomly", cat: "dev", isNew: false },
-    { file: "chmod-calculator.html", name: "chmod Calculator", icon: " chmod", desc: "Calculate chmod permission values with visual toggle", cat: "dev", isNew: false },
-    { file: "aspect-ratio-calculator.html", name: "Aspect Ratio Calculator", icon: "▭", desc: "Calculate and compare common aspect ratios", cat: "dev", isNew: false }
-  ],
-  "DevOps & Network": [
-    { file: "dockerfile-generator.html", name: "Dockerfile Generator", icon: "🐳", desc: "Generate Dockerfiles for popular frameworks and languages", cat: "devops", isNew: false },
-    { file: "sql-query-builder.html", name: "SQL Query Builder", icon: "📊", desc: "Build SQL queries visually with a drag-and-drop interface", cat: "devops", isNew: false },
-    { file: "curl-builder.html", name: "cURL Builder", icon: "$", desc: "Build cURL commands with a visual request builder", cat: "devops", isNew: false },
-    { file: "user-agent-parser.html", name: "User-Agent Parser", icon: "🌐", desc: "Parse and identify browser, OS, and device from User-Agent", cat: "devops", isNew: false },
-    { file: "http-headers-analyzer.html", name: "HTTP Headers Analyzer", icon: "→", desc: "Analyze and decode HTTP request and response headers", cat: "devops", isNew: false },
-    { file: "mac-lookup.html", name: "MAC Address Lookup", icon: "MAC", desc: "Look up device manufacturer from MAC address", cat: "devops", isNew: false },
-    { file: "subnet-calculator.html", name: "Subnet Calculator", icon: "/24", desc: "Calculate subnet masks, CIDR ranges, and IP addresses", cat: "devops", isNew: false },
-    { file: "csv-to-sql.html", name: "CSV → SQL", icon: "⤵", desc: "Convert CSV data to SQL INSERT statements", cat: "devops", isNew: false },
-    { file: "json-to-types.html", name: "JSON → Types", icon: "{ }", desc: "Generate TypeScript, Go, Python, or Rust types from JSON", cat: "devops", isNew: false },
-    { file: "ip-geolocation.html", name: "IP Geolocation", icon: "📍", desc: "Get geolocation data from any IP address", cat: "devops", isNew: false },
-    { file: "dns-lookup.html", name: "DNS Lookup", icon: "🌐", desc: "Query DNS records for any domain name", cat: "devops", isNew: false },
-    { file: "ip-lookup.html", name: "IP Address Lookup", icon: "IP", desc: "Get detailed information about any IP address", cat: "devops", isNew: false }
-  ],
-  "Media & Design": [
-    { file: "mermaid-viewer.html", name: "Mermaid Diagram Viewer", icon: "📊", desc: "Write and preview Mermaid diagrams and flowcharts live", cat: "media", isNew: false },
-    { file: "image-compressor.html", name: "Image Compressor", icon: "🖼", desc: "Compress images in-browser without uploading to any server", cat: "media", isNew: false },
-    { file: "markdown-to-pdf.html", name: "Markdown → PDF", icon: "📄", desc: "Convert Markdown documents to beautifully formatted PDFs", cat: "media", isNew: false },
-    { file: "svg-pattern-generator.html", name: "SVG Pattern Generator", icon: "◇", desc: "Create repeating SVG patterns with customization options", cat: "media", isNew: false },
-    { file: "barcode-generator.html", name: "Barcode Generator", icon: "║", desc: "Generate barcodes and QR codes for various formats", cat: "media", isNew: false },
-    { file: "webpage-screenshot.html", name: "Webpage Screenshot", icon: "📸", desc: "Capture full-page screenshots of any public URL", cat: "media", isNew: true }
-  ],
-  "Code Converters": [
-    { file: "html-to-jsx.html", name: "HTML → JSX", icon: "⟹", desc: "Convert HTML to React JSX with prop transformations", cat: "convert2", isNew: false },
-    { file: "css-to-tailwind.html", name: "CSS → Tailwind", icon: "💨", desc: "Convert CSS properties to equivalent Tailwind utility classes", cat: "convert2", isNew: false },
-    { file: "nato-phonetic.html", name: "NATO Phonetic", icon: "A-Alpha", desc: "Convert text to NATO phonetic alphabet and vice versa", cat: "convert2", isNew: false },
-    { file: "env-editor.html", name: ".env Editor", icon: "⚙", desc: "Edit, validate, and convert .env files between formats", cat: "convert2", isNew: true }
-  ],
-  "Security": [
-    { file: "otp-generator.html", name: "OTP Generator", icon: "🔑", desc: "Generate time-based one-time passwords (TOTP/HOTP)", cat: "security", isNew: false },
-    { file: "webhook-verifier.html", name: "Webhook Verifier", icon: "✓", desc: "Verify webhook signatures for GitHub, Stripe, and more", cat: "security", isNew: false },
-    { file: "pii-redactor.html", name: "PII Redactor", icon: "█", desc: "Detect and redact personally identifiable information from text", cat: "security", isNew: true },
-    { file: "encryption-decryption.html", name: "Encryption/Decryption", icon: "🔐", desc: "Encrypt and decrypt text using AES, DES, and other algorithms", cat: "security", isNew: false }
-  ],
-  "Calculators": [
-    { file: "age-calculator.html", name: "Age Calculator", icon: "🎂", desc: "Calculate exact age in years, months, days, hours, and minutes", cat: "calc", isNew: false },
-    { file: "bmi-calculator.html", name: "BMI Calculator", icon: "⚖", desc: "Calculate Body Mass Index with health category", cat: "calc", isNew: false },
-    { file: "loan-calculator.html", name: "Loan Calculator", icon: "💰", desc: "Calculate loan payments, interest, and amortization schedules", cat: "calc", isNew: false },
-    { file: "tip-calculator.html", name: "Tip Calculator", icon: "🍽", desc: "Calculate tips and split bills with multiple people", cat: "calc", isNew: false },
-    { file: "random-number.html", name: "Random Number Generator", icon: "🎲", desc: "Generate random numbers with custom ranges and distributions", cat: "calc", isNew: false },
-    { file: "dice-roller.html", name: "Dice Roller", icon: "🎲", desc: "Roll virtual dice with various types and modifiers", cat: "calc", isNew: false }
-  ],
-  "Utilities": [
-    { file: "qr-code.html", name: "QR Code Generator", icon: "📱", desc: "Generate QR codes for URLs, text, WiFi, and more", cat: "util", isNew: false },
-    { file: "image-to-base64.html", name: "Image → Base64", icon: "🖼", desc: "Convert images to Base64 encoded strings", cat: "util", isNew: false },
-    { file: "stopwatch.html", name: "Stopwatch", icon: "⏱", desc: "Precision stopwatch with lap times and milliseconds", cat: "util", isNew: false },
-    { file: "pomodoro.html", name: "Pomodoro Timer", icon: "🍅", desc: "Pomodoro technique timer with customizable intervals", cat: "util", isNew: false },
-    { file: "typing-test.html", name: "Typing Test", icon: "⌨", desc: "Test your typing speed with WPM and accuracy metrics", cat: "util", isNew: false },
-    { file: "password-generator.html", name: "Password Generator", icon: "🔑", desc: "Generate secure passwords with customizable complexity", cat: "util", isNew: false },
-    { file: "dice-roller.html", name: "Dice Roller", icon: "🎲", desc: "Roll multiple dice with different sides and modifiers", cat: "util", isNew: false }
-  ]
-};
-
-const TAG_MAP = {
-  text: { cls: 'tag-text', label: 'Text' },
-  encode: { cls: 'tag-encode', label: 'Encoding' },
-  convert: { cls: 'tag-convert', label: 'Conversion' },
-  design: { cls: 'tag-design', label: 'Design' },
-  code: { cls: 'tag-code', label: 'Code' },
-  api: { cls: 'tag-api', label: 'API' },
-  dev: { cls: 'tag-dev', label: 'Dev' },
-  devops: { cls: 'tag-devops', label: 'DevOps' },
-  media: { cls: 'tag-media', label: 'Media' },
-  convert2: { cls: 'tag-convert2', label: 'Converter' },
-  security: { cls: 'tag-security', label: 'Security' },
-  calc: { cls: 'tag-calc', label: 'Calc' },
-  util: { cls: 'tag-util', label: 'Utility' }
-};
-
-let activeCategory = 'all';
-const search = document.getElementById('search');
-const mainContent = document.getElementById('mainContent');
-const noResults = document.getElementById('noResults');
-const categoriesEl = document.getElementById('categories');
-const toolCountBar = document.getElementById('toolCountBar');
-const visibleCountEl = document.getElementById('visibleCount');
-const skeleton = document.getElementById('skeleton');
-const hero = document.getElementById('hero');
-const footer = document.getElementById('footer');
-
-function getTotalCount() {
-  return Object.values(TOOLS).reduce((a, c) => a + c.length, 0);
-}
-
-function createParticles() {
-  const container = document.getElementById('particles');
-  if (!container) return;
-  const colors = ['rgba(59,130,246,.4)', 'rgba(139,92,246,.4)', 'rgba(236,72,153,.4)'];
-  for (let i = 0; i < 30; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    const size = Math.random() * 4 + 1;
-    p.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;background:${colors[i%3]};animation-duration:${Math.random()*8+8}s;animation-delay:${Math.random()*6}s;opacity:0;`;
-    container.appendChild(p);
+  "Text & String": {
+    "json-formatter": { n:"JSON Formatter", d:"Format, validate, and minify JSON", i:"{ }" },
+    "json-beautifier": { n:"JSON Beautifier", d:"Beautify or minify JSON with syntax highlighting", i:"✦" },
+    "word-counter": { n:"Word Counter", d:"Count words, characters, sentences, reading time", i:"W" },
+    "text-case": { n:"Text Case Converter", d:"camelCase, snake_case, UPPER, Title Case, kebab-case", i:"Aa" },
+    "find-replace": { n:"Find & Replace", d:"Search and replace text with regex support", i:"⟳" },
+    "lorem-ipsum": { n:"Lorem Ipsum Generator", d:"Generate placeholder text in paragraphs or sentences", i:"¶" },
+    "whitespace-editor": { n:"Whitespace Editor", d:"Show, remove, and convert whitespace characters", i:"␣" },
+    "character-map": { n:"Character Map", d:"Browse and copy Unicode characters and symbols", i:"Ω" },
+    "markdown-table-generator": { n:"Markdown Table Generator", d:"Generate Markdown tables with live preview", i:"⊞" },
+    "text-diff": { n:"Text Diff Checker", d:"Compare two texts and highlight differences", i:"±" },
+    "markdown-preview": { n:"Markdown Preview", d:"Live Markdown preview with syntax highlighting", i:"≡" },
+    "html-cleaner": { n:"HTML Cleaner", d:"Clean and format HTML code", i:"»" },
+    "password-generator": { n:"Password Generator", d:"Secure passwords with strength analysis", i:"%" },
+    "password-pattern": { n:"Password Pattern", d:"Create custom password patterns and rules", i:"#" },
+    "text-statistics": { n:"Text Statistics", d:"Advanced text analysis: readability, frequency, syllables", i:"Σ", new:true },
+    "json-csv-converter": { n:"JSON ↔ CSV", d:"Convert between JSON arrays and CSV tables", i:"⇄", new:true },
+    "json-yaml-toml": { n:"JSON ↔ YAML ↔ TOML", d:"Three-way config format converter", i:"≡", new:true },
+    "xml-yaml-converter": { n:"XML ↔ YAML", d:"Bidirectional XML and YAML conversion", i:"⇄", new:true },
+    "hex-rgb-converter": { n:"HEX ↔ RGB ↔ HSL", d:"Convert between all color formats with preview", i:"◉", new:true },
+    "markdown-slides": { n:"Markdown → Slides", d:"Turn Markdown into presentation slides", i:"▶", new:true },
+    "diff-viewer": { n:"Diff Viewer", d:"Side-by-side line and word diff comparison", i:"‖", new:true },
+    "text-statistics": { n:"Text Statistics", d:"Advanced text analysis and readability scores", i:"Σ", new:true }
+  },
+  "Encoding": {
+    "base64": { n:"Base64 Encoder/Decoder", d:"Encode and decode Base64 strings", i:"64" },
+    "url-encoder": { n:"URL Encoder/Decoder", d:"Encode and decode URLs and components", i:"%" },
+    "html-entity-encoder": { n:"HTML Entity Encoder", d:"Convert special chars to HTML entities", i:"&" },
+    "html-entity-encoder-decoder": { n:"HTML Entity Encoder/Decoder", d:"Full HTML5 entity encoding", i:"⟺" },
+    "jwt-decoder": { n:"JWT Decoder", d:"Decode and inspect JSON Web Tokens", i:"JWT" },
+    "hash-generator": { n:"Hash Generator", d:"MD5, SHA-1, SHA-256, SHA-512 hashes", i:"#" },
+    "rot13-cipher": { n:"ROT13 Cipher", d:"Caesar, Vigenere, Atbash cipher toolkit", i:"R" },
+    "morse-code": { n:"Morse Code", d:"Convert text to Morse code with audio playback", i:"·—" },
+    "binary-text": { n:"Binary ↔ Text", d:"Convert between binary, hex, ASCII, and text", i:"01" },
+    "text-encoder": { n:"Text Encoder", d:"Unicode and encoding transformations", i:"enc" },
+    "hashids": { n:"Hashids Generator", d:"Short unique IDs from numbers", i:"hid" },
+    "ciphers": { n:"Ciphers Toolkit", d:"Multiple classical cipher algorithms", i:"◆" },
+    "encryption-decryption": { n:"AES Encryption", d:"Encrypt and decrypt with AES-128/256", i:"⊗", new:true }
+  },
+  "Conversion": {
+    "csv-json": { n:"CSV ↔ JSON", d:"Convert between CSV and JSON formats", i:"⇄" },
+    "xml-json": { n:"XML ↔ JSON", d:"Convert between XML and JSON", i:"⇄" },
+    "html-markdown": { n:"HTML → Markdown", d:"Convert HTML to clean Markdown", i:"⤵" },
+    "markdown-html": { n:"Markdown → HTML", d:"Convert Markdown to styled HTML", i:"⤴" },
+    "base-converter": { n:"Base Converter", d:"Binary, octal, decimal, hex, base-32, base-64", i:"∞" },
+    "unit-converter": { n:"Unit Converter", d:"500+ units across 20+ categories", i:"⇌" },
+    "timestamp-converter": { n:"Timestamp Converter", d:"Unix timestamps ↔ human dates", i:"⏱" },
+    "percentage-calc": { n:"Percentage Calculator", d:"Percentages, discounts, increases, decreases", i:"%" },
+    "json-to-typescript": { n:"JSON → TypeScript", d:"Generate TypeScript interfaces from JSON", i:"TS" },
+    "temperature-converter": { n:"Temperature Converter", d:"Celsius, Fahrenheit, Kelvin conversions", i:"°" },
+    "roman-numeral": { n:"Roman Numeral Converter", d:"Convert between Roman and decimal numbers", i:"Ⅰ" },
+    "number-words": { n:"Number to Words", d:"Convert numbers to written words", i:"#" },
+    "yaml-json-converter": { n:"YAML ↔ JSON", d:"Bidirectional YAML/JSON conversion", i:"≡" },
+    "css-to-js": { n:"CSS → JavaScript", d:"CSS properties to JS style objects", i:"⟹" },
+    "color-converter": { n:"Color Converter", d:"HEX, RGB, HSL, HSV, CMYK conversion", i:"◉" },
+    "date-diff": { n:"Date Difference", d:"Calculate difference between two dates", i:"📅" },
+    "timezone-converter": { n:"Timezone Converter", d:"Convert times between world timezones", i:"🌍" },
+    "json-to-types": { n:"JSON → Go/Rust/Python", d:"Generate typed structs from JSON data", i:"{}", new:true },
+    "csv-to-sql": { n:"CSV → SQL", d:"Generate INSERT statements from CSV data", i:"⤵", new:true },
+    "json-to-env": { n:"JSON → .env", d:"Convert JSON to .env files and back", i:"⚙", new:true }
+  },
+  "Design": {
+    "color-picker": { n:"Color Picker", d:"Pick colors with HEX, RGB, HSL values", i:"◉" },
+    "color-palette": { n:"Color Palette", d:"Generate harmonious color palettes", i:"◐" },
+    "color-palette-generator": { n:"Palette Generator", d:"Multiple palette generation modes", i:"◈" },
+    "color-shades": { n:"Color Shades", d:"Generate tints and shades of any color", i:"▓" },
+    "color-harmony": { n:"Color Harmony", d:"Complementary, analogous, triadic schemes", i:"⊕" },
+    "color-blend": { n:"Color Blend", d:"Blend two or more colors together", i:"⊗" },
+    "color-blindness-simulator": { n:"Color Blindness Simulator", d:"Simulate protanopia, deuteranopia, tritanopia", i:"◎" },
+    "color-names": { n:"Color Names", d:"2000+ named CSS colors with swatches", i:"■" },
+    "contrast-checker": { n:"Contrast Checker", d:"WCAG contrast ratio checker", i:"◑" },
+    "css-gradient": { n:"CSS Gradient Generator", d:"Linear, radial, conic gradients", i:"▦" },
+    "box-shadow": { n:"Box Shadow Generator", d:"Visual CSS box shadow builder", i:"▧" },
+    "text-shadow": { n:"Text Shadow Generator", d:"CSS text shadow effects", i:"A" },
+    "flexbox-generator": { n:"Flexbox Generator", d:"Flexbox CSS with live preview", i:"↔" },
+    "flexbox-playground": { n:"Flexbox Playground", d:"Interactive flexbox experimentation", i:"⊞" },
+    "css-grid-generator": { n:"CSS Grid Generator", d:"CSS Grid layouts visually", i:"▦" },
+    "css-animation": { n:"CSS Animation", d:"Keyframe animations with presets", i:"▶" },
+    "css-border-radius": { n:"Border Radius", d:"Visual border radius generator", i:"◗" },
+    "css-box-model": { n:"CSS Box Model", d:"Visualize margin, border, padding", i:"☐" },
+    "css-cursor": { n:"CSS Cursor", d:"Preview all CSS cursor values", i:"↗" },
+    "css-filter": { n:"CSS Filter Generator", d:"Blur, brightness, contrast, and more", i:"◎" },
+    "css-clip-path": { n:"CSS Clip Path", d:"Visual clip-path editor", i:"⬡" },
+    "css-transform": { n:"CSS Transform", d:"2D and 3D transform builder", i:"↻" },
+    "css-specificity": { n:"CSS Specificity", d:"Calculate selector specificity scores", i:"!" },
+    "css-units": { n:"CSS Units Reference", d:"All CSS units with visual examples", i:" px" },
+    "css-reset": { n:"CSS Reset Generator", d:"Modern reset and normalize stylesheets", i:"↺" },
+    "favicon-generator": { n:"Favicon Generator", d:"Generate favicons from text or image", i:"◉" },
+    "placeholder-image": { n:"Placeholder Images", d:"Generate images in any dimension", i:"□" },
+    "svg-viewer": { n:"SVG Viewer", d:"View and edit SVG code live", i:"◇" },
+    "font-pairing": { n:"Font Pairing", d:"Discover font combinations", i:"Ab" },
+    "viewport-resizer": { n:"Viewport Resizer", d:"Test responsive layouts at any size", i:"□" },
+    "color-token-generator": { n:"Color Token Generator", d:"Design system color tokens from one color", i:"◆", new:true },
+    "css-variable-generator": { n:"CSS Variables Generator", d:"Generate design token CSS custom properties", i:"$", new:true },
+    "tailwind-colors": { n:"Tailwind Colors", d:"All Tailwind color palettes with hex values", i:"T", new:true }
+  },
+  "Code": {
+    "regex-tester": { n:"Regex Tester", d:"Test regular expressions with live matching", i:".*" },
+    "regex-builder": { n:"Regex Builder", d:"Build regex patterns visually", i:"🔧" },
+    "regex-cheatsheet": { n:"Regex Cheatsheet", d:"Quick reference for regex patterns", i:"📖" },
+    "cron-parser": { n:"Cron Parser", d:"Parse and explain cron expressions", i:"⏰" },
+    "cron-builder": { n:"Cron Builder", d:"Build cron expressions with visual editor", i:"⚙" },
+    "cron-schedule-visualizer": { n:"Cron Visualizer", d:"Visualize cron schedules on calendar", i:"📅" },
+    "sql-formatter": { n:"SQL Formatter", d:"Format and beautify SQL queries", i:"SQ" },
+    "css-minifier": { n:"CSS Minifier", d:"Minify or beautify CSS code", i:"◇" },
+    "js-minifier": { n:"JS Minifier", d:"Minify or beautify JavaScript", i:"⚡" },
+    "html-minifier": { n:"HTML Minifier", d:"Minify or beautify HTML", i:"◇" },
+    "git-cheatsheet": { n:"Git Cheatsheet", d:"Common Git commands reference", i:"⑂" },
+    "git-commands": { n:"Git Commands", d:"90+ Git commands with examples", i:"⌘" },
+    "docker-cheatsheet": { n:"Docker Cheatsheet", d:"Docker and Compose commands", i:"🐳" },
+    "sql-cheatsheet": { n:"SQL Cheatsheet", d:"SQL syntax and common queries", i:"SQ" },
+    "python-cheatsheet": { n:"Python Cheatsheet", d:"Python syntax and patterns", i:"py" },
+    "bash-cheatsheet": { n:"Bash Cheatsheet", d:"Shell scripting commands", i:"$_" },
+    "linux-commands": { n:"Linux Commands", d:"Essential terminal commands", i:"$>" },
+    "kubernetes-cheatsheet": { n:"Kubernetes Cheatsheet", d:"kubectl commands reference", i:"☸" },
+    "tailwind-cheatsheet": { n:"Tailwind Cheatsheet", d:"Tailwind CSS utility classes", i:"💨" },
+    "js-array-methods": { n:"JS Array Methods", d:"Every JavaScript array method", i:"[]" },
+    "javascript-builtins": { n:"JS Built-in Objects", d:"All built-in JS objects and methods", i:"JS" },
+    "react-hooks-reference": { n:"React Hooks", d:"All React hooks with examples", i:"⚛" },
+    "html-form-builder": { n:"HTML Form Builder", d:"Build HTML forms visually", i:"📝" },
+    "html-table-generator": { n:"HTML Table Generator", d:"Generate styled HTML tables", i:"⊞" },
+    "og-meta-generator": { n:"OG Meta Generator", d:"Open Graph and Twitter Card tags", i:"OG" },
+    "json-schema-generator": { n:"JSON Schema Generator", d:"Generate schemas from sample JSON", i:"📋" },
+    "json-path-finder": { n:"JSON Path Finder", d:"Find JSONPath expressions", i:"→" },
+    "html-boilerplate": { n:"HTML Boilerplate", d:"HTML5 boilerplate generator", i:"📄" },
+    "robots-txt": { n:"robots.txt Generator", d:"Build robots.txt rules visually", i:"🤖" },
+    "sitemap-generator": { n:"Sitemap Generator", d:"Generate XML sitemaps", i:"🗺" },
+    "pwa-manifest": { n:"PWA Manifest", d:"Generate web app manifests", i:"📱" },
+    "svg-sprite": { n:"SVG Sprite Generator", d:"Combine SVGs into sprite sheets", i:"◇" },
+    "html-prototype": { n:"HTML Playground", d:"Live HTML/CSS/JS editor", i:"⚡" },
+    "code-flowchart": { n:"Code → Flowchart", d:"Convert pseudocode to flowcharts", i:"◇", new:true },
+    "html-email-builder": { n:"HTML Email Builder", d:"Build email templates with tables", i:"✉", new:true },
+    "code-review-checklist": { n:"Code Review Checklist", d:"Customized review checklists by language", i:"✓", new:true },
+    "api-documentation": { n:"API Documentation", d:"Generate API docs from endpoints", i:"📄", new:true },
+    "json-diff": { n:"JSON Diff", d:"Compare two JSON objects side by side", i:"⇄", new:true },
+    "json-tree-viewer": { n:"JSON Tree Viewer", d:"Interactive expandable JSON tree", i:"⊞", new:true },
+    "slug-generator": { n:"Slug Generator", d:"URL-friendly slugs from text", i:"→", new:true },
+    "sort-lines": { n:"Sort Lines", d:"Sort, dedupe, reverse, shuffle text lines", i:"↕", new:true },
+    "nato-phonetic": { n:"NATO Phonetic", d:"Text to NATO alphabet conversion", i:"Aα", new:true },
+    "env-editor": { n:".env Editor", d:"Visual .env file editor and generator", i:"⚙", new:true },
+    "meta-tag-generator": { n:"Meta Tag Generator", d:"Complete meta tags + OG + Twitter Cards", i:"◇", new:true },
+    "sitemap-visualizer": { n:"Sitemap Visualizer", d:"Visualize site structure from URLs", i:"⊞", new:true }
+  },
+  "API & Auth": {
+    "http-request-builder": { n:"HTTP Request Builder", d:"Build and send HTTP requests", i:"→" },
+    "jwt-generator": { n:"JWT Generator", d:"Create and sign JWT tokens", i:"JWT" },
+    "jwt-validator": { n:"JWT Validator", d:"Validate JWT claims and expiration", i:"✓", new:true },
+    "bcrypt-hash": { n:"Bcrypt Hash", d:"Generate bcrypt password hashes", i:"#" },
+    "nanoid-generator": { n:"NanoID Generator", d:"Generate short unique IDs", i:"id" },
+    "uuid-generator": { n:"UUID Generator", d:"Generate v1, v4 UUIDs", i:"UUID" },
+    "uuid-generator-v5": { n:"UUID v5 Generator", d:"Deterministic UUID generation", i:"v5" },
+    "oauth-url-builder": { n:"OAuth URL Builder", d:"Build OAuth 2.0 authorization URLs", i:"🔗" },
+    "hash-calculator": { n:"Hash Calculator", d:"MD5, SHA-1, SHA-256, SHA-512, CRC32", i:"#" },
+    "entropy-calculator": { n:"Entropy Calculator", d:"Password entropy and crack time", i:"Σ" },
+    "curl-builder": { n:"cURL Builder", d:"Visual cURL command builder", i:"$", new:true },
+    "sql-query-builder": { n:"SQL Query Builder", d:"Visual SELECT/INSERT/UPDATE/DELETE builder", i:"SQ", new:true }
+  },
+  "Developer Tools": {
+    "http-status-codes": { n:"HTTP Status Codes", d:"All HTTP status codes reference", i:"404" },
+    "mime-types": { n:"MIME Types", d:"Complete MIME types with extensions", i:"📎" },
+    "keyboard-shortcuts": { n:"Keyboard Shortcuts", d:"Shortcuts for Chrome, VS Code, macOS", i:"⌨" },
+    "emoji-picker": { n:"Emoji Picker", d:"3000+ emoji by category", i:"😊" },
+    "html-entities-reference": { n:"HTML Entities", d:"All HTML named entities reference", i:"&" },
+    "api-mock-data": { n:"Mock Data Generator", d:"Generate fake data for testing", i:"🎲" },
+    "webhook-tester": { n:"Webhook Tester", d:"Test and debug webhooks", i:"📡" },
+    "cookie-editor": { n:"Cookie Editor", d:"View and edit browser cookies", i:"🍪" },
+    "localstorage-explorer": { n:"Storage Explorer", d:"Browse localStorage and sessionStorage", i:"💾" },
+    "accessibility-checker": { n:"Accessibility Checker", d:"Check HTML for a11y issues", i:"♿" },
+    "seo-analyzer": { n:"SEO Analyzer", d:"Analyze HTML for SEO best practices", i:"🔍" },
+    "data-uri-generator": { n:"Data URI Generator", d:"Convert files to data URIs", i:"URI" },
+    "chmod-calculator": { n:"chmod Calculator", d:"Unix permissions calculator", i:"rwx" },
+    "aspect-ratio-calculator": { n:"Aspect Ratio Calculator", d:"Calculate and compare ratios", i:"▭" },
+    "user-agent-parser": { n:"User-Agent Parser", d:"Parse browser, OS, device from UA string", i:"🌐", new:true },
+    "http-headers-analyzer": { n:"HTTP Headers Analyzer", d:"Analyze response headers for security", i:"→", new:true },
+    "mac-lookup": { n:"MAC Address Lookup", d:"Look up device manufacturer", i:"MA", new:true },
+    "password-strength": { n:"Password Strength Analyzer", d:"Analyze password strength and patterns", i:"%", new:true },
+    "pii-redactor": { n:"PII Redactor", d:"Detect and redact personal information", i:"█", new:true },
+    "webhook-verifier": { n:"Webhook Verifier", d:"Verify HMAC signatures for webhooks", i:"✓", new:true }
+  },
+  "DevOps & Network": {
+    "dockerfile-generator": { n:"Dockerfile Generator", d:"Generate Dockerfiles for any stack", i:"🐳" },
+    "subnet-calculator": { n:"Subnet Calculator", d:"CIDR, netmask, host ranges", i:"/24" },
+    "ip-geolocation": { n:"IP Geolocation", d:"Get location from IP address", i:"📍" },
+    "dns-lookup": { n:"DNS Lookup", d:"Query A, AAAA, MX, NS, TXT records", i:"◉" },
+    "ip-lookup": { n:"IP Address Lookup", d:"Get info about any IP address", i:"IP" },
+    "port-scanner": { n:"Port Scanner", d:"Check common ports on a host", i:"⊞", new:true },
+    "ssl-checker": { n:"SSL Certificate Checker", d:"Check SSL cert expiry and issuer", i:"🔒", new:true },
+    "ip-subnet": { n:"IP Subnet Calculator", d:"Full subnet analysis with binary view", i:"/24", new:true },
+    "htaccess-generator": { n:".htaccess Generator", d:"Apache rewrite rules and security", i:"Apache", new:true },
+    "nginx-config": { n:"Nginx Config Generator", d:"Server blocks, proxy, SSL, caching", i:"Nx", new:true }
+  },
+  "Media & Utilities": {
+    "mermaid-viewer": { n:"Mermaid Diagram Viewer", d:"Render Mermaid flowcharts and diagrams", i:"◇" },
+    "image-compressor": { n:"Image Compressor", d:"Compress images in the browser", i:"▣" },
+    "markdown-to-pdf": { n:"Markdown → PDF", d:"Export Markdown as formatted PDF", i:"📄" },
+    "svg-pattern-generator": { n:"SVG Pattern Generator", d:"Create repeating SVG patterns", i:"◈" },
+    "barcode-generator": { n:"Barcode Generator", d:"Generate barcodes in multiple formats", i:"║" },
+    "webpage-screenshot": { n:"Webpage Screenshot", d:"Capture full-page screenshots", i:"📸" },
+    "qr-code": { n:"QR Code Generator", d:"Generate QR codes for any data", i:"▣" },
+    "image-to-base64": { n:"Image → Base64", d:"Convert images to Base64 strings", i:"◎" },
+    "stopwatch": { n:"Stopwatch", d:"Precision timer with lap times", i:"⏱" },
+    "pomodoro": { n:"Pomodoro Timer", d:"Productivity timer with sessions", i:"🍅" },
+    "typing-test": { n:"Typing Test", d:"Test typing speed and accuracy", i:"⌨" },
+    "svg-to-data-uri": { n:"SVG → Data URI", d:"Convert SVG to CSS background data URIs", i:"◇", new:true },
+    "meeting-timer": { n:"Meeting Cost Calculator", d:"Calculate meeting cost in real-time", i:"$", new:true },
+    "expense-splitter": { n:"Bill Splitter", d:"Split expenses and calculate who owes whom", i:"💰", new:true },
+    "random-data-generator": { n:"Random Data Generator", d:"Generate fake names, emails, addresses", i:"🎲", new:true },
+    "unit-price-calculator": { n:"Unit Price Calculator", d:"Compare unit prices to find best deals", i:"$" },
+    "keyboard-layout": { n:"Keyboard Layout Viewer", d:"QWERTY, Dvorak, Colemak layouts", i:"⌨", new:true },
+    "otp-generator": { n:"OTP Generator", d:"Generate TOTP codes for 2FA testing", i:"🔑", new:true }
   }
-}
+};
 
-function buildCategories() {
-  const cats = Object.keys(TOOLS);
-  let html = `<div class="cat-pill active" data-cat="all">All <span class="count">${getTotalCount()}</span></div>`;
-  cats.forEach(c => {
-    html += `<div class="cat-pill" data-cat="${c}">${c} <span class="count">${TOOLS[c].length}</span></div>`;
+const CAT_ICONS = {
+  "Text & String":"T","Encoding":"< >","Conversion":"⇄","Design":"◆",
+  "Code":"/","API & Auth":"⚡","Developer Tools":"⚙","DevOps & Network":"☁",
+  "Media & Utilities":"◎"
+};
+
+let activeCat = null;
+const search = document.getElementById('search');
+const toolList = document.getElementById('toolList');
+const noResults = document.getElementById('noResults');
+const sidebarNav = document.getElementById('sidebarNav');
+const pageTitle = document.getElementById('pageTitle');
+const pageDesc = document.getElementById('pageDesc');
+
+function totalCount(){return Object.values(TOOLS).reduce((a,c)=>a+Object.keys(c).length,0)}
+
+function buildSidebar(){
+  let html = `<button class="nav-item active" data-cat="all"><span class="icon">◎</span>All Tools<span class="count">${totalCount()}</span></button>`;
+  Object.keys(TOOLS).forEach(cat=>{
+    html += `<button class="nav-item" data-cat="${cat}"><span class="icon">${CAT_ICONS[cat]||'·'}</span>${cat}<span class="count">${Object.keys(TOOLS[cat]).length}</span></button>`;
   });
-  categoriesEl.innerHTML = html;
-  categoriesEl.querySelectorAll('.cat-pill').forEach(pill => {
-    pill.addEventListener('click', () => {
-      categoriesEl.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      activeCategory = pill.dataset.cat;
+  sidebarNav.innerHTML = html;
+  sidebarNav.querySelectorAll('.nav-item').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      sidebarNav.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      activeCat = btn.dataset.cat === 'all' ? null : btn.dataset.cat;
       renderTools();
     });
   });
 }
 
-function buildSection(title, tools) {
-  if (!tools.length) return '';
-  let cards = tools.map(t => {
-    const tag = TAG_MAP[t.cat] || TAG_MAP.text;
-    return `<a href="${t.file}" class="tool-card fade-in">
-      <div class="icon">${t.icon}</div>
-      <div class="info">
-        <h3>${t.name}${t.isNew ? ' <span class="new-badge">NEW</span>' : ''}</h3>
-        <p>${t.desc}</p>
-      </div>
-    </a>`;
-  }).join('');
-  return `<section class="tools-section">
-    <div class="section-header">
-      <h2>${title}</h2>
-      <span class="sec-count">${tools.length} tools</span>
-    </div>
-    <div class="tools-grid">${cards}</div>
-  </section>`;
-}
-
-function renderTools() {
-  const query = search.value.toLowerCase().trim();
-  let totalVisible = 0;
+function renderTools(){
+  const q = search.value.toLowerCase().trim();
   let html = '';
-  const cats = activeCategory === 'all' ? Object.keys(TOOLS) : [activeCategory];
+  let total = 0;
+  const cats = activeCat ? [activeCat] : Object.keys(TOOLS);
+
   cats.forEach(cat => {
-    const filtered = TOOLS[cat].filter(t => {
-      if (query) {
-        return t.name.toLowerCase().includes(query) ||
-               t.desc.toLowerCase().includes(query) ||
-               t.cat.toLowerCase().includes(query) ||
-               cat.toLowerCase().includes(query);
-      }
-      return true;
+    const tools = TOOLS[cat];
+    const entries = Object.entries(tools).filter(([file,t])=>{
+      if(!q) return true;
+      return t.n.toLowerCase().includes(q) || t.d.toLowerCase().includes(q) || file.includes(q);
     });
-    totalVisible += filtered.length;
-    if (filtered.length) html += buildSection(cat, filtered);
-  });
-  mainContent.innerHTML = html;
-  visibleCountEl.textContent = totalVisible;
-  noResults.classList.toggle('show', totalVisible === 0);
-  observeFadeIns();
-}
+    if(!entries.length) return;
+    total += entries.length;
 
-function observeFadeIns() {
-  const els = document.querySelectorAll('.fade-in');
-  if (!els.length) return;
-  const obs = new IntersectionObserver((entries) => {
-    entries.forEach((e, i) => {
-      if (e.isIntersecting) {
-        setTimeout(() => e.target.classList.add('visible'), i * 30);
-        obs.unobserve(e.target);
-      }
+    html += `<div class="tool-section"><div class="tool-section-title">${cat} — ${entries.length}</div><div class="tool-grid">`;
+    entries.forEach(([file, t])=>{
+      html += `<a href="${file}.html" class="tool-row">
+        <div class="tool-row-left">
+          <div class="tool-icon">${t.i}</div>
+          <div><div class="tool-name">${t.n}${t.new?'<span class="tool-new">new</span>':''}</div><div class="tool-desc">${t.d}</div></div>
+        </div>
+        <span class="tool-tag">${cat.split(' ')[0]}</span>
+      </a>`;
     });
-  }, { threshold: 0.05 });
-  els.forEach(el => obs.observe(el));
-}
-
-function animateStats() {
-  document.querySelectorAll('.stat-num[data-count]').forEach(el => {
-    const target = +el.dataset.count;
-    let current = 0;
-    const step = Math.max(1, Math.floor(target / 40));
-    const interval = setInterval(() => {
-      current += step;
-      if (current >= target) { current = target; clearInterval(interval); }
-      el.textContent = current + '+';
-    }, 30);
+    html += '</div></div>';
   });
+
+  toolList.innerHTML = html;
+  noResults.classList.toggle('show', total === 0);
+  pageTitle.textContent = activeCat || 'All Tools';
+  pageDesc.textContent = activeCat ? `${total} tools in this category` : `${totalCount()} tools across ${Object.keys(TOOLS).length} categories`;
 }
 
-document.addEventListener('keydown', e => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-    e.preventDefault();
-    search.focus();
-  }
+document.addEventListener('keydown',e=>{
+  if(e.key==='/' && document.activeElement!==search){e.preventDefault();search.focus()}
+  if(e.key==='Escape') search.blur();
 });
-
 search.addEventListener('input', renderTools);
 
-// init
-setTimeout(() => {
-  skeleton.style.display = 'none';
-  hero.style.display = 'flex';
-  categoriesEl.style.display = 'flex';
-  toolCountBar.style.display = 'block';
-  mainContent.style.display = 'block';
-  footer.style.display = 'block';
-  createParticles();
-  buildCategories();
-  renderTools();
-  animateStats();
-}, 800);
+buildSidebar();
+renderTools();
 </script>
 </body>
 </html>

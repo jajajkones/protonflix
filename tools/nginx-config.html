@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nginx Configuration Generator - ProtonFlix Tools</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0c0c0c;color:#e5e5e5;min-height:100vh;padding:20px}
+.container{max-width:1000px;margin:0 auto}
+a{color:#e5e5e5;text-decoration:none;opacity:.6;transition:opacity .2s}
+a:hover{opacity:1}
+.header{display:flex;align-items:center;gap:16px;margin-bottom:32px}
+.header h1{font-size:1.5rem;font-weight:600}
+.card{background:#141414;border:1px solid #262626;border-radius:12px;padding:24px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:340px 1fr;gap:16px}
+@media(max-width:800px){.grid{grid-template-columns:1fr}}
+label{display:block;font-size:.875rem;color:#737373;margin-bottom:6px}
+select,input[type="text"],textarea{width:100%;background:#1a1a1a;border:1px solid #262626;border-radius:8px;padding:10px 14px;color:#e5e5e5;font-size:.9rem;outline:none;transition:border-color .2s;font-family:inherit}
+select:focus,input:focus,textarea:focus{border-color:#555}
+textarea{min-height:80px;resize:vertical;font-family:monospace;font-size:.82rem}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #1a1a1a}
+.toggle-row:last-child{border:none}
+.toggle-label{font-size:.9rem}
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle .slider{position:absolute;inset:0;background:#262626;border-radius:12px;cursor:pointer;transition:.3s}
+.toggle .slider::before{content:"";position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#e5e5e5;border-radius:50%;transition:.3s}
+.toggle input:checked+.slider{background:#22c55e}
+.toggle input:checked+.slider::before{transform:translateX(20px)}
+.btn{background:#e5e5e5;color:#0c0c0c;border:none;border-radius:8px;padding:10px 24px;font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .2s;margin-top:12px}
+.btn:hover{opacity:.85}
+.btn.secondary{background:#1a1a1a;color:#e5e5e5;border:1px solid #262626}
+.btn-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.preset-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.preset-btn{background:#1a1a1a;border:1px solid #262626;border-radius:8px;padding:8px 16px;color:#e5e5e5;font-size:.85rem;cursor:pointer;transition:all .2s}
+.preset-btn:hover,.preset-btn.active{background:#e5e5e5;color:#0c0c0c}
+.preview{background:#0a0a0a;border:1px solid #262626;border-radius:8px;padding:16px;font-family:monospace;font-size:.82rem;line-height:1.7;white-space:pre-wrap;max-height:600px;overflow-y:auto;position:relative}
+.copy-toast{position:fixed;bottom:20px;right:20px;background:#22c55e;color:#000;padding:10px 20px;border-radius:8px;font-size:.85rem;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none}
+.copy-toast.show{opacity:1}
+.section-title{font-size:.8rem;color:#737373;text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid #262626}
+.field-group{margin-bottom:12px}
+.field-group:last-child{margin-bottom:0}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#0a0a0a}
+::-webkit-scrollbar-thumb{background:#262626;border-radius:3px}
+</style>
+</head>
+<body>
+<div class="container">
+<a href="index.html" style="display:inline-flex;align-items:center;gap:6px;margin-bottom:16px">&larr; Back</a>
+<div class="header"><h1>Nginx Configuration Generator</h1></div>
+<div class="preset-row">
+<button class="preset-btn active" onclick="applyPreset('basic')">Basic</button>
+<button class="preset-btn" onclick="applyPreset('static')">Static Site</button>
+<button class="preset-btn" onclick="applyPreset('php')">PHP-FPM</button>
+<button class="preset-btn" onclick="applyPreset('proxy')">Reverse Proxy</button>
+<button class="preset-btn" onclick="applyPreset('ssl')">SSL + Security</button>
+</div>
+<div class="grid">
+<div>
+<div class="card">
+<div class="section-title">Server Block</div>
+<div class="field-group"><label>Server Name</label><input type="text" id="serverName" placeholder="example.com" oninput="generate()"></div>
+<div class="field-group"><label>Listen Port</label><input type="text" id="listenPort" placeholder="80" oninput="generate()"></div>
+<div class="field-group"><label>Root Directory</label><input type="text" id="rootDir" placeholder="/var/www/html" oninput="generate()"></div>
+<div class="field-group"><label>Index Files</label><input type="text" id="indexFiles" placeholder="index.html index.htm" oninput="generate()"></div>
+</div>
+<div class="card">
+<div class="section-title">SSL</div>
+<div class="toggle-row"><span class="toggle-label">Enable SSL</span><label class="toggle"><input type="checkbox" id="sslOn" onchange="generate()"><span class="slider"></span></label></div>
+<div class="field-group"><label>SSL Certificate</label><input type="text" id="sslCert" placeholder="/etc/ssl/certs/example.com.pem" oninput="generate()"></div>
+<div class="field-group"><label>SSL Key</label><input type="text" id="sslKey" placeholder="/etc/ssl/private/example.com.key" oninput="generate()"></div>
+</div>
+<div class="card">
+<div class="section-title">Location Blocks</div>
+<div class="field-group"><label>Proxy Pass (for reverse proxy)</label><input type="text" id="proxyPass" placeholder="http://127.0.0.1:3000" oninput="generate()"></div>
+<div class="field-group"><label>Custom Location Path</label><input type="text" id="locationPath" placeholder="/api" oninput="generate()"></div>
+<div class="field-group"><label>Location Proxy Target</label><input type="text" id="locationProxy" placeholder="http://127.0.0.1:8080" oninput="generate()"></div>
+</div>
+<div class="card">
+<div class="section-title">Compression &amp; Caching</div>
+<div class="toggle-row"><span class="toggle-label">Enable gzip</span><label class="toggle"><input type="checkbox" id="gzipOn" checked onchange="generate()"><span class="slider"></span></label></div>
+<div class="toggle-row"><span class="toggle-label">Browser caching</span><label class="toggle"><input type="checkbox" id="cacheOn" onchange="generate()"><span class="slider"></span></label></div>
+<div class="field-group"><label>Cache Duration</label><select id="cacheDur" onchange="generate()"><option value="1h">1 Hour</option><option value="1d">1 Day</option><option value="7d">7 Days</option><option value="30d" selected>30 Days</option><option value="90d">90 Days</option></select></div>
+</div>
+<div class="card">
+<div class="section-title">Rate Limiting</div>
+<div class="toggle-row"><span class="toggle-label">Enable rate limiting</span><label class="toggle"><input type="checkbox" id="rateLimit" onchange="generate()"><span class="slider"></span></label></div>
+<div class="field-group"><label>Rate (req/s)</label><input type="text" id="rateVal" placeholder="10" oninput="generate()"></div>
+<div class="field-group"><label>Burst</label><input type="text" id="burstVal" placeholder="20" oninput="generate()"></div>
+</div>
+<div class="card">
+<div class="section-title">Security Headers</div>
+<div class="toggle-row"><span class="toggle-label">X-Frame-Options</span><label class="toggle"><input type="checkbox" id="xfo" checked onchange="generate()"><span class="slider"></span></label></div>
+<div class="toggle-row"><span class="toggle-label">X-Content-Type-Options</span><label class="toggle"><input type="checkbox" id="xcto" checked onchange="generate()"><span class="slider"></span></label></div>
+<div class="toggle-row"><span class="toggle-label">X-XSS-Protection</span><label class="toggle"><input type="checkbox" id="xxss" checked onchange="generate()"><span class="slider"></span></label></div>
+<div class="toggle-row"><span class="toggle-label">Referrer-Policy</span><label class="toggle"><input type="checkbox" id="refpol" checked onchange="generate()"><span class="slider"></span></label></div>
+<div class="toggle-row"><span class="toggle-label">Content-Security-Policy</span><label class="toggle"><input type="checkbox" id="csp" onchange="generate()"><span class="slider"></span></label></div>
+</div>
+</div>
+<div>
+<div class="card" style="position:sticky;top:20px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<div style="font-weight:600">nginx.conf Preview</div>
+<div class="btn-row"><button class="btn secondary" onclick="download()">Download</button><button class="btn" onclick="copyConfig()">Copy</button></div>
+</div>
+<div class="preview" id="preview"># nginx.conf</div>
+</div>
+</div>
+</div>
+<div class="copy-toast" id="toast">Copied!</div>
+</div>
+<script>
+function generate(){
+const sn=document.getElementById("serverName").value.trim()||"example.com";
+const port=document.getElementById("listenPort").value.trim()||"80";
+const root=document.getElementById("rootDir").value.trim()||"/var/www/html";
+const index=document.getElementById("indexFiles").value.trim()||"index.html index.htm";
+const sslOn=document.getElementById("sslOn").checked;
+const sslCert=document.getElementById("sslCert").value.trim();
+const sslKey=document.getElementById("sslKey").value.trim();
+const proxyPass=document.getElementById("proxyPass").value.trim();
+const locPath=document.getElementById("locationPath").value.trim();
+const locProxy=document.getElementById("locationProxy").value.trim();
+const gzipOn=document.getElementById("gzipOn").checked;
+const cacheOn=document.getElementById("cacheOn").checked;
+const cacheDur=document.getElementById("cacheDur").value;
+const rateLimit=document.getElementById("rateLimit").checked;
+const rateVal=document.getElementById("rateVal").value.trim()||"10";
+const burstVal=document.getElementById("burstVal").value.trim()||"20";
+const lines=[];
+if(rateLimit){
+lines.push(`limit_req_zone $binary_remote_addr zone=general:10m rate=${rateVal}r/s;`,"");
+}
+lines.push("server {");
+if(sslOn){
+lines.push(`    listen ${port} ssl;`);
+lines.push(`    listen [::]:${port} ssl;`);
+if(sslCert)lines.push(`    ssl_certificate ${sslCert};`);
+if(sslKey)lines.push(`    ssl_certificate_key ${sslKey};`);
+lines.push("    ssl_protocols TLSv1.2 TLSv1.3;","    ssl_ciphers HIGH:!aNULL:!MD5;","    ssl_prefer_server_ciphers on;","");
+}else{
+lines.push(`    listen ${port};`);
+lines.push(`    listen [::]:${port};`);
+}
+lines.push(`    server_name ${sn};`,"");
+if(!proxyPass){
+lines.push(`    root ${root};`);
+lines.push(`    index ${index};`,"");
+}
+if(locPath&&locProxy){
+lines.push(`    location ${locPath} {`);
+lines.push(`        proxy_pass ${locProxy};`);
+lines.push("        proxy_http_version 1.1;");
+lines.push("        proxy_set_header Upgrade $http_upgrade;");
+lines.push("        proxy_set_header Connection 'upgrade';");
+lines.push("        proxy_set_header Host $host;");
+lines.push("        proxy_set_header X-Real-IP $remote_addr;");
+lines.push("        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;");
+lines.push("        proxy_set_header X-Forwarded-Proto $scheme;");
+lines.push("        proxy_cache_bypass $http_upgrade;");
+lines.push("    }","");
+}
+if(proxyPass){
+lines.push("    location / {");
+lines.push(`        proxy_pass ${proxyPass};`);
+lines.push("        proxy_http_version 1.1;");
+lines.push("        proxy_set_header Upgrade $http_upgrade;");
+lines.push("        proxy_set_header Connection 'upgrade';");
+lines.push("        proxy_set_header Host $host;");
+lines.push("        proxy_set_header X-Real-IP $remote_addr;");
+lines.push("        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;");
+lines.push("        proxy_set_header X-Forwarded-Proto $scheme;");
+lines.push("        proxy_cache_bypass $http_upgrade;");
+lines.push("    }","");
+}else{
+lines.push("    location / {");
+lines.push("        try_files $uri $uri/ =404;");
+lines.push("    }","");
+}
+if(cacheOn){
+const exts=["jpg","jpeg","png","gif","webp","ico","svg","css","js","woff2","woff"];
+lines.push(`    location ~* \\.(?:${exts.join("|")})$ {`);
+lines.push(`        expires ${cacheDur};`);
+lines.push("        add_header Cache-Control \"public, no-transform\";");
+lines.push("    }","");
+}
+if(gzipOn){
+lines.push("    gzip on;");
+lines.push("    gzip_vary on;");
+lines.push("    gzip_min_length 256;");
+lines.push("    gzip_proxied any;");
+lines.push("    gzip_types text/plain text/css text/xml text/javascript application/json application/javascript application/xml application/rss+xml image/svg+xml;");
+lines.push("");
+}
+const secHdrs=[];
+if(document.getElementById("xfo").checked)secHdrs.push('        add_header X-Frame-Options "SAMEORIGIN" always;');
+if(document.getElementById("xcto").checked)secHdrs.push('        add_header X-Content-Type-Options "nosniff" always;');
+if(document.getElementById("xxss").checked)secHdrs.push('        add_header X-XSS-Protection "1; mode=block" always;');
+if(document.getElementById("refpol").checked)secHdrs.push('        add_header Referrer-Policy "strict-origin-when-cross-origin" always;');
+if(document.getElementById("csp").checked)secHdrs.push('        add_header Content-Security-Policy "default-src \'self\'" always;');
+if(secHdrs.length){
+lines.push("    # Security Headers");
+lines.push("    location / {");
+lines.push(...secHdrs);
+lines.push("    }","");
+}
+if(rateLimit){
+lines.push(`    location / {`);
+lines.push(`        limit_req zone=general burst=${burstVal} nodelay;`);
+lines.push("    }","");
+}
+lines.push("}");
+document.getElementById("preview").textContent=lines.join("\n");
+}
+function copyConfig(){
+navigator.clipboard.writeText(document.getElementById("preview").textContent).then(()=>{
+const t=document.getElementById("toast");
+t.classList.add("show");
+setTimeout(()=>t.classList.remove("show"),2000);
+});
+}
+function download(){
+const blob=new Blob([document.getElementById("preview").textContent],{type:"text/plain"});
+const a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="nginx.conf";
+a.click();
+URL.revokeObjectURL(a.href);
+}
+function applyPreset(name){
+document.querySelectorAll(".preset-btn").forEach(b=>b.classList.remove("active"));
+event.target.classList.add("active");
+const defaults={
+basic:{sslOn:false,proxyPass:"",gzipOn:true,cacheOn:false,rateLimit:false,xfo:true,xcto:true,xxss:true,refpol:true,csp:false},
+static:{sslOn:false,proxyPass:"",gzipOn:true,cacheOn:true,rateLimit:false,xfo:true,xcto:true,xxss:true,refpol:true,csp:false},
+php:{sslOn:false,proxyPass:"unix:/run/php/php-fpm.sock",gzipOn:true,cacheOn:true,rateLimit:false,xfo:true,xcto:true,xxss:true,refpol:true,csp:false},
+proxy:{sslOn:false,proxyPass:"http://127.0.0.1:3000",gzipOn:true,cacheOn:false,rateLimit:true,xfo:true,xcto:true,xxss:true,refpol:true,csp:false},
+ssl:{sslOn:true,proxyPass:"",gzipOn:true,cacheOn:true,rateLimit:true,xfo:true,xcto:true,xxss:true,refpol:true,csp:true}
+};
+const d=defaults[name]||defaults.basic;
+document.getElementById("sslOn").checked=d.sslOn;
+document.getElementById("proxyPass").value=d.proxyPass==="unix:/run/php/php-fpm.sock"?"":"";
+document.getElementById("gzipOn").checked=d.gzipOn;
+document.getElementById("cacheOn").checked=d.cacheOn;
+document.getElementById("rateLimit").checked=d.rateLimit;
+document.getElementById("xfo").checked=d.xfo;
+document.getElementById("xcto").checked=d.xcto;
+document.getElementById("xxss").checked=d.xxss;
+document.getElementById("refpol").checked=d.refpol;
+document.getElementById("csp").checked=d.csp;
+if(name==="proxy"){document.getElementById("proxyPass").value="http://127.0.0.1:3000";}
+if(name==="php"){
+document.getElementById("locationPath").value="/";
+document.getElementById("locationProxy").value="unix:/run/php/php-fpm.sock";
+}
+generate();
+}
+generate();
+</script>
+</body>
+</html>

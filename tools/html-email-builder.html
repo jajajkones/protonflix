@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML Email Builder</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0c0c0c;--surface:#141414;--surface-2:#1a1a1a;--border:#262626;--text:#e5e5e5;--muted:#737373;--accent:#3b82f6;--green:#22c55e;--red:#ef4444}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6}
+a{color:var(--accent);text-decoration:none}
+.container{max-width:1400px;margin:0 auto;padding:16px}
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);margin-bottom:16px}
+header h1{font-size:1.1rem;font-weight:600}
+.back{font-size:.85rem}
+.layout{display:grid;grid-template-columns:320px 1fr;gap:16px;height:calc(100vh - 100px)}
+.sidebar{overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px}
+.main{display:flex;flex-direction:column;gap:12px;min-height:0}
+.tabs{display:flex;gap:4px;margin-bottom:12px;background:var(--surface-2);border-radius:6px;padding:3px}
+.tab{padding:5px 10px;border-radius:4px;font-size:.78rem;cursor:pointer;border:none;background:transparent;color:var(--muted);font-family:inherit}
+.tab.active{background:var(--accent);color:#fff}
+.section{margin-bottom:14px}
+.section h3{font-size:.8rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.form-group{margin-bottom:8px}
+.form-group label{display:block;font-size:.78rem;color:var(--muted);margin-bottom:3px}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:7px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:.82rem;font-family:inherit}
+.form-group textarea{min-height:60px;resize:vertical}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{outline:none;border-color:var(--accent)}
+.block{background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:8px;position:relative}
+.block-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.block-header span{font-size:.78rem;font-weight:600;color:var(--accent)}
+.btn-remove{background:none;border:none;color:var(--red);cursor:pointer;font-size:.9rem;padding:0}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:5px;padding:6px 14px;font-size:.82rem;cursor:pointer;font-family:inherit}
+.btn:hover{opacity:.9}
+.btn-sm{padding:4px 10px;font-size:.78rem}
+.btn-secondary{background:var(--surface-2);color:var(--text);border:1px solid var(--border)}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap}
+.add-block{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.preview-frame{flex:1;background:#fff;border-radius:8px;overflow:hidden;min-height:0}
+.preview-frame iframe{width:100%;height:100%;border:none}
+.output-area{flex:1;min-height:0;display:flex;flex-direction:column}
+.output-area textarea{flex:1;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px;color:var(--text);font-family:monospace;font-size:.8rem;resize:none;min-height:200px}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:#fff;padding:6px 14px;border-radius:5px;font-size:.82rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:99}
+.toast.show{opacity:1}
+@media(max-width:768px){.layout{grid-template-columns:1fr;height:auto}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>HTML Email Builder</h1>
+<a href="index.html" class="back">&larr; Back</a>
+</header>
+<div class="layout">
+<div class="sidebar">
+<div class="section">
+<h3>Templates</h3>
+<div class="btn-row">
+<button class="btn btn-sm btn-secondary" onclick="loadTemplate('welcome')">Welcome</button>
+<button class="btn btn-sm btn-secondary" onclick="loadTemplate('newsletter')">Newsletter</button>
+<button class="btn btn-sm btn-secondary" onclick="loadTemplate('receipt')">Receipt</button>
+</div>
+</div>
+<div class="section">
+<h3>Pre-header</h3>
+<div class="form-group">
+<label>Preview Text</label>
+<input type="text" id="preheader" placeholder="Shows in inbox preview" oninput="updatePreview()">
+</div>
+</div>
+<div class="section">
+<h3>Blocks</h3>
+<div class="add-block">
+<button class="btn btn-sm" onclick="addBlock('header')">+ Header</button>
+<button class="btn btn-sm" onclick="addBlock('text')">+ Text</button>
+<button class="btn btn-sm" onclick="addBlock('image')">+ Image</button>
+<button class="btn btn-sm" onclick="addBlock('button')">+ Button</button>
+<button class="btn btn-sm" onclick="addBlock('divider')">+ Divider</button>
+<button class="btn btn-sm" onclick="addBlock('footer')">+ Footer</button>
+</div>
+<div id="blockList"></div>
+</div>
+<div class="section">
+<h3>Settings</h3>
+<div class="form-group">
+<label>Background Color</label>
+<input type="color" id="bgColor" value="#f4f4f7" oninput="updatePreview()">
+</div>
+<div class="form-group">
+<label>Content Background</label>
+<input type="color" id="contentBg" value="#ffffff" oninput="updatePreview()">
+</div>
+<div class="form-group">
+<label>Text Color</label>
+<input type="color" id="textColor" value="#333333" oninput="updatePreview()">
+</div>
+<div class="form-group">
+<label>Max Width (px)</label>
+<input type="number" id="maxWidth" value="600" oninput="updatePreview()">
+</div>
+</div>
+<div class="btn-row" style="margin-top:12px">
+<button class="btn" onclick="copyHTML()">Copy HTML</button>
+<button class="btn btn-secondary" onclick="downloadHTML()">Download</button>
+</div>
+</div>
+<div class="main">
+<div class="tabs">
+<button class="tab active" onclick="showView('preview',this)">Preview</button>
+<button class="tab" onclick="showView('html',this)">HTML</button>
+</div>
+<div class="preview-frame" id="previewView"><iframe id="previewFrame"></iframe></div>
+<div class="output-area" id="htmlView" style="display:none"><textarea id="htmlOutput" readonly></textarea></div>
+</div>
+</div>
+</div>
+<div class="toast" id="toast">Copied!</div>
+<script>
+let blocks=[];let blockId=0;
+function addBlock(type,id){
+const bid=id||++blockId;
+const block={id:bid,type};
+if(type==='header')block.text='Your Company';
+if(type==='text')block.text='Enter your email content here.';
+if(type==='image'){block.url='https://placehold.co/560x200/e2e8f0/64748b?text=Image';block.alt='Image';block.link='';}
+if(type==='button'){block.text='Click Here';block.url='#';block.color='#3b82f6';}
+if(type==='divider')block.color='#e5e7eb';
+if(type==='footer')block.text='© 2024 Your Company. All rights reserved.';
+if(!id)blocks.push(block);
+renderBlocks();
+updatePreview();
+}
+
+function renderBlocks(){
+const list=document.getElementById('blockList');
+list.innerHTML='';
+blocks.forEach(b=>{
+const div=document.createElement('div');
+div.className='block';
+div.innerHTML=`<div class="block-header"><span>${b.type.toUpperCase()}</span><button class="btn-remove" onclick="removeBlock(${b.id})">&times;</button></div>${getBlockFields(b)}`;
+list.appendChild(div);
+});
+}
+
+function getBlockFields(b){
+if(b.type==='header')return`<div class="form-group"><label>Text</label><input type="text" value="${esc(b.text)}" oninput="updateField(${b.id},'text',this.value)"></div>`;
+if(b.type==='text')return`<div class="form-group"><label>Content</label><textarea oninput="updateField(${b.id},'text',this.value)">${esc(b.text)}</textarea></div>`;
+if(b.type==='image')return`<div class="form-group"><label>Image URL</label><input type="text" value="${esc(b.url)}" oninput="updateField(${b.id},'url',this.value)"></div><div class="form-group"><label>Alt Text</label><input type="text" value="${esc(b.alt)}" oninput="updateField(${b.id},'alt',this.value)"></div>`;
+if(b.type==='button')return`<div class="form-group"><label>Text</label><input type="text" value="${esc(b.text)}" oninput="updateField(${b.id},'text',this.value)"></div><div class="form-group"><label>URL</label><input type="text" value="${esc(b.url)}" oninput="updateField(${b.id},'url',this.value)"></div><div class="form-group"><label>Color</label><input type="color" value="${b.color}" oninput="updateField(${b.id},'color',this.value)"></div>`;
+if(b.type==='divider')return`<div class="form-group"><label>Color</label><input type="color" value="${b.color}" oninput="updateField(${b.id},'color',this.value)"></div>`;
+if(b.type==='footer')return`<div class="form-group"><label>Text</label><textarea oninput="updateField(${b.id},'text',this.value)">${esc(b.text)}</textarea></div>`;
+return'';
+}
+
+function esc(s){return String(s).replace(/"/g,'&quot;').replace(/</g,'&lt;')}
+
+function updateField(id,key,val){const b=blocks.find(x=>x.id===id);if(b){b[key]=val;updatePreview()}}
+function removeBlock(id){blocks=blocks.filter(b=>b.id!==id);renderBlocks();updatePreview()}
+
+function generateHTML(){
+const bg=document.getElementById('bgColor').value;
+const contentBg=document.getElementById('contentBg').value;
+const text=document.getElementById('textColor').value;
+const maxW=document.getElementById('maxWidth').value;
+const preheader=document.getElementById('preheader').value;
+let body='';
+blocks.forEach(b=>{
+if(b.type==='header')body+=`<tr><td style="padding:24px 32px 16px;text-align:center"><h1 style="margin:0;font-size:24px;color:${text};font-weight:700">${b.text}</h1></td></tr>`;
+if(b.type==='text')body+=`<tr><td style="padding:8px 32px;font-size:15px;line-height:1.6;color:${text}">${b.text.replace(/\n/g,'<br>')}</td></tr>`;
+if(b.type==='image')body+=`<tr><td style="padding:8px 32px"><img src="${b.url}" alt="${b.alt}" width="${parseInt(maxW)-64}" style="display:block;width:100%;max-width:${parseInt(maxW)-64}px;height:auto;border:0;border-radius:4px"></td></tr>`;
+if(b.type==='button')body+=`<tr><td style="padding:16px 32px;text-align:center"><a href="${b.url}" style="display:inline-block;background:${b.color};color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-weight:600;font-size:15px">${b.text}</a></td></tr>`;
+if(b.type==='divider')body+=`<tr><td style="padding:8px 32px"><hr style="border:0;border-top:1px solid ${b.color};margin:0"></td></tr>`;
+if(b.type==='footer')body+=`<tr><td style="padding:24px 32px;text-align:center;font-size:13px;color:#6b7280;line-height:1.5">${b.text.replace(/\n/g,'<br>')}</td></tr>`;
+});
+return`<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:${bg};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
+${preheader?`<div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:${bg}">${preheader}</div>`:''}
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:${bg}"><tr><td align="center" style="padding:24px 16px">
+<table role="presentation" width="${maxW}" cellspacing="0" cellpadding="0" border="0" style="background:${contentBg};border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1)">
+${body}
+</table>
+</td></tr></table>
+</body>
+</html>`;
+}
+
+function updatePreview(){
+const html=generateHTML();
+const frame=document.getElementById('previewFrame');
+const doc=frame.contentDocument||frame.contentWindow.document;
+doc.open();doc.write(html);doc.close();
+document.getElementById('htmlOutput').value=html;
+}
+
+function showView(view,btn){
+document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+btn.classList.add('active');
+document.getElementById('previewView').style.display=view==='preview'?'flex':'none';
+document.getElementById('htmlView').style.display=view==='html'?'flex':'none';
+}
+
+function copyHTML(){
+navigator.clipboard.writeText(document.getElementById('htmlOutput').value).then(()=>{const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)});
+}
+function downloadHTML(){
+const blob=new Blob([document.getElementById('htmlOutput').value],{type:'text/html'});
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='email.html';a.click();
+}
+
+function loadTemplate(name){
+blocks=[];blockId=0;
+if(name==='welcome'){
+addBlock('header','Company');
+addBlock('image','https://placehold.co/560x200/3b82f6/fff?text=Welcome');
+addBlock('text','Hi there,\n\nWelcome to our platform! We\'re excited to have you on board.\n\nHere are some things you can do to get started:');
+addBlock('button','Get Started');
+addBlock('divider');
+addBlock('text','If you have any questions, feel free to reply to this email.');
+addBlock('footer','© 2024 Your Company\n123 Main St, City, State');
+}else if(name==='newsletter'){
+addBlock('header','Weekly Newsletter');
+addBlock('text','Here\'s what happened this week:');
+addBlock('divider');
+addBlock('text','Featured Article\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.');
+addBlock('image','https://placehold.co/560x160/e2e8f0/64748b?text=Featured+Article');
+addBlock('button','Read More');
+addBlock('divider');
+addBlock('text','More Updates\n\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.');
+addBlock('footer','© 2024 Your Company\nUnsubscribe | Preferences');
+}else if(name==='receipt'){
+addBlock('header','Order Confirmation');
+addBlock('text','Thank you for your purchase!\n\nOrder #12345\nDate: '+(new Date().toLocaleDateString()));
+addBlock('divider');
+addBlock('text','Item 1 — $29.99\nItem 2 — $49.99\nShipping — $5.99\n\nTotal: $85.97');
+addBlock('divider');
+addBlock('text','Shipping to:\n123 Main St\nCity, State 12345');
+addBlock('footer','© 2024 Your Company\nQuestions? Contact support@company.com');
+}
+updatePreview();
+}
+
+addBlock('header');addBlock('text');addBlock('button');addBlock('footer');
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # DevTools Hub
 
-> 170+ free, fast, and privacy-first browser tools for developers. No sign-up, no tracking. Everything runs locally in your browser.
+> 200+ free, fast, and privacy-first browser tools for developers. No sign-up, no tracking. Everything runs locally in your browser.
 
 **Live:** [jajajkones.github.io/protonflix/tools/](https://jajajkones.github.io/protonflix/tools/)
 **Root:** [jajajkones.github.io/protonflix/](https://jajajkones.github.io/protonflix/)
@@ -30,6 +30,13 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 | [Password Pattern Generator](tools/password-pattern.html) | Create custom password patterns |
 | [Slug Generator](tools/slug-generator.html) | Generate URL slugs from text |
 | [Sort Lines](tools/sort-lines.html) | Sort lines of text in ascending or descending order |
+| [Text Statistics](tools/text-statistics.html) | Analyze text with detailed statistics and metrics |
+| [JSON/CSV Converter](tools/json-csv-converter.html) | Convert between JSON and CSV formats |
+| [JSON/YAML/TOML Converter](tools/json-yaml-toml.html) | Convert between JSON, YAML, and TOML formats |
+| [XML/YAML Converter](tools/xml-yaml-converter.html) | Convert between XML and YAML formats |
+| [Hex/RGB Converter](tools/hex-rgb-converter.html) | Convert between hex and RGB color values |
+| [Markdown Slides](tools/markdown-slides.html) | Create slide presentations from Markdown |
+| [Diff Viewer](tools/diff-viewer.html) | View and compare file differences side by side |
 
 ### Encoding & Decoding
 | Tool | Description |
@@ -72,6 +79,7 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 | [JSON to Types](tools/json-to-types.html) | Generate TypeScript types from JSON data |
 | [HTML to JSX](tools/html-to-jsx.html) | Convert HTML to JSX syntax |
 | [CSS to Tailwind](tools/css-to-tailwind.html) | Convert CSS to Tailwind CSS classes |
+| [JSON to Environment](tools/json-to-env.html) | Convert JSON to environment variable format |
 
 ### Design Tools
 | Tool | Description |
@@ -108,6 +116,9 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 | [Viewport Resizer](tools/viewport-resizer.html) | Test responsive layouts at any viewport size |
 | [SVG Pattern Generator](tools/svg-pattern-generator.html) | Generate SVG patterns and backgrounds |
 | [Barcode Generator](tools/barcode-generator.html) | Generate barcodes in various formats |
+| [Color Token Generator](tools/color-token-generator.html) | Generate design tokens from color palettes |
+| [CSS Variable Generator](tools/css-variable-generator.html) | Generate CSS custom properties from colors and values |
+| [Tailwind Colors](tools/tailwind-colors.html) | Browse and reference Tailwind CSS color palette |
 
 ### Code Tools
 | Tool | Description |
@@ -147,6 +158,16 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 | [HTML/CSS/JS Playground](tools/html-prototype.html) | Live HTML, CSS, and JavaScript playground |
 | [NATO Phonetic Alphabet](tools/nato-phonetic.html) | Convert text to NATO phonetic alphabet |
 | [Env Editor](tools/env-editor.html) | Edit and validate .env files |
+| [Code Flowchart](tools/code-flowchart.html) | Generate flowcharts from code logic |
+| [HTML Email Builder](tools/html-email-builder.html) | Build responsive HTML email templates |
+| [Code Review Checklist](tools/code-review-checklist.html) | Interactive code review checklist |
+| [API Documentation](tools/api-documentation.html) | Generate API documentation from specs |
+| [JSON Diff](tools/json-diff.html) | Compare two JSON objects and highlight differences |
+| [JSON Tree Viewer](tools/json-tree-viewer.html) | Visualize JSON as an expandable tree |
+| [Slug Generator](tools/slug-generator.html) | Generate URL slugs from text |
+| [Sort Lines](tools/sort-lines.html) | Sort lines of text in ascending or descending order |
+| [Meta Tag Generator](tools/meta-tag-generator.html) | Generate HTML meta tags for SEO |
+| [Sitemap Visualizer](tools/sitemap-visualizer.html) | Visualize website sitemap structure |
 
 ### API & Auth
 | Tool | Description |
@@ -162,6 +183,9 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 | [Entropy Calculator](tools/entropy-calculator.html) | Calculate password entropy and strength |
 | [OTP Generator](tools/otp-generator.html) | Generate one-time passwords |
 | [Webhook Verifier](tools/webhook-verifier.html) | Verify webhook signatures and payloads |
+| [JWT Validator](tools/jwt-validator.html) | Validate and verify JWT tokens |
+| [Curl Builder](tools/curl-builder.html) | Build and export curl commands |
+| [SQL Query Builder](tools/sql-query-builder.html) | Build SQL queries with a visual interface |
 
 ### Developer Tools
 | Tool | Description |
@@ -186,6 +210,7 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 | [HTTP Headers Analyzer](tools/http-headers-analyzer.html) | Analyze HTTP request and response headers |
 | [MAC Lookup](tools/mac-lookup.html) | Look up device manufacturer from MAC address |
 | [PII Redactor](tools/pii-redactor.html) | Redact personally identifiable information from text |
+| [Password Strength Checker](tools/password-strength.html) | Analyze password strength and security |
 
 ### DevOps & Network
 | Tool | Description |
@@ -197,14 +222,28 @@ A comprehensive collection of standalone HTML tools organized by category. Each 
 | [IP Geolocation](tools/ip-geolocation.html) | Look up geographic location of IP addresses |
 | [DNS Lookup](tools/dns-lookup.html) | Query DNS records for any domain |
 | [IP Lookup](tools/ip-lookup.html) | Look up public IP address info |
+| [Port Scanner](tools/port-scanner.html) | Scan and check open ports on a host |
+| [SSL Checker](tools/ssl-checker.html) | Verify SSL certificate details and expiry |
+| [IP Subnet Calculator](tools/ip-subnet.html) | Calculate IP subnet divisions and ranges |
+| [.htaccess Generator](tools/htaccess-generator.html) | Generate Apache .htaccess configuration |
+| [Nginx Config Generator](tools/nginx-config.html) | Generate Nginx server configuration |
 
-### Media & Design
+### Media & Utilities
 | Tool | Description |
 |------|-------------|
 | [Mermaid Viewer](tools/mermaid-viewer.html) | Render and preview Mermaid diagrams |
 | [Image Compressor](tools/image-compressor.html) | Compress images with quality control |
 | [Markdown to PDF](tools/markdown-to-pdf.html) | Convert Markdown to downloadable PDF |
+| [SVG Pattern Generator](tools/svg-pattern-generator.html) | Generate SVG patterns and backgrounds |
+| [Barcode Generator](tools/barcode-generator.html) | Generate barcodes in various formats |
 | [Webpage Screenshot](tools/webpage-screenshot.html) | Capture web pages as screenshots |
+| [SVG to Data URI](tools/svg-to-data-uri.html) | Convert SVG to data URI for embedding |
+| [Meeting Timer](tools/meeting-timer.html) | Timer for meetings and presentations |
+| [Expense Splitter](tools/expense-splitter.html) | Split expenses among groups |
+| [Random Data Generator](tools/random-data-generator.html) | Generate random names, addresses, and data |
+| [Unit Price Calculator](tools/unit-price-calculator.html) | Compare unit prices between products |
+| [Keyboard Layout Viewer](tools/keyboard-layout.html) | Visualize keyboard layouts |
+| [OTP Generator](tools/otp-generator.html) | Generate one-time passwords |
 
 ### Security
 | Tool | Description |

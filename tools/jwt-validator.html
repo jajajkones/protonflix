@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JWT Validator & Debugger</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0c0c0c;--surface:#141414;--surface-2:#1a1a1a;--border:#262626;--text:#e5e5e5;--muted:#737373;--accent:#3b82f6;--green:#22c55e;--red:#ef4444;--yellow:#eab308}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.container{max-width:960px;margin:0 auto;padding:24px}
+header{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--border);margin-bottom:24px}
+header h1{font-size:1.25rem;font-weight:600}
+.back{font-size:.875rem}
+.input-section{margin-bottom:24px}
+textarea{width:100%;min-height:100px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:monospace;font-size:.875rem;resize:vertical}
+textarea:focus{outline:none;border-color:var(--accent)}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:8px 20px;font-size:.875rem;cursor:pointer;font-family:inherit;margin-top:12px}
+.btn:hover{opacity:.9}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.btn-secondary{background:var(--surface-2);color:var(--text);border:1px solid var(--border)}
+.results{display:none}
+.section{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px}
+.section h2{font-size:1rem;font-weight:600;margin-bottom:12px}
+.section h3{font-size:.875rem;font-weight:600;margin:12px 0 8px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.token-parts{display:grid;grid-template-columns:1fr;gap:12px}
+.token-part{background:var(--surface-2);border-radius:6px;padding:12px;overflow-x:auto}
+.token-part pre{font-family:monospace;font-size:.8rem;white-space:pre-wrap;word-break:break-all}
+.label{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;color:var(--muted)}
+.status{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:4px;font-size:.8rem;font-weight:500}
+.valid{background:rgba(34,197,94,.1);color:var(--green)}
+.invalid{background:rgba(239,68,68,.1);color:var(--red)}
+.warning{background:rgba(234,179,8,.1);color:var(--yellow)}
+.claims-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.claim{background:var(--surface-2);border-radius:6px;padding:10px 12px}
+.claim .key{font-size:.75rem;color:var(--muted);margin-bottom:2px}
+.claim .val{font-size:.875rem;font-family:monospace;word-break:break-all}
+.claim.error{border:1px solid var(--red)}
+.info-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:.875rem}
+.info-row:last-child{border-bottom:none}
+.info-row .lbl{color:var(--muted)}
+.mistakes{background:var(--surface-2);border-radius:6px;padding:12px}
+.mistakes li{margin:6px 0;font-size:.85rem;padding-left:16px;position:relative}
+.mistakes li::before{content:'!';position:absolute;left:0;color:var(--yellow);font-weight:700}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--green);color:#fff;padding:8px 16px;border-radius:6px;font-size:.85rem;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+@media(max-width:640px){.claims-grid{grid-template-columns:1fr}.container{padding:16px}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>JWT Validator & Debugger</h1>
+<a href="index.html" class="back">&larr; Back</a>
+</header>
+<div class="input-section">
+<textarea id="jwtInput" placeholder="Paste your JWT token here..."></textarea>
+<div class="btn-row">
+<button class="btn" onclick="validateJWT()">Validate & Decode</button>
+<button class="btn btn-secondary" onclick="loadSample()">Load Sample</button>
+</div>
+</div>
+<div class="results" id="results">
+<div class="section">
+<h2>Token Overview</h2>
+<div id="tokenStatus" style="margin-bottom:12px"></div>
+<div class="info-row"><span class="lbl">Token Age</span><span id="tokenAge"></span></div>
+<div class="info-row"><span class="lbl">Time Until Expiry</span><span id="timeToExpiry"></span></div>
+<div class="info-row"><span class="lbl">Algorithm</span><span id="alg"></span></div>
+<div class="info-row"><span class="lbl">Type</span><span id="typ"></span></div>
+</div>
+<div class="section">
+<h2>Decoded Parts</h2>
+<div class="token-parts">
+<div class="token-part">
+<div class="label">Header</div>
+<pre id="headerJson"></pre>
+</div>
+<div class="token-part">
+<div class="label">Payload</div>
+<pre id="payloadJson"></pre>
+</div>
+<div class="token-part">
+<div class="label">Signature</div>
+<pre id="signaturePart"></pre>
+</div>
+</div>
+</div>
+<div class="section">
+<h2>Claims</h2>
+<div class="claims-grid" id="claimsGrid"></div>
+</div>
+<div class="section">
+<h2>Common JWT Mistakes</h2>
+<ul class="mistakes" id="mistakesList"></ul>
+</div>
+<div class="btn-row" style="margin-top:12px">
+<button class="btn btn-secondary" onclick="copyDecoded()">Copy Decoded JSON</button>
+</div>
+</div>
+</div>
+<div class="toast" id="toast">Copied!</div>
+<script>
+function b64UrlDecode(str){str=str.replace(/-/g,'+').replace(/_/g,'/');while(str.length%4)str+='=';return decodeURIComponent(atob(str).split('').map(c=>'%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''))}
+function b64UrlEncode(str){return btoa(str).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+
+function validateJWT(){
+const input=document.getElementById('jwtInput').value.trim();
+if(!input)return;
+const parts=input.split('.');
+if(parts.length!==3){alert('Invalid JWT format: expected 3 parts');return}
+
+let header,payload;
+try{header=JSON.parse(b64UrlDecode(parts[0]))}catch(e){alert('Invalid header: '+e.message);return}
+try{payload=JSON.parse(b64UrlDecode(parts[1]))}catch(e){alert('Invalid payload: '+e.message);return}
+
+const now=Math.floor(Date.now()/1000);
+let statuses=[];
+let claimsData=[];
+
+if(payload.exp){
+const expired=now>payload.exp;
+const remaining=payload.exp-now;
+statuses.push(expired?'expired':'valid');
+claimsData.push({key:'exp',val:new Date(payload.exp*1000).toLocaleString(),error:expired,msg:expired?'Token has expired':'Valid',remaining});
+}
+if(payload.nbf){
+const notYet=now<payload.nbf;
+statuses.push(notYet?'notyet':'valid');
+claimsData.push({key:'nbf',val:new Date(payload.nbf*1000).toLocaleString(),error:notYet,msg:notYet?'Token not yet valid':'Valid'});
+}
+if(payload.iat){
+const age=now-payload.iat;
+statuses.push('valid');
+claimsData.push({key:'iat',val:new Date(payload.iat*1000).toLocaleString(),error:false,msg:'Issued',age});
+document.getElementById('tokenAge').textContent=formatDuration(age);
+}
+if(payload.exp&&payload.iat){
+const ttl=payload.exp-payload.iat;
+document.getElementById('tokenAge').textContent=formatDuration(now-payload.iat)+' / '+formatDuration(ttl)+' TTL';
+}
+if(payload.exp){
+const rem=payload.exp-now;
+document.getElementById('timeToExpiry').textContent=rem>0?formatDuration(rem):'Expired';
+document.getElementById('timeToExpiry').style.color=rem>0?'var(--green)':'var(--red)';
+}
+if(payload.iss)claimsData.push({key:'iss',val:payload.iss,error:false});
+if(payload.aud)claimsData.push({key:'aud',val:Array.isArray(payload.aud)?payload.aud.join(', '):payload.aud,error:false});
+if(payload.sub)claimsData.push({key:'sub',val:payload.sub,error:false});
+if(payload.jti)claimsData.push({key:'jti',val:payload.jti,error:false});
+
+document.getElementById('alg').textContent=header.alg||'N/A';
+document.getElementById('typ').textContent=header.typ||'N/A';
+document.getElementById('headerJson').textContent=JSON.stringify(header,null,2);
+document.getElementById('payloadJson').textContent=JSON.stringify(payload,null,2);
+document.getElementById('signaturePart').textContent=parts[2];
+
+const overallValid=!statuses.includes('expired')&&!statuses.includes('notyet');
+document.getElementById('tokenStatus').innerHTML=`<span class="status ${overallValid?'valid':'invalid'}">${overallValid?'&#10003; Valid Token':'&#10007; Invalid Token'}</span>`;
+
+let claimsHtml='';
+claimsData.forEach(c=>{
+claimsHtml+=`<div class="claim ${c.error?'error':''}"><div class="key">${c.key}</div><div class="val">${c.val}${c.msg?' — '+c.msg:''}</div></div>`;
+});
+document.getElementById('claimsGrid').innerHTML=claimsHtml;
+
+const mistakes=[];
+if(!payload.exp)mistakes.push('No expiration claim (exp). Tokens without expiry are a security risk.');
+if(!payload.iss)mistakes.push('No issuer claim (iss). Consider adding issuer for token verification.');
+if(!payload.aud)mistakes.push('No audience claim (aud). Adding audience prevents token misuse.');
+if(header.alg==='none')mistakes.push('Algorithm is "none". This is a critical security vulnerability!');
+if(header.alg&&(header.alg.startsWith('HS')&&(!header.alg.includes('256'))))mistakes.push('Consider using HS256 or stronger algorithms.');
+if(payload.iat&&payload.exp&&((payload.exp-payload.iat)>86400*30))mistakes.push('Token lifetime exceeds 30 days. Short-lived tokens are more secure.');
+document.getElementById('mistakesList').innerHTML=mistakes.length?mistakes.map(m=>'<li>'+m+'</li>').join(''):'<li>No common issues detected</li>';
+
+document.getElementById('results').style.display='block';
+document.getElementById('results').dataset.payload=JSON.stringify(payload,null,2);
+}
+
+function formatDuration(s){
+if(s<60)return s+'s';
+if(s<3600)return Math.floor(s/60)+'m '+s%60+'s';
+if(s<86400)return Math.floor(s/3600)+'h '+Math.floor((s%3600)/60)+'m';
+return Math.floor(s/86400)+'d '+Math.floor((s%86400)/3600)+'h';
+}
+
+function loadSample(){
+const header=b64UrlEncode(JSON.stringify({alg:'HS256',typ:'JWT'}));
+const payload=b64UrlEncode(JSON.stringify({sub:'1234567890',name:'John Doe',iat:Math.floor(Date.now()/1000)-3600,exp:Math.floor(Date.now()/1000)+3600,iss:'example.com',aud:'app.example.com'}));
+const sig=b64UrlEncode('fake-signature');
+document.getElementById('jwtInput').value=header+'.'+payload+'.'+sig;
+validateJWT();
+}
+
+function copyDecoded(){
+const data=document.getElementById('results').dataset.payload;
+navigator.clipboard.writeText(data||'').then(()=>{const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)});
+}
+</script>
+</body>
+</html>
