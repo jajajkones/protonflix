@@ -11,6 +11,20 @@
 
 A comprehensive collection of standalone HTML tools organized by category. Each tool is a single self-contained file — no build step, no dependencies, no server required.
 
+### 5 Switchable UI Layouts
+
+The hub page comes with a **⚙ layout switcher** (bottom-right corner) offering 5 different UI experiences:
+
+| Layout | Style | Description |
+|--------|-------|-------------|
+| **Linear** (default) | Sidebar + list | Clean sidebar navigation with category counts, tool rows |
+| **Vercel** | Grid cards | Bold heading, 2-column card grid, sharp corners, black bg |
+| **Raycast** | Spotlight search | Centered search bar with keyboard navigation (↑↓ Enter) |
+| **Accordion** | Expandable sections | Categories as collapsible accordions with expand/collapse all |
+| **IDE** | VS Code-style | Activity bar + file tree sidebar + editor area + status bar |
+
+Your preference is saved to `localStorage` and persists across visits.
+
 ### Text & String Tools
 | Tool | Description |
 |------|-------------|
